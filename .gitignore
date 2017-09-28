@@ -1,0 +1,14 @@
+.dub
+docs.json
+__dummy.html
+docs/
+krug.so
+krug.dylib
+krug.dll
+krug.a
+krug.lib
+krug-test-*
+*.exe
+*.o
+*.obj
+*.lst

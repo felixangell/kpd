@@ -1,0 +1,5 @@
+name "krug"
+description "krug compiler"
+authors "Felix"
+copyright "Copyright © 2017, Felix"
+license "MIT"

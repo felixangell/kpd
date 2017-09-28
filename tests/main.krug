@@ -1,0 +1,7 @@
+#load entities
+#load utils::math
+#load gfx::{colour, context}
+
+func main() int {
+	
+}
