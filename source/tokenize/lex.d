@@ -32,7 +32,7 @@ class Lexer : Compilation_Phase {
 		string result;
 		if (peek() == '\\') {
 			result ~= consume();
-			char esc_prefix = peek();
+			dchar esc_prefix = peek();
 			switch (esc_prefix) {
 			case '"':
 			case '\'':
@@ -60,7 +60,7 @@ class Lexer : Compilation_Phase {
 	}
 
 	Token recognize_str() {
-		string lexeme = expect('"');
+		string lexeme = to!string(expect('"'));
 		while (has_next()) {
 			if (peek() == '\\') {
 				lexeme ~= recognize_esc_seq();
@@ -76,11 +76,12 @@ class Lexer : Compilation_Phase {
 	}
 
 	Token recognize_raw_str() {
-
+		// TODO:
+		return Token("", Token_Type.String); 
 	}
 
 	Token recognize_char() {
-		string buffer = expect('\'');
+		string buffer = to!string(expect('\''));
 		if (peek() == '\\') {
 			buffer ~= recognize_esc_seq();
 		}
@@ -88,18 +89,18 @@ class Lexer : Compilation_Phase {
 			buffer ~= consume();
 		}
 		buffer ~= expect('\'');
-		return Token(buffer, Token_Type.Character);
+		return Token(buffer, Token_Type.Rune);
 	}
 
 	Token recognize_num() {
 		string sign;
-		if (peek() = '-' || peek() == '+') {
-			sign = consume();
+		if (peek() == '-' || peek() == '+') {
+			sign ~= consume();
 		}
 
 		switch (peek(1)) {
 		case 'x': case 'X':
-			string prefix = sign + consume() + consume();
+			string prefix = sign ~ to!string(consume()) ~ to!string(consume());
 			break;
 		case 'o': case 'O':
 			break;
@@ -111,6 +112,8 @@ class Lexer : Compilation_Phase {
 
 			break;	
 		}
+
+		
 	}
 
 	void eat_comment() {
@@ -146,7 +149,7 @@ class Lexer : Compilation_Phase {
 				pad = 0;
 			}
 
-			char curr = peek();
+			dchar curr = peek();
 			if (curr == '\0') {
 				break;
 			}
@@ -158,7 +161,7 @@ class Lexer : Compilation_Phase {
 			// this case a c-style string which is denoted
 			// as c"foo bar baz".
 			if (curr == 'c' && peek(1) == '"') {
-				char prefix = consume();
+				dchar prefix = consume();
 			}
 			// identifier, cannot start with underscore
 			else if (isAlpha(curr)) {
@@ -203,7 +206,7 @@ class Lexer : Compilation_Phase {
 		return position < input.length;
 	}
 
-	char peek(int offs = 0) {
+	dchar peek(int offs = 0) {
 		if (!has_next()) {
 			return '\0';
 		}
@@ -228,8 +231,8 @@ class Lexer : Compilation_Phase {
 		return result;
 	}
 
-	char consume() {
-		char curr = peek();
+	dchar consume() {
+		dchar curr = peek();
 		if (curr == '\n') {
 			row++;
 			col = 1;
@@ -239,8 +242,20 @@ class Lexer : Compilation_Phase {
 		return curr;
 	}
 
-	char expect(bool delegate(char) pred, string err) {
-		if (!has_next() && pred(peek())) {
+	dchar expect(dchar c) {
+		if (has_next() && peek() == c) {
+			return consume();
+		}
+
+		if (!has_next()) {
+			assert(0 && "eof");
+		}
+
+		assert(0 && "expected!");
+	}
+
+	dchar expect(bool delegate(dchar) pred, string err) {
+		if (has_next() && pred(peek())) {
 			return consume();
 		}
 
