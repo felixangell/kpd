@@ -2,6 +2,7 @@ module krug_module;
 
 import std.file;
 import std.algorithm.searching : startsWith;
+import std.conv;
 
 import tokenize;
 
@@ -16,26 +17,36 @@ enum Token_Type {
 	Keyword
 };
 
-struct Location {
-	uint idx, start, end;
+class Location {
+	uint idx, row, col;
 
-	this(uint idx, uint start, uint end) {
+	this(uint idx, uint row, uint col) {
 		this.idx = idx;
-		this.start = start;
-		this.end = end;
+		this.row = row;
+		this.col = col;
+	}
+
+	override string toString() const {
+		return to!string(row) ~ ":" ~ to!string(col);
 	}
 };
 
-struct Span {
+class Span {
 	Location start, end;
+	uint index;
 
-	this(Location start, Location end) {
+	this(Location start, Location end, uint index) {
 		this.start = start;
 		this.end = end;
+		this.index = index;
+	}
+
+	override string toString() const { 
+		return to!string(start) ~ " - " ~ to!string(end);
 	}
 };
 
-struct Token {
+class Token {
 	string lexeme;
 	Token_Type type;
 	Span position;
@@ -43,6 +54,10 @@ struct Token {
 	this(string lexeme, Token_Type type) {
 		this.lexeme = lexeme;
 		this.type = type;
+	}
+
+	override string toString() const {
+		return lexeme ~ ", " ~ to!string(type) ~ " @ " ~ to!string(position);
 	}
 }
 

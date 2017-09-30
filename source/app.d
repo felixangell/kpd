@@ -15,5 +15,8 @@ void main(string[] args) {
 	// we run it through the dep tree analyzer thing
 	Lexer lex_inst = new Lexer(main_module.contents);
 	auto tokens = lex_inst.tokenize();
+	foreach (token; tokens) {
+		writeln(token);
+	}
 	parse_dep_tree(tokens);
 }

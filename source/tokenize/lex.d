@@ -5,6 +5,7 @@ import std.stdio;
 import std.array : replace;
 import std.uni;
 import std.conv;
+import std.range.primitives;
 
 import krug_module;
 import compilation_phase;
@@ -28,6 +29,7 @@ class Lexer : Compilation_Phase {
 		return "Lexical Analysis";
 	}
 
+	// TODO:
 	string recognize_esc_seq() {
 		string result;
 		if (peek() == '\\') {
@@ -72,12 +74,12 @@ class Lexer : Compilation_Phase {
 			lexeme ~= consume();
 		}
 		lexeme ~= expect('"');
-		return Token(lexeme, Token_Type.String);
+		return new Token(lexeme, Token_Type.String);
 	}
 
 	Token recognize_raw_str() {
 		// TODO:
-		return Token("", Token_Type.String); 
+		return new Token("", Token_Type.String); 
 	}
 
 	Token recognize_char() {
@@ -89,7 +91,7 @@ class Lexer : Compilation_Phase {
 			buffer ~= consume();
 		}
 		buffer ~= expect('\'');
-		return Token(buffer, Token_Type.Rune);
+		return new Token(buffer, Token_Type.Rune);
 	}
 
 	Token recognize_num() {
@@ -101,23 +103,79 @@ class Lexer : Compilation_Phase {
 		switch (peek(1)) {
 		case 'x': case 'X':
 			string prefix = sign ~ to!string(consume()) ~ to!string(consume());
-			break;
+			return new Token(prefix ~ consume_while(is_hexadecimal), Token_Type.Integer_Literal);
 		case 'o': case 'O':
-			break;
+			string prefix = sign ~ to!string(consume()) ~ to!string(consume());
+			return new Token(prefix ~ consume_while(is_octal), Token_Type.Integer_Literal);
 		case 'b': case 'B':
-			break;
+			string prefix = sign ~ to!string(consume()) ~ to!string(consume());
+			return new Token(prefix ~ consume_while(is_binary), Token_Type.Integer_Literal);
 		case 'd': case 'D':
-			break;
+			string prefix = sign ~ to!string(consume()) ~ to!string(consume());
+			return new Token(prefix ~ consume_while(is_decimal), Token_Type.Integer_Literal);
 		default:
-
+			writeln("TODO: o fuck\n");
 			break;	
 		}
 
-		
+		Token tok = new Token(consume_while(is_decimal), Token_Type.Integer_Literal);
+		tok.lexeme = sign ~ tok.lexeme;
+
+		if (peek() == '.' && (peek(1) == 'e' || peek(1) == 'E') || is_decimal(peek(1))) {
+			consume();
+			string precision = "." ~ consume_while(is_decimal);
+
+			if (peek() == 'E' || peek() == 'e') {
+				precision ~= to!string(consume());
+				if (peek() == '+' || peek() == '-') {
+					precision ~= to!string(consume());
+				}
+				precision ~= consume_while(is_decimal);
+			}
+
+			tok.lexeme ~= precision;
+			tok.type = Token_Type.Floating_Point_Literal;
+		}
+
+		return tok;
 	}
 
 	void eat_comment() {
 		consume_while(function (dchar c) => !is_end_of_line(c));
+	}
+
+	// eats a multi line comments, this also
+	// handles nested multi line comments too
+	void eat_multi_comment() {
+		// for tracking the depth of the comment
+		int num_comments = 0;
+		int[] last_open_comment_indices;
+
+		do {
+			if (peek() == '/' && peek(1) == '*') {
+				last_open_comment_indices ~= position;
+				consume(); consume();
+				num_comments++;
+			}
+			else if (peek() == '*' && peek(1) == '/') {
+				last_open_comment_indices.popBack();
+				consume(); consume();
+				num_comments--;
+			}
+			consume();
+		}
+		while (has_next() && num_comments > 0);
+
+		// unclosed comments probably
+		if (num_comments > 0 || last_open_comment_indices.length > 0) {
+			string error_msg;
+			while (!last_open_comment_indices.length > 0) {
+				int index = last_open_comment_indices.back;
+				last_open_comment_indices.popBack();
+				error_msg ~= "comment unclosed: at " ~ to!string(index) ~ ".\n";
+			}
+			writeln("todo: better error\n", error_msg);
+		}
 	}
 
 	Token recognize_identifier(bool keyword_check) {
@@ -126,7 +184,15 @@ class Lexer : Compilation_Phase {
 		if (keyword_check && value in KEYWORDS) {
 			type = Token_Type.Keyword;
 		}
-		return Token(value, type); 
+		return new Token(value, type); 
+	}
+
+	Token recognize_sym() {
+		string val = to!string(consume());	
+		if ((val ~ to!string(peek())) in SYMBOLS) {
+			val ~= consume();
+		}
+		return new Token(val, Token_Type.Symbol);
 	}
 
 	Token[] tokenize() {
@@ -169,7 +235,7 @@ class Lexer : Compilation_Phase {
 			}
 			// discard?
 			else if (curr == '_') {
-				recognized_token = Token(to!string(consume()), Token_Type.Identifier);
+				recognized_token = new Token(to!string(consume()), Token_Type.Identifier);
 			}
 			// keyword as identifier, e.g. $type, $struct
 			else if (curr == '$') {
@@ -182,7 +248,7 @@ class Lexer : Compilation_Phase {
 			}
 			// multi line comment
 			else if (curr == '/' && peek(1) == '*') {
-
+				eat_multi_comment();
 			}
 			// raw string literal
 			else if (curr == '`') {
@@ -198,6 +264,18 @@ class Lexer : Compilation_Phase {
 			else if (curr == '\'') {
 				recognized_token = recognize_char();
 			}
+			else if (to!string(curr) in SYMBOLS || (to!string(curr) ~ to!string(peek())) in SYMBOLS) {
+				recognized_token = recognize_sym();
+			}
+			else {
+				writeln("what is " ~ to!string(peek()));
+			}
+
+			start_loc.col -= pad;
+			Location end = capture_location();
+			end.col -= pad;
+			recognized_token.position = new  Span(start_loc, end, tok_stream.length - 1);
+			tok_stream ~= recognized_token;			
 		}
 		return tok_stream;
 	}
@@ -217,7 +295,7 @@ class Lexer : Compilation_Phase {
 	}
 
 	Location capture_location() {
-		return Location(position, row, col);
+		return new Location(position, row, col);
 	}
 
 	string consume_while(bool function(dchar) pred) {
