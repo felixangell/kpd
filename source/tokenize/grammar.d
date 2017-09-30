@@ -10,10 +10,22 @@ static Hash_Set!string ADD_OPERATORS;
 static Hash_Set!string MUL_OPERATORS;
 static Hash_Set!string UNARY_OPERATORS;
 static Hash_Set!string SYMBOLS;
+static Hash_Set!string KEYWORDS;
 
 static uint[string] OPERATOR_PRECEDENCE;
 
 static this() {
+	KEYWORDS = new Hash_Set!string(
+		"fn", "let", "type",
+		"if", "else", "loop", "while", "match", "for",
+		"return", "break", "next",
+		"as", "mut", "default", "eval",
+		"length", "size_of", "type_of", "len",
+		"struct", "trait", "union", "enum",
+		"defer", "false", "true", "bool", "rune", "yield",
+		"self", "clang",
+	);
+
 	OPERATOR_PRECEDENCE["as"] = 6;
 	
 	OPERATOR_PRECEDENCE["*"] = 5;
