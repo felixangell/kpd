@@ -114,8 +114,9 @@ class Lexer : Compilation_Phase {
 			string prefix = sign ~ to!string(consume()) ~ to!string(consume());
 			return new Token(prefix ~ consume_while(is_decimal), Token_Type.Integer_Literal);
 		default:
-			writeln("TODO: o fuck\n");
-			break;	
+			if (isAlpha(peek(1))) {
+				writeln("TODO: o fuck\n");
+			}
 		}
 
 		Token tok = new Token(consume_while(is_decimal), Token_Type.Integer_Literal);
@@ -254,9 +255,16 @@ class Lexer : Compilation_Phase {
 			else if (curr == '`') {
 				recognized_token = recognize_raw_str();
 			}
-			// (-|+)digit or just digit
-			else if (((curr == '+') || (curr == '-') && isNumber(peek(1))) || isNumber(peek())) {
+			else if (isNumber(peek())) {
 				recognized_token = recognize_num();
+			}
+			// (-|+)digit or just digit
+			else if ((curr == '+' || curr == '-') && isNumber(peek(1))) {
+				recognized_token = recognize_num();
+			}
+			else if (to!string(curr) in SYMBOLS 
+					|| (to!string(curr) ~ to!string(peek(1))) in SYMBOLS) {
+				recognized_token = recognize_sym();
 			}
 			else if (curr == '"') {
 				recognized_token = recognize_str();
@@ -264,18 +272,17 @@ class Lexer : Compilation_Phase {
 			else if (curr == '\'') {
 				recognized_token = recognize_char();
 			}
-			else if (to!string(curr) in SYMBOLS || (to!string(curr) ~ to!string(peek())) in SYMBOLS) {
-				recognized_token = recognize_sym();
-			}
 			else {
 				writeln("what is " ~ to!string(peek()));
 			}
 
-			start_loc.col -= pad;
-			Location end = capture_location();
-			end.col -= pad;
-			recognized_token.position = new  Span(start_loc, end, tok_stream.length - 1);
-			tok_stream ~= recognized_token;			
+			if (recognized_token !is null) {			
+				start_loc.col -= pad;
+				Location end = capture_location();
+				end.col -= pad;
+				recognized_token.position = new  Span(start_loc, end, tok_stream.length - 1);
+				tok_stream ~= recognized_token;			
+			}
 		}
 		return tok_stream;
 	}
