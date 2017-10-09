@@ -2,6 +2,7 @@ module krug_module;
 
 import std.file;
 import std.algorithm.searching : startsWith;
+import std.algorithm.comparison : equal;
 import std.conv;
 
 import tokenize;
@@ -54,6 +55,14 @@ class Token {
 	this(string lexeme, Token_Type type) {
 		this.lexeme = lexeme;
 		this.type = type;
+	}
+
+	bool cmp(string lexeme) {
+		return this.lexeme.equal(lexeme);
+	}
+
+	bool cmp(Token_Type type) {
+		return this.type == type;
 	}
 
 	override string toString() const {
