@@ -34,9 +34,9 @@ class Location {
 
 class Span {
 	Location start, end;
-	uint index;
+	ulong index;
 
-	this(Location start, Location end, uint index) {
+	this(Location start, Location end, ulong index) {
 		this.start = start;
 		this.end = end;
 		this.index = index;

@@ -45,9 +45,6 @@ struct Load_Directive_Parser {
 }
 
 class Dependency {
-	Token module_name;
-	Token[] sub_mods;
-
 	this(Token module_name, Token[] sub_mods) {
 		this.module_name = module_name;
 		this.sub_mods = sub_mods;
@@ -65,6 +62,10 @@ class Dependency {
 
 		return module_name.lexeme ~ (sub_mods.length > 0 ? " -> " ~ sm_str : "");
 	}
+
+public:
+	Token module_name;
+	Token[] sub_mods;
 }
 
 // parses the given tokens into

@@ -199,7 +199,7 @@ class Lexer : Compilation_Phase {
 	Token[] tokenize() {
 		Token[] tok_stream;
 		
-		uint last_line = 0, pad = 0;
+		ulong last_line = 0, pad = 0;
 		while (has_next()) {
 			last_line = row;
 
@@ -280,7 +280,7 @@ class Lexer : Compilation_Phase {
 				start_loc.col -= pad;
 				Location end = capture_location();
 				end.col -= pad;
-				recognized_token.position = new  Span(start_loc, end, tok_stream.length - 1);
+				recognized_token.position = new Span(start_loc, end, tok_stream.length - 1);
 				tok_stream ~= recognized_token;			
 			}
 		}
