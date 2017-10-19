@@ -1,6 +1,7 @@
-module parse;
+module parse.parser;
 
 import krug_module;
+import ast;
 
 struct Parser {
 	Token[] toks;
@@ -8,10 +9,21 @@ struct Parser {
 
 	this(Token[] toks) {
 		this.toks = toks;
+	}
+
+	ast.Node[] parse() {
+		ast.Node[] nodes;
 		while (has_next()) {
-			Token tok = next();
-			
+			ast.Node node = parseNode();
+			if (node !is null) {
+				nodes ~= node;
+			}
 		}
+		return nodes;
+	}
+
+	ast.Node parseNode() {
+		return null;
 	}
 
 	Token next(uint offs = 0) {

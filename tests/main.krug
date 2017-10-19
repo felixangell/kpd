@@ -2,6 +2,8 @@
 #load utils::math
 #load gfx::{colour, context}
 
+type Foo int;
+
 func main() int {
 	let x = 69 - 69 / 32 << 5;
 	if x == 3 && y >= x {

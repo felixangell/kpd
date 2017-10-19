@@ -9,7 +9,9 @@ import std.string : lastIndexOf;
 import krug_module;
 import tokenize;
 import dep_tree;
-import parse;
+
+import parse.parser;
+
 import ds;
 
 const KRUG_EXT = ".krug";
@@ -78,7 +80,7 @@ void main(string[] args) {
 					~ std.path.dirSeparator
 					~ sub_mod_name 
 					~ ".krug";
-					
+
 			if (!exists(sub_mod_path)) {
 				writeln("no such module: " ~ sub_mod_path);
 				num_fails++;
