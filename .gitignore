@@ -12,3 +12,4 @@ krug-test-*
 *.o
 *.obj
 *.lst
+graph_file*

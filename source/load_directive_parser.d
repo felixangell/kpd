@@ -1,11 +1,15 @@
-module dep_tree;
+module load_directive_parser;
 
 import std.stdio;
 import std.conv;
 import std.algorithm.comparison : equal;
+import std.typecons;
 
 import krug_module;
 
+// a very simple specialized parser that parses
+// the given token streams for load directives 
+// only!
 struct Load_Directive_Parser {
 	Token[] toks;
 	uint pos;
@@ -44,41 +48,19 @@ struct Load_Directive_Parser {
 	}
 }
 
-class Dependency {
-	this(Token module_name, Token[] sub_mods) {
-		this.module_name = module_name;
-		this.sub_mods = sub_mods;
-	}
+alias Load_Directive = Tuple!(Token, Token[]);
 
-	override string toString() const {
-		string sm_str;
-		
-		int idx = 0;
-		foreach (submod; sub_mods) {
-			if (idx > 0) sm_str ~= ",";
-			sm_str ~= submod.lexeme;
-			idx++;
-		}
-
-		return module_name.lexeme ~ (sub_mods.length > 0 ? " -> " ~ sm_str : "");
-	}
-
-public:
-	Token module_name;
-	Token[] sub_mods;
-}
-
-// parses the given tokens into
-// a dependency tree
-Dependency[] parse_dep_tree(ref Token[] toks) {
-	writeln("Parsing dependency tree!");
-
-	Dependency[] deps;
+// parses the given token stream
+Load_Directive[] collect_deps(ref Token[] toks) {
+	Load_Directive[] deps;
 
 	// this is very simple we pass through all of the tokens
 	// parsing only very specific directives:
 	Load_Directive_Parser parser = Load_Directive_Parser(toks);
 	while (parser.pos < toks.length) {
+		
+		// we basically skip all tokens till 
+		// we come across something with a #
 		Token curr = parser.consume();
 		if (!curr.cmp("#")) {
 			continue;
@@ -95,6 +77,8 @@ Dependency[] parse_dep_tree(ref Token[] toks) {
 		// the module name, this could be a folder
 		// or a file (submodule)?
 		Token module_name = parser.expect(Token_Type.Identifier);
+		
+		// there are allowed to be no sub modules
 		Token[] sub_mods;
 
 		// we're accessing a sub-module
@@ -122,7 +106,7 @@ Dependency[] parse_dep_tree(ref Token[] toks) {
 			}
 		}
 
-		deps ~= new Dependency(module_name, sub_mods);
+		deps ~= Load_Directive(module_name, sub_mods);
 	}
 
 	return deps;
