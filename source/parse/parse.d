@@ -1,5 +1,7 @@
 module parse.parser;
 
+import std.stdio;
+
 import krug_module;
 import ast;
 
@@ -23,6 +25,7 @@ struct Parser {
 	}
 
 	ast.Node parseNode() {
+        writeln(next());
 		return null;
 	}
 

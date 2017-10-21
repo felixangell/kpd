@@ -19,8 +19,13 @@ void main(string[] args) {
     compilerTimer.start();
     {
     	auto main_source_file = Source_File(args[1]);
-    	build_program_tree(main_source_file);
+    	Krug_Project proj = build_krug_project(main_source_file);
+    	proj.graph.dump();
     }
-	long duration = compilerTimer.peek().usecs;
-	err_logger.Verbose("Compiler took " ~ to!string(duration) ~ "/µs.");
+	auto duration = compilerTimer.peek();
+	err_logger.Verbose("Compiler took "
+	    ~ to!string(duration.msecs)
+	    ~ "/ms or "
+	    ~ to!string(duration.usecs)
+	    ~ "/µs");
 }

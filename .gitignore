@@ -13,3 +13,7 @@ krug-test-*
 *.obj
 *.lst
 graph_file*
+.dub/
+.idea/
+out/
+*.iml
