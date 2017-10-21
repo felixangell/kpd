@@ -57,10 +57,15 @@ void register_module(ref Dependency_Graph graph, Module mod) {
 	graph[mod.name] = mod;
 }
 
+alias Token_Stream = Token[];
+
 class Module {
     string path, name;
     Hash_Set!string fileCache;
-    Source_File[string] children;
+
+    Source_File[string] source_files;
+    Token_Stream[string] token_streams;
+
     Module[string] edges;
 
     this() {
@@ -72,6 +77,14 @@ class Module {
         this.path = path;
         this.name = std.path.baseName(path);
         this.fileCache = list_dir(path);
+    }
+
+    size_t dep_count() {
+        size_t num_deps = 0;
+        foreach (edge; edges) {
+            num_deps += edge.dep_count();
+        }
+        return num_deps + edges.length;
     }
 
     bool sub_module_exists(string name) {
@@ -87,7 +100,7 @@ class Module {
 
         const string source_file_path = this.path ~ std.path.dirSeparator ~ name ~ ".krug";
         auto source_file = Source_File(source_file_path);
-        children[name] = source_file;
+        source_files[name] = source_file;
         return source_file;
     }
 }
@@ -122,8 +135,12 @@ struct Krug_Project {
                 continue;
             }
 
-            Source_File source_file = mod.load_source_file(std.path.stripExtension(file));
+            const string submodule_name = std.path.stripExtension(file);
+
+            Source_File source_file = mod.load_source_file(submodule_name);
             auto tokens = new Lexer(source_file.contents).tokenize();
+            mod.token_streams[submodule_name] = tokens;
+
             auto deps = collect_deps(tokens);
             foreach (dep; deps) {
                 string module_name = dep[0].lexeme;
@@ -159,6 +176,9 @@ Krug_Project build_krug_project(ref Source_File main_source_file) {
 
     auto main_mod = new Module();
     project.graph.register_module(main_mod);
+
+    // TODO: this is kind of messy
+    main_mod.token_streams["main"] = tokens;
 
     foreach (dir; dirs) {
         Token[] sub_modules = dir[1];
