@@ -25,7 +25,6 @@ struct Parser {
 	}
 
 	ast.Node parseNode() {
-        writeln(next());
 		return null;
 	}
 

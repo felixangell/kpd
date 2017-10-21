@@ -54,7 +54,7 @@ class Token {
 
 	this(string lexeme, Token_Type type) {
 		this.lexeme = lexeme;
-		this.type = type;
+        this.type = type;
 	}
 
 	bool cmp(string lexeme) {
@@ -70,7 +70,7 @@ class Token {
 	}
 }
 
-struct Source_File {
+class Source_File {
 	string path;
 	string contents;
 

@@ -4,8 +4,13 @@
     <list default="true" id="b13e3ec0-c2c2-4181-a0e2-daf1eb94fcec" name="Default" comment="">
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/out/production/krug/app.d" afterPath="$PROJECT_DIR$/out/production/krug/app.d" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/out/production/krug/krug_module.d" afterPath="$PROJECT_DIR$/out/production/krug/krug_module.d" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/out/production/krug/load_directive_parser.d" afterPath="$PROJECT_DIR$/out/production/krug/load_directive_parser.d" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/out/production/krug/parse/parse.d" afterPath="$PROJECT_DIR$/out/production/krug/parse/parse.d" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/out/production/krug/program_tree.d" afterPath="$PROJECT_DIR$/out/production/krug/program_tree.d" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/source/app.d" afterPath="$PROJECT_DIR$/source/app.d" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/source/krug_module.d" afterPath="$PROJECT_DIR$/source/krug_module.d" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/source/load_directive_parser.d" afterPath="$PROJECT_DIR$/source/load_directive_parser.d" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/source/parse/parse.d" afterPath="$PROJECT_DIR$/source/parse/parse.d" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/source/program_tree.d" afterPath="$PROJECT_DIR$/source/program_tree.d" />
     </list>
@@ -19,21 +24,21 @@
   </component>
   <component name="FileEditorManager">
     <leaf>
-      <file leaf-file-name="app.d" pinned="false" current-in-tab="true">
+      <file leaf-file-name="app.d" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/source/app.d">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="600">
-              <caret line="46" column="5" lean-forward="true" selection-start-line="46" selection-start-column="5" selection-end-line="46" selection-end-column="5" />
+            <state relative-caret-position="18">
+              <caret line="13" column="0" lean-forward="true" selection-start-line="13" selection-start-column="0" selection-end-line="13" selection-end-column="0" />
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="krug_module.d" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/source/krug_module.d">
+      <file leaf-file-name="parse.d" pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/source/parse/parse.d">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="414">
-              <caret line="65" column="0" lean-forward="false" selection-start-line="65" selection-start-column="0" selection-end-line="65" selection-end-column="0" />
+            <state relative-caret-position="336">
+              <caret line="20" column="0" lean-forward="false" selection-start-line="20" selection-start-column="0" selection-end-line="20" selection-end-column="0" />
               <folding />
             </state>
           </provider>
@@ -42,51 +47,18 @@
       <file leaf-file-name="program_tree.d" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/source/program_tree.d">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="565">
-              <caret line="189" column="21" lean-forward="true" selection-start-line="189" selection-start-column="21" selection-end-line="189" selection-end-column="21" />
+            <state relative-caret-position="234">
+              <caret line="101" column="76" lean-forward="true" selection-start-line="101" selection-start-column="76" selection-end-line="101" selection-end-column="76" />
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="grammar.d" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/source/tokenize/grammar.d">
+      <file leaf-file-name="krug_module.d" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/source/krug_module.d">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="528">
-              <caret line="28" column="34" lean-forward="true" selection-start-line="28" selection-start-column="34" selection-end-line="28" selection-end-column="34" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="README.md" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/README.md">
-          <provider selected="true" editor-type-id="split-provider[text-editor;markdown-preview-editor]">
-            <state split_layout="FIRST">
-              <first_editor relative-caret-position="672">
-                <caret line="28" column="0" lean-forward="true" selection-start-line="28" selection-start-column="0" selection-end-line="28" selection-end-column="0" />
-                <folding />
-              </first_editor>
-              <second_editor />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="ast.d" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/source/parse/ast.d">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="0">
-              <caret line="0" column="7" lean-forward="false" selection-start-line="0" selection-start-column="7" selection-end-line="0" selection-end-column="7" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="parse.d" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/source/parse/parse.d">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="504">
-              <caret line="27" column="0" lean-forward="true" selection-start-line="27" selection-start-column="0" selection-end-line="27" selection-end-column="0" />
+            <state relative-caret-position="222">
+              <caret line="57" column="4" lean-forward="false" selection-start-line="57" selection-start-column="4" selection-end-line="57" selection-end-column="4" />
               <folding />
             </state>
           </provider>
@@ -122,11 +94,13 @@
       <find>load_module</find>
       <find>register_mod</find>
       <find>add_edge</find>
-      <find>new Lexer</find>
       <find>Module[]</find>
       <find>Module {</find>
       <find>auto token</find>
       <find>load_source_file</find>
+      <find>new Lexer</find>
+      <find>.para</find>
+      <find>parall</find>
     </findStrings>
   </component>
   <component name="Git.Settings">
@@ -141,14 +115,14 @@
     <option name="CHANGED_PATHS">
       <list>
         <option value="$PROJECT_DIR$/source/err_logger.d" />
-        <option value="$PROJECT_DIR$/source/krug_module.d" />
-        <option value="$PROJECT_DIR$/source/load_directive_parser.d" />
         <option value="$PROJECT_DIR$/.gitignore" />
         <option value="$PROJECT_DIR$/README.md" />
-        <option value="$PROJECT_DIR$/source/program_tree.d" />
-        <option value="$PROJECT_DIR$/source/app.d" />
         <option value="$PROJECT_DIR$/source/parse/ast.d" />
         <option value="$PROJECT_DIR$/source/parse/parse.d" />
+        <option value="$PROJECT_DIR$/source/load_directive_parser.d" />
+        <option value="$PROJECT_DIR$/source/krug_module.d" />
+        <option value="$PROJECT_DIR$/source/app.d" />
+        <option value="$PROJECT_DIR$/source/program_tree.d" />
       </list>
     </option>
   </component>
@@ -225,7 +199,7 @@
   </component>
   <component name="PropertiesComponent">
     <property name="WebServerToolWindowFactoryState" value="false" />
-    <property name="settings.editor.selected.configurable" value="D Tools" />
+    <property name="settings.editor.selected.configurable" value="preferences.keymap" />
     <property name="dubPath" value="C:\D\dmd2\windows\bin\dub.exe" />
     <property name="dubFlags" value="" />
     <property name="dscannerPath" value="" />
@@ -402,12 +376,12 @@
       <option name="number" value="Default" />
       <option name="presentableId" value="Default" />
       <updated>1508606318721</updated>
-      <workItem from="1508606320397" duration="13352000" />
+      <workItem from="1508606320397" duration="16154000" />
     </task>
     <servers />
   </component>
   <component name="TimeTrackingManager">
-    <option name="totallyTimeSpent" value="13352000" />
+    <option name="totallyTimeSpent" value="16154000" />
   </component>
   <component name="ToolWindowManager">
     <frame x="-8" y="-8" width="1936" height="1056" extended-state="6" />
@@ -447,14 +421,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="366">
           <caret line="19" column="1" lean-forward="false" selection-start-line="19" selection-start-column="0" selection-end-line="19" selection-end-column="1" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/source/load_directive_parser.d">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="738">
-          <caret line="32" column="8" lean-forward="false" selection-start-line="32" selection-start-column="8" selection-end-line="32" selection-end-column="8" />
           <folding />
         </state>
       </provider>
@@ -515,18 +481,34 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/source/tokenize/grammar.d">
+    <entry file="file://C:/D/dmd2/src/phobos/std/file.d">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="528">
-          <caret line="28" column="34" lean-forward="true" selection-start-line="28" selection-start-column="34" selection-end-line="28" selection-end-column="34" />
+        <state relative-caret-position="366">
+          <caret line="482" column="21" lean-forward="true" selection-start-line="482" selection-start-column="21" selection-end-line="482" selection-end-column="21" />
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/source/program_tree.d">
+    <entry file="file://C:/D/dmd2/src/druntime/import/object.d">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="565">
-          <caret line="189" column="21" lean-forward="true" selection-start-line="189" selection-start-column="21" selection-end-line="189" selection-end-column="21" />
+        <state relative-caret-position="306">
+          <caret line="40" column="6" lean-forward="false" selection-start-line="40" selection-start-column="6" selection-end-line="40" selection-end-column="12" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/source/load_directive_parser.d">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="216">
+          <caret line="87" column="31" lean-forward="false" selection-start-line="87" selection-start-column="31" selection-end-line="87" selection-end-column="31" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/source/parse/ast.d">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="504">
+          <caret line="21" column="0" lean-forward="true" selection-start-line="21" selection-start-column="0" selection-end-line="21" selection-end-column="0" />
           <folding />
         </state>
       </provider>
@@ -542,42 +524,42 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/source/parse/ast.d">
+    <entry file="file://$PROJECT_DIR$/source/tokenize/grammar.d">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="0">
-          <caret line="0" column="7" lean-forward="false" selection-start-line="0" selection-start-column="7" selection-end-line="0" selection-end-column="7" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/source/parse/parse.d">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="504">
-          <caret line="27" column="0" lean-forward="true" selection-start-line="27" selection-start-column="0" selection-end-line="27" selection-end-column="0" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://C:/D/dmd2/src/phobos/std/file.d">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="366">
-          <caret line="482" column="21" lean-forward="true" selection-start-line="482" selection-start-column="21" selection-end-line="482" selection-end-column="21" />
+        <state relative-caret-position="528">
+          <caret line="28" column="34" lean-forward="true" selection-start-line="28" selection-start-column="34" selection-end-line="28" selection-end-column="34" />
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/source/krug_module.d">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="414">
-          <caret line="65" column="0" lean-forward="false" selection-start-line="65" selection-start-column="0" selection-end-line="65" selection-end-column="0" />
+        <state relative-caret-position="222">
+          <caret line="57" column="4" lean-forward="false" selection-start-line="57" selection-start-column="4" selection-end-line="57" selection-end-column="4" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/source/program_tree.d">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="234">
+          <caret line="101" column="76" lean-forward="true" selection-start-line="101" selection-start-column="76" selection-end-line="101" selection-end-column="76" />
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/source/app.d">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="600">
-          <caret line="46" column="5" lean-forward="true" selection-start-line="46" selection-start-column="5" selection-end-line="46" selection-end-column="5" />
+        <state relative-caret-position="18">
+          <caret line="13" column="0" lean-forward="true" selection-start-line="13" selection-start-column="0" selection-end-line="13" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/source/parse/parse.d">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="336">
+          <caret line="20" column="0" lean-forward="false" selection-start-line="20" selection-start-column="0" selection-end-line="20" selection-end-column="0" />
           <folding />
         </state>
       </provider>

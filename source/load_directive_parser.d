@@ -85,6 +85,8 @@ Load_Directive[] collect_deps(ref Token[] toks) {
 		// there are allowed to be no sub modules
 		Token[] sub_mods;
 
+        // TODO: clean this up!
+
 		// we're accessing a sub-module
 		if (parser.has_next() && parser.peek().cmp("::")) {
 			parser.consume();

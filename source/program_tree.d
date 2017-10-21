@@ -13,6 +13,7 @@ import tokenize;
 import load_directive_parser;
 import ds;
 import err_logger;
+import ast;
 
 alias Dependency_Graph = Module[string];
 
@@ -58,6 +59,7 @@ void register_module(ref Dependency_Graph graph, Module mod) {
 }
 
 alias Token_Stream = Token[];
+alias AST = ast.Node[];
 
 class Module {
     string path, name;
@@ -65,6 +67,7 @@ class Module {
 
     Source_File[string] source_files;
     Token_Stream[string] token_streams;
+    AST[string] as_trees;
 
     Module[string] edges;
 
@@ -99,7 +102,7 @@ class Module {
         assert(name.cmp("main") && "can't load sub-modules in main module");
 
         const string source_file_path = this.path ~ std.path.dirSeparator ~ name ~ ".krug";
-        auto source_file = Source_File(source_file_path);
+        auto source_file = new Source_File(source_file_path);
         source_files[name] = source_file;
         return source_file;
     }
@@ -142,7 +145,7 @@ struct Krug_Project {
             mod.token_streams[submodule_name] = tokens;
 
             auto deps = collect_deps(tokens);
-            foreach (dep; deps) {
+            foreach (ref dep; deps) {
                 string module_name = dep[0].lexeme;
                 Module loaded_module = load_module(module_name);
                 graph.add_edge(name, loaded_module);
