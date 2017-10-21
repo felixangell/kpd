@@ -43,6 +43,10 @@ struct Load_Directive_Parser {
 		assert(0);
 	}
 
+	bool has_next() {
+	    return pos < toks.length;
+	}
+
 	Token peek(int offs = 0) {
 		return toks[pos + offs];
 	}
@@ -57,7 +61,7 @@ Load_Directive[] collect_deps(ref Token[] toks) {
 	// this is very simple we pass through all of the tokens
 	// parsing only very specific directives:
 	Load_Directive_Parser parser = Load_Directive_Parser(toks);
-	while (parser.pos < toks.length) {
+	while (parser.has_next()) {
 		
 		// we basically skip all tokens till 
 		// we come across something with a #
@@ -82,14 +86,14 @@ Load_Directive[] collect_deps(ref Token[] toks) {
 		Token[] sub_mods;
 
 		// we're accessing a sub-module
-		if (parser.peek().cmp("::")) {
+		if (parser.has_next() && parser.peek().cmp("::")) {
 			parser.consume();
 
 			// parse a submodule list
-			if (parser.peek().cmp("{")) {
+			if (parser.has_next() && parser.peek().cmp("{")) {
 				parser.consume();
 
-				while (!parser.peek().cmp("}")) {
+				while (parser.has_next() && !parser.peek().cmp("}")) {
 					sub_mods ~= parser.expect(Token_Type.Identifier);
 
 					// TODO: allow trailing commas?

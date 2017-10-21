@@ -70,7 +70,7 @@ class Token {
 	}
 }
 
-struct Krug_Module {
+struct Source_File {
 	string path;
 	string contents;
 
