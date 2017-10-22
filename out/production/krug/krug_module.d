@@ -15,7 +15,8 @@ enum Token_Type {
 	Rune,
 	Symbol,
 	Discard,
-	Keyword
+	Keyword,
+	EOF,
 };
 
 class Location {

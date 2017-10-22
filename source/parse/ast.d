@@ -15,7 +15,13 @@ class Statement_Node : Node {
 }
 
 class Named_Type : Statement_Node {
+    Token twine;
+    Type_Node type;
 
+    this(Token twine, Type_Node type) {
+        this.twine = twine;
+        this.type = type;
+    }
 }
 
 // TOP LEVEL DECLARATION AST NODES
