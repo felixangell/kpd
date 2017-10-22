@@ -7,10 +7,12 @@ import krug_module;
 
 // binding of an expression to a token
 alias Binding = Tuple!(Token, "twine", Expression_Node, "value");
-			
+
+interface Semicolon_Stat {}
+
 class Node {}
 
-class Statement_Node : Node {
+class Statement_Node : Node, Semicolon_Stat {
 
 }
 
@@ -27,6 +29,8 @@ class Named_Type : Statement_Node {
 // TOP LEVEL DECLARATION AST NODES
 
 class Function_Node : Node {
+    Token name;
+    Type_Node return_type;
 	Block_Node func_body;
 }
 

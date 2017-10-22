@@ -36,6 +36,12 @@ struct Parser {
 			ast.Node node = parse_node();
 			if (node !is null) {
 				nodes ~= node;
+
+                // TODO: we can do a better check here
+                // rather than a simple expect.
+				if (cast(Semicolon_Stat)node) {
+				    expect(";");
+				}
 			}
 		}
 		return nodes;
@@ -93,10 +99,81 @@ struct Parser {
     }
 
     ast.Named_Type parse_named_type() {
+        if (!peek().cmp("type")) {
+            return null;
+        }
         expect("type");
+
         auto name = expect(Token_Type.Identifier);
         auto type = parse_type();
         return new Named_Type(name, type);
+    }
+
+    ast.Function_Parameter parse_func_param() {
+        bool mutable = false;
+        if (peek().cmp("mut")) {
+            mutable = true;
+            consume();
+        }
+        auto name = expect(Token_Type.Identifier);
+        auto type = parse_type();
+        return Function_Parameter(mutable, name, type);
+    }
+
+    ast.Statement_Node parse_stat() {
+        return null;
+    }
+
+    ast.Block_Node parse_block() {
+        if (!peek().cmp("{")) {
+            return null;
+        }
+        expect("{");
+
+        Block_Node block = new Block_Node();
+        for (int i = 0; has_next() && !peek().cmp("}"); i++) {
+            Statement_Node stat = parse_stat();
+            if (stat is null) {
+                err_logger.Error("Expected statement, found " ~ to!string(peek()));
+                break;
+            }
+            block.statements ~= stat;
+        }
+        expect("}");
+        return block;
+    }
+
+    ast.Function_Node parse_func() {
+        if (!peek().cmp("func")) {
+            return null;
+        }
+        expect("func");
+
+        Function_Node func = new Function_Node();
+        // TODO: receiver
+
+        func.name = expect(Token_Type.Identifier);
+
+        {
+            // func params
+            expect("(");
+            for (int idx = 0; has_next() && !peek().cmp(")"); idx++) {
+                if (idx > 0) {
+                    expect(",");
+                }
+                parse_func_param();
+            }
+            expect(")");
+        }
+
+        func.return_type = parse_type();
+        if (peek().cmp("{")) {
+            func.func_body = parse_block();
+        } else {
+            expect(";");
+        }
+
+        return func;
     }
 
 	ast.Node parse_node() {
@@ -107,6 +184,8 @@ struct Parser {
         switch (tok.lexeme) {
         case "type":
             return parse_named_type();
+        case "func":
+            return parse_func();
         default:
             writeln(peek());
             break;
