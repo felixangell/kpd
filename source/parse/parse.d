@@ -179,7 +179,9 @@ struct Parser {
             return new Float_Constant_Node(consume());
         case Token_Type.Integer_Literal:
             return new Integer_Constant_Node(consume());
-        default: break;
+        default:
+            err_logger.Verbose("Potentially unhandled constant " ~ to!string(peek()));
+            break;
         }
 
         writeln("parse_operand what is " ~ to!string(peek()));
@@ -192,8 +194,13 @@ struct Parser {
             return null;
         }
 
-        writeln("looks like we forgot to handle something " ~ to!string(peek()));
-        assert(0);
+        // TODO: handle generic arguments
+        // TODO: handle indexing expr
+        // TODO: handle "access" path expr foo.bar.baz
+        // TODO: handle composites?
+        // TODO: handle calls, e.g. foo()
+
+        return left;
     }
 
     ast.Expression_Node parse_left(bool comp_allowed = false) {
@@ -338,6 +345,9 @@ struct Parser {
                 break;
             }
             block.statements ~= stat;
+            if (cast(Semicolon_Stat) stat) {
+                expect(";");
+            }
         }
 
         expect("}");
@@ -378,17 +388,17 @@ struct Parser {
     }
 
 	ast.Node parse_node() {
-	    if (peek().cmp("#")) {
-	        skip_dir();
-	    }
         Token tok = peek();
         switch (tok.lexeme) {
         case "type":
             return parse_named_type();
         case "func":
             return parse_func();
+        case "#":
+            skip_dir();
+            break;
         default:
-            writeln(peek());
+            err_logger.Verbose("unhandled top level node parse_node " ~ to!string(peek()));
             break;
         }
 		return null;
@@ -396,7 +406,6 @@ struct Parser {
 
 	Token peek(uint offs = 0) {
 	    if (pos + offs >= toks.length) {
-	        err_logger.Verbose("warning, reached EOF when parsing " ~ to!string(peek(-1)));
 	        return EOF_TOKEN;
 	    }
 		return toks[pos + offs];
