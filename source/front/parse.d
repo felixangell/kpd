@@ -7,6 +7,7 @@ import grammar;
 import krug_module;
 import compilation_phase;
 import ast;
+import keyword;
 
 import ds.hash_set;
 import err_logger;
@@ -102,10 +103,10 @@ class Parser : Compilation_Phase  {
     }
 
     ast.Named_Type parse_named_type() {
-        if (!peek().cmp("type")) {
+        if (!peek().cmp(keyword.Type)) {
             return null;
         }
-        expect("type");
+        expect(keyword.Type);
 
         auto name = expect(Token_Type.Identifier);
         auto type = parse_type();
@@ -357,10 +358,10 @@ class Parser : Compilation_Phase  {
     }
 
     ast.Function_Node parse_func() {
-        if (!peek().cmp("func")) {
+        if (!peek().cmp(keyword.Function)) {
             return null;
         }
-        expect("func");
+        expect(keyword.Function);
 
         Function_Node func = new Function_Node();
         // TODO: receiver
@@ -382,7 +383,8 @@ class Parser : Compilation_Phase  {
         func.return_type = parse_type();
         if (peek().cmp("{")) {
             func.func_body = parse_block();
-        } else {
+        }
+        else {
             expect(";");
         }
 
@@ -392,11 +394,11 @@ class Parser : Compilation_Phase  {
 	ast.Node parse_node() {
         Token tok = peek();
         switch (tok.lexeme) {
-        case "type":
+        case keyword.Type:
             return parse_named_type();
-        case "func":
+        case keyword.Function:
             return parse_func();
-        case "#":
+        case keyword.Directive_Symbol:
             skip_dir();
             break;
         default:

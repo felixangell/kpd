@@ -6,4 +6,7 @@ type Foo int;
 
 func main() int {
 	let x = 69 - 69 / 32 << 5;
+	let y = 22 + -33333 * 59595;
+	let z;
+	let foo int;
 }
