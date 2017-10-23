@@ -329,7 +329,11 @@ class Parser : Compilation_Phase  {
         if (!peek().cmp("=")) {
             type = parse_type();
         }
-        if (type is null && !peek().cmp("=")) {
+
+        // if there is no type and the next operator is not an equal
+        // or a semi-colon symbol, that means that we have some weird
+        // input - throw an error!
+        if (type is null && !(peek().cmp("=") || peek().cmp(";"))) {
             err_logger.Error(peek(), "expected type in variable binding, found:");
         }
 
@@ -341,7 +345,6 @@ class Parser : Compilation_Phase  {
 
             var.value = parse_expr();
             if (var.value is null) {
-                // error: expected value after assignment operator.
                 err_logger.Error(peek(), "expected value after assignment operator, found:");
             }
         }
