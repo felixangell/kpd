@@ -1,5 +1,5 @@
 # krug
-krug is a compiled programming language
+Krug is a compiled programming language
 
 ## under the hood
 this is a brief run-down of the architecture 

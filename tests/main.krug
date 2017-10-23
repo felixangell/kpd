@@ -4,7 +4,17 @@
 
 type Foo int;
 
+func blah() int;
+
+func foo();
+
+func add() void {
+	
+}
+
 func main() int {
+	32 + 32;
+
 	let x = 69 - 69 / 32 << 5;
 	let y = 22 + -33333 * 59595;
 	let z;
@@ -21,7 +31,47 @@ func main() int {
     }
 
     while true {
+while true {
+while true {
+while true {
+while true {
+while true {
+while true {
+    while true {
+while true {
+while true {
+while true {
+while true {
+while true {
+while true {
+    while true {
+while true {
+while true {
+while true {
+while true {
+while true {
+while true {
 
+    }
+    }
+    }
+    }
+    }
+    }
+    }
+    }
+    }
+    }
+    }
+    }
+    }
+    }
+    }
+    }
+    }
+    }
+    }
+    }
     }
 
     if true {

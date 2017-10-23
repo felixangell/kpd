@@ -581,6 +581,7 @@ class Parser : Compilation_Phase  {
         }
 
         func.return_type = parse_type();
+
         if (peek().cmp("{")) {
             func.func_body = parse_block();
         }

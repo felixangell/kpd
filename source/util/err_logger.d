@@ -31,13 +31,15 @@ static string get_line(const(Source_File*) file, ulong index) {
     return strip(slice);
 }
 
+// FIXME
+// this code is very spaghetti but it works.
 static void Blame_Token(ref Token tok, File out_stream = stdout) {
     const Source_File* file = tok.parent;
 
     const uint index = tok.position.start.idx;
 
-    uint token_start = cast(uint) lastIndexOf(file.contents, '\n', cast(size_t)index) + 2;
-    const uint prefix_size = tok.position.start.idx - token_start;
+    uint token_start = cast(uint) lastIndexOf(file.contents, '\n', cast(size_t)index);
+    uint prefix_size = tok.position.start.idx - token_start;
 
     auto line_end_index = cast(uint) indexOf(file.contents, '\n', cast(size_t)index);
     line_end_index = line_end_index == -1 ? 0 : line_end_index;
@@ -46,7 +48,13 @@ static void Blame_Token(ref Token tok, File out_stream = stdout) {
     }
 
     auto start = file.contents[token_start .. token_start + prefix_size];
+    auto old_start_len = start.length;
+    start = strip(start);
     auto end = file.contents[token_start + prefix_size + tok.lexeme.length .. line_end_index];
+
+    // because we stripped the junk, we have to
+    // change the prefix size now for the formatting phase.
+    prefix_size -= old_start_len - start.length;
 
     string underline = replicate(" ", prefix_size)
         ~ colour.Err(replicate("^", tok.lexeme.length));
