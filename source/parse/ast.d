@@ -1,6 +1,8 @@
 module ast;
 
 import std.typecons;
+import std.conv;
+import std.bigint;
 
 import block_scope;
 import krug_module;
@@ -12,9 +14,7 @@ interface Semicolon_Stat {}
 
 class Node {}
 
-class Statement_Node : Node, Semicolon_Stat {
-
-}
+class Statement_Node : Node, Semicolon_Stat {}
 
 class Named_Type : Statement_Node {
     Token twine;
@@ -23,6 +23,63 @@ class Named_Type : Statement_Node {
     this(Token twine, Type_Node type) {
         this.twine = twine;
         this.type = type;
+    }
+}
+
+class Variable_Statement_Node : Statement_Node {
+    Token twine;
+    Type_Node type;
+    Expression_Node value = null;
+    bool mutable = false;
+
+    this(Token twine, Type_Node type) {
+        this.twine = twine;
+        this.type = type;
+    }
+}
+
+// CONSTNATS
+
+class Constant_Node(T) : Expression_Node {
+    Token tok;
+    T value;
+
+    this(Token tok, T value) {
+        this.tok = tok;
+        this.value = value;
+    }
+}
+
+class String_Constant_Node : Constant_Node!string {
+    this(Token tok) {
+        super(tok, tok.lexeme);
+    }
+}
+
+class Float_Constant_Node : Constant_Node!double {
+    this(Token tok) {
+        super(tok, to!double(tok.lexeme));
+    }
+}
+
+class Integer_Constant_Node : Constant_Node!BigInt {
+    this(Token tok) {
+        super(tok, BigInt(tok.lexeme));
+    }
+}
+
+class Boolean_Constant_Node : Constant_Node!bool {
+    this(Token tok) {
+        // TODO: what if token is something other
+        // than "true"? this has to be validated before
+        // we create the node.
+        super(tok, tok.cmp("true") ? true : false);
+    }
+}
+
+class Rune_Constant_Node : Constant_Node!dchar {
+    this(Token tok) {
+        super(tok, to!dchar(tok.lexeme[0]));
     }
 }
 
@@ -52,16 +109,31 @@ class Expression_Node : Node {
 
 class Binary_Expression_Node : Expression_Node {
 	Expression_Node left, right;
-	string operand;
+	Token operand;
+
+	this(Expression_Node left, Token operator, Expression_Node right) {
+	    this.left = left;
+	    this.operand = operator;
+	    this.right = right;
+	}
 }
 
 class Unary_Expression_Node : Expression_Node {
-	string operand;
+	Token operand;
 	Expression_Node value;
+
+	this(Token operand, Expression_Node value) {
+	    this.operand = operand;
+	    this.value = value;
+	}
 }
 
 class Paren_Expression_Node : Expression_Node {
 	Expression_Node value;
+
+    this(Expression_Node value) {
+        this.value = value;
+    }
 }
 
 // TYPE AST NODES

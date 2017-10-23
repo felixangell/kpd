@@ -98,6 +98,14 @@ static this() {
 	);
 }
 
+static int get_op_prec(string s) {
+    if (s in OPERATOR_PRECEDENCE) {
+        return OPERATOR_PRECEDENCE[s];
+    }
+    // TODO:?
+    return -1;
+}
+
 static bool is_binary_op(string s) {
 	return s in BINARY_OPERATORS || is_rel_op(s) || is_add_op(s) || is_mul_op(s);
 }

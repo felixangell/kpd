@@ -3,6 +3,7 @@ module parse.parser;
 import std.stdio;
 import std.conv;
 
+import grammar;
 import err_logger;
 import krug_module;
 import ast;
@@ -120,7 +121,206 @@ struct Parser {
         return Function_Parameter(mutable, name, type);
     }
 
+    ast.Unary_Expression_Node parse_unary_expr(bool comp_allowed) {
+        if (!is_unary_op(peek().lexeme)) {
+            return null;
+        }
+        auto op = consume();
+        auto right = parse_left(comp_allowed);
+        if (right is null) {
+            // error: unary expr expected expr after operator.
+        }
+        return new Unary_Expression_Node(op, right);
+    }
+
+    ast.Paren_Expression_Node parse_paren_expr() {
+        if (!peek().cmp("(")) {
+            return null;
+        }
+        expect("(");
+        auto expr = parse_expr();
+        if (expr is null) {
+            // error: expected expr ting
+        }
+        expect(")");
+        return new Paren_Expression_Node(expr);
+    }
+
+    ast.Expression_Node parse_operand() {
+        Token curr = peek();
+
+        if (curr.cmp("(")) {
+            return parse_paren_expr();
+        }
+
+        switch (curr.lexeme) {
+        case "size_of":
+        case "len_of":
+        case "type_of":
+            // TODO:
+            break;
+        default: break;
+        }
+
+        // boolean literal
+        switch (curr.lexeme) {
+        case "true": case "false":
+            return new Boolean_Constant_Node(consume());
+        default: break;
+        }
+
+        // other literal
+        switch (curr.type) {
+        case Token_Type.String:
+            return new String_Constant_Node(consume());
+        case Token_Type.Rune:
+            return new Rune_Constant_Node(consume());
+        case Token_Type.Floating_Point_Literal:
+            return new Float_Constant_Node(consume());
+        case Token_Type.Integer_Literal:
+            return new Integer_Constant_Node(consume());
+        default: break;
+        }
+
+        writeln("parse_operand what is " ~ to!string(peek()));
+        return null;
+    }
+
+    ast.Expression_Node parse_primary_expr(bool comp_allowed) {
+        auto left = parse_operand();
+        if (left is null) {
+            return null;
+        }
+
+        writeln("looks like we forgot to handle something " ~ to!string(peek()));
+        assert(0);
+    }
+
+    ast.Expression_Node parse_left(bool comp_allowed = false) {
+        auto expr = parse_primary_expr(comp_allowed);
+        if (expr !is null) {
+            return expr;
+        }
+        return parse_unary_expr(comp_allowed);
+    }
+
+    ast.Expression_Node parse_bin_op(int last_prec, Expression_Node left, bool comp_allowed) {
+        while (has_next()) {
+            auto prec = get_op_prec(peek().lexeme);
+
+            // what?!
+            if (is_binary_op(peek().lexeme) && peek(1).cmp(";")) {
+                writeln("just letting you know something weird happened in parse_bin_op");
+                return left;
+            }
+
+            if (prec < last_prec) {
+                return left;
+            }
+
+            auto operator = consume();
+            auto right = parse_expr(comp_allowed);
+            if (right is null) {
+                return null;
+            }
+
+            // TODO: handle this properly as it's weird behaviour
+            // and should in theory not parse!
+            // e.g. a + b <EOF>
+            if (!has_next()) {
+                return new Binary_Expression_Node(left, operator, right);
+            }
+
+            int next_prec = get_op_prec(peek().lexeme);
+            if (prec < next_prec) {
+                right = parse_bin_op(prec + 1, right, comp_allowed);
+                if (right is null) {
+                    return null;
+                }
+            }
+
+            left = new Binary_Expression_Node(left, operator, right);
+        }
+        return left;
+    }
+
+    ast.Expression_Node parse_expr(bool comp_allowed = false) {
+        // TODO: parsing composite expressions?
+
+        // eval expr
+
+        // lambda
+
+        auto left = parse_left(comp_allowed);
+        if (left is null) {
+            return null;
+        }
+
+        if (!has_next()) {
+            // TODO: handle this properly for when it does happen
+            // this should never happen, but just in case.
+            return left;
+        }
+
+        // not a binary expression so we'll
+        // return the left expression
+        if (!is_binary_op(peek().lexeme)) {
+            return left;
+        }
+
+        return parse_bin_op(0, left, comp_allowed);
+    }
+
+    ast.Variable_Statement_Node parse_let() {
+        if (!peek().cmp("let")) {
+            return null;
+        }
+        consume();
+
+        bool mutable = false;
+        if (peek().cmp("mut")) {
+            mutable = true;
+            consume();
+        }
+
+        // TODO: destructuring statements!
+        // let {a, b, c, ...} = some_struct
+        // let (a, b, c, ...) = some_tuple
+
+        Token name = expect(Token_Type.Identifier);
+
+        Type_Node type = null;
+        if (!peek().cmp("=")) {
+            type = parse_type();
+        }
+        if (type is null && !peek().cmp("=")) {
+            // error: expected type in variable binding!
+        }
+
+        auto var = new Variable_Statement_Node(name, type);
+        var.mutable = mutable;
+
+        if (peek().cmp("=")) {
+            consume();
+
+            var.value = parse_expr();
+            if (var.value is null) {
+                // error: expected value after assignment operator.
+            }
+        }
+
+        return var;
+    }
+
     ast.Statement_Node parse_stat() {
+        Token tok = peek();
+        switch (tok.lexeme) {
+        case "let":
+            return parse_let();
+        default: break;
+        }
+
+        assert("unhandled statement " ~ to!string(peek()));
         return null;
     }
 
@@ -139,6 +339,7 @@ struct Parser {
             }
             block.statements ~= stat;
         }
+
         expect("}");
         return block;
     }
