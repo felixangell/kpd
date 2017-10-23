@@ -14,9 +14,84 @@ interface Semicolon_Stat {}
 
 class Node {}
 
-class Statement_Node : Node, Semicolon_Stat {}
+class Statement_Node : Node {}
 
-class Named_Type : Statement_Node {
+// defer ( stat )
+class Defer_Statement_Node : Statement_Node {
+    Statement_Node stat;
+
+    this(Statement_Node stat) {
+        this.stat = stat;
+    }
+}
+
+class Loop_Statement_Node : Statement_Node {
+    Block_Node block;
+    this(Block_Node block) {
+        this.block = block;
+    }
+}
+
+class While_Statement_Node : Statement_Node {
+    Expression_Node condition;
+    Block_Node block;
+    this (Expression_Node condition, Block_Node block) {
+        this.condition = condition;
+        this.block = block;
+    }
+}
+
+class If_Statement_Node : Statement_Node {
+    Expression_Node condition;
+    Block_Node block;
+    this (Expression_Node condition, Block_Node block) {
+        this.condition = condition;
+        this.block = block;
+    }
+}
+
+class Else_If_Statement_Node : Statement_Node {
+    Expression_Node condition;
+    Block_Node block;
+    this (Expression_Node condition, Block_Node block) {
+        this.condition = condition;
+        this.block = block;
+    }
+}
+
+class Else_Statement_Node : Statement_Node {
+    Block_Node block;
+    this (Block_Node block) {
+        this.block = block;
+    }
+}
+
+// return [ expr ] ";"
+class Return_Statement_Node : Statement_Node, Semicolon_Stat {
+    Expression_Node value;
+
+    this(Expression_Node value) {
+        this.value = value;
+    }
+}
+
+// break ";"
+class Break_Statement_Node : Statement_Node, Semicolon_Stat {}
+
+// next ";"
+class Next_Statement_Node : Statement_Node, Semicolon_Stat {}
+
+// yield Expression ";"
+class Yield_Statement_Node : Statement_Node, Semicolon_Stat {
+    Expression_Node value;
+
+    this(Expression_Node value) {
+        this.value = value;
+    }
+}
+
+// "type" Identifier Type ";"
+class Named_Type : Statement_Node, Semicolon_Stat {
     Token twine;
     Type_Node type;
 
@@ -26,7 +101,8 @@ class Named_Type : Statement_Node {
     }
 }
 
-class Variable_Statement_Node : Statement_Node {
+// let name [ Type ] [ "=" Expression ] ";"
+class Variable_Statement_Node : Statement_Node, Semicolon_Stat {
     Token twine;
     Type_Node type;
     Expression_Node value = null;
@@ -38,7 +114,7 @@ class Variable_Statement_Node : Statement_Node {
     }
 }
 
-// CONSTNATS
+// CONSTANTS
 
 class Constant_Node(T) : Expression_Node {
     Token tok;
@@ -103,8 +179,16 @@ class Block_Node : Node {
 
 // EXPRESSION AST NODES
 
-class Expression_Node : Node {
+class Expression_Node : Statement_Node {
 
+}
+
+class Block_Expression_Node : Expression_Node {
+    Block_Node block;
+
+    this(Block_Node block) {
+        this.block = block;
+    }
 }
 
 class Binary_Expression_Node : Expression_Node {

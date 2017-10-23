@@ -51,6 +51,22 @@ class Parser : Compilation_Phase  {
 		return nodes;
 	}
 
+    Token[] expect(Token_Type[] types) {
+        Token[] toks;
+        foreach (t; types) {
+            toks ~= expect(t);
+        }
+        return toks;
+    }
+
+    Token[] expect(string[] lexemes) {
+        Token[] toks;
+        foreach (s; lexemes) {
+            toks ~= expect(s);
+        }
+        return toks;
+    }
+
     Token expect(string str) {
         if (!peek().cmp(str)) {
             err_logger.Error("Expected '" ~ str ~ "', found: '" ~ to!string(peek()));
@@ -67,28 +83,35 @@ class Parser : Compilation_Phase  {
         return consume();
     }
 
+    // TODO: this should be done better!
     void skip_dir() {
-        expect("#");
+        expect(keyword.Directive_Symbol);
+
         auto name = expect(Token_Type.Identifier);
         switch (name.lexeme) {
-        case "load":
+        case keyword.Load_Directive:
             expect(Token_Type.Identifier);
-            if (peek().cmp("::")) {
-                consume();
-                if (peek().cmp("{")) {
-                    consume();
-                    int idx = 0;
-                    while (!peek().cmp("}")) {
-                        if (idx++ > 0) {
-                            expect(",");
-                        }
-                        consume();
-                    }
-                    expect("}");
-                } else {
-                    expect(Token_Type.Identifier);
-                }
+
+            // module_access
+            if (!peek().cmp("::")) {
+                break;
             }
+            consume();
+
+            // not accessing a variety of
+            // symbols, just one so expect
+            // a single symbol and DIP
+            if (!peek().cmp("{")) {
+                expect(Token_Type.Identifier);
+                break;
+            }
+
+            expect("{");
+            for (int idx; !peek().cmp("}"); idx++) {
+                if (idx > 0) expect(",");
+                consume();
+            }
+            expect("}");
             break;
         default: break;
         }
@@ -115,7 +138,7 @@ class Parser : Compilation_Phase  {
 
     ast.Function_Parameter parse_func_param() {
         bool mutable = false;
-        if (peek().cmp("mut")) {
+        if (peek().cmp(keyword.Mutable)) {
             mutable = true;
             consume();
         }
@@ -157,9 +180,9 @@ class Parser : Compilation_Phase  {
         }
 
         switch (curr.lexeme) {
-        case "size_of":
-        case "len_of":
-        case "type_of":
+        case keyword.Size_Of:
+        case keyword.Len_Of:
+        case keyword.Type_Of:
             // TODO:
             break;
         default: break;
@@ -167,7 +190,7 @@ class Parser : Compilation_Phase  {
 
         // boolean literal
         switch (curr.lexeme) {
-        case "true": case "false":
+        case keyword.True_Constant: case keyword.False_Constant:
             return new Boolean_Constant_Node(consume());
         default: break;
         }
@@ -257,7 +280,10 @@ class Parser : Compilation_Phase  {
     ast.Expression_Node parse_expr(bool comp_allowed = false) {
         // TODO: parsing composite expressions?
 
-        // eval expr
+        if (peek().cmp(keyword.Eval) && peek(1).cmp("{")) {
+            expect(keyword.Eval);
+            return new Block_Expression_Node(parse_block());
+        }
 
         // lambda
 
@@ -282,13 +308,13 @@ class Parser : Compilation_Phase  {
     }
 
     ast.Variable_Statement_Node parse_let() {
-        if (!peek().cmp("let")) {
+        if (!peek().cmp(keyword.Let)) {
             return null;
         }
         consume();
 
         bool mutable = false;
-        if (peek().cmp("mut")) {
+        if (peek().cmp(keyword.Mutable)) {
             mutable = true;
             consume();
         }
@@ -322,16 +348,186 @@ class Parser : Compilation_Phase  {
         return var;
     }
 
+    ast.Return_Statement_Node parse_return() {
+        if (!peek().cmp(keyword.Return)) {
+            return null;
+        }
+        expect(keyword.Return);
+
+        auto val = parse_expr();
+        if (val is null && !peek().cmp(";")) {
+            err_logger.Error("expected expression or terminating semi-colon");
+            return null;
+        }
+        return new Return_Statement_Node(val);
+    }
+
+    ast.Break_Statement_Node parse_break() {
+        if (!peek().cmp(keyword.Break)) {
+            return null;
+        }
+        expect(keyword.Break);
+        return new Break_Statement_Node();
+    }
+
+    ast.Next_Statement_Node parse_next() {
+        if (!peek().cmp(keyword.Next)) {
+            return null;
+        }
+        expect(keyword.Next);
+        return new Next_Statement_Node();
+    }
+
+    ast.Yield_Statement_Node parse_yield() {
+        if (!peek().cmp(keyword.Yield)) {
+            return null;
+        }
+        expect(keyword.Yield);
+
+        auto value = parse_expr();
+        if (value is null) {
+            err_logger.Error("yield stat expects an expression: " ~ to!string(peek()));
+        }
+        return new Yield_Statement_Node(value);
+    }
+
+    ast.Defer_Statement_Node parse_defer() {
+        if (!peek().cmp(keyword.Defer)) {
+            return null;
+        }
+        expect(keyword.Defer);
+
+        auto stat = parse_stat();
+        if (stat is null) {
+            err_logger.Error("expected statement after defer");
+            return null;
+        }
+        return new Defer_Statement_Node(stat);
+    }
+
+    ast.While_Statement_Node parse_while() {
+        if (!peek().cmp(keyword.While)) {
+            return null;
+        }
+        expect(keyword.While);
+
+        auto cond = parse_expr();
+        if (cond is null) {
+            err_logger.Error("expected condition in while loop");
+        }
+
+        auto block = parse_block();
+        if (block is null) {
+            err_logger.Error("expected block after while");
+        }
+
+        return new While_Statement_Node(cond, block);
+    }
+
+    ast.Loop_Statement_Node parse_loop() {
+        if (!peek().cmp(keyword.Loop)) {
+            return null;
+        }
+        expect(keyword.Loop);
+
+        auto block = parse_block();
+        if (block is null) {
+            err_logger.Error("expected block after while");
+        }
+
+        return new Loop_Statement_Node(block);
+    }
+
+    ast.If_Statement_Node parse_if() {
+        if (!peek().cmp(keyword.If)) {
+            return null;
+        }
+        expect(keyword.If);
+
+        auto cond = parse_expr();
+        if (cond is null) {
+            err_logger.Error("expected condition in if construct");
+        }
+
+        auto block = parse_block();
+        if (block is null) {
+            err_logger.Error("expected block after if");
+        }
+
+        return new If_Statement_Node(cond, block);
+    }
+
+    ast.Else_Statement_Node parse_else() {
+        if (!peek().cmp(keyword.Else)) {
+            return null;
+        }
+        expect(keyword.Else);
+
+        auto block = parse_block();
+        if (block is null) {
+            err_logger.Error("expected block after else");
+        }
+
+        return new Else_Statement_Node(block);
+    }
+
+    ast.Else_If_Statement_Node parse_elif() {
+        if (!peek().cmp(keyword.Else) && !peek(1).cmp(keyword.If)) {
+            return null;
+        }
+        expect(["else", "if"]);
+        auto cond = parse_expr();
+        if (cond is null) {
+            err_logger.Error("expected condition for else-if-construct");
+        }
+
+        auto block = parse_block();
+        if (block is null) {
+            err_logger.Error("expected block for else-if-construct");
+        }
+
+        return new Else_If_Statement_Node(cond, block);
+    }
+
     ast.Statement_Node parse_stat() {
         Token tok = peek();
         switch (tok.lexeme) {
-        case "let":
+        case keyword.Let:
             return parse_let();
+        case keyword.Defer:
+            return parse_defer();
+        case keyword.While:
+            return parse_while();
+        case keyword.If:
+            return parse_if();
+        case keyword.Else:
+            // ELSE IF!
+            if (peek(1).cmp(keyword.If)) {
+                return parse_elif();
+            }
+            return parse_else();
+        case keyword.Loop:
+            return parse_loop();
+        case keyword.Yield:
+            return parse_yield();
+        case keyword.Return:
+            return parse_return();
+        case keyword.Break:
+            return parse_break();
+        case keyword.Next:
+            return parse_next();
         default: break;
         }
 
-        assert("unhandled statement " ~ to!string(peek()));
-        return null;
+        // FIXME
+        // fuck it, try parsing an expression.
+        auto val = parse_expr();
+        if (val is null) {
+            return null;
+        }
+
+        expect(";");
+        return val;
     }
 
     ast.Block_Node parse_block() {

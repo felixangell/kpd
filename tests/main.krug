@@ -9,4 +9,40 @@ func main() int {
 	let y = 22 + -33333 * 59595;
 	let z;
 	let foo int;
+
+	let baz uint;
+
+    let x = eval {
+        yield 69;
+    };
+
+    while 4 == 4 {
+
+    }
+
+    while true {
+
+    }
+
+    if true {
+
+    }
+
+    loop {
+
+    }
+
+	if -69 == 3 {
+
+	}
+	else if 444 == 3 && 69 == 69 || 3 >= 21 {
+
+	}
+	else {
+
+	}
+
+    defer 4 + 4;
+
+	return 69;
 }
