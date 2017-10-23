@@ -69,7 +69,7 @@ class Parser : Compilation_Phase  {
 
     Token expect(string str) {
         if (!peek().cmp(str)) {
-            err_logger.Error("Expected '" ~ str ~ "', found: '" ~ to!string(peek()));
+            err_logger.Error(peek(), "Expected '" ~ str ~ "', found: '");
             assert(0);
         }
         return consume();
@@ -77,7 +77,7 @@ class Parser : Compilation_Phase  {
 
     Token expect(Token_Type type) {
         if (!peek().cmp(type)) {
-            err_logger.Error("Expected '" ~ to!string(type) ~ "', got " ~ to!string(peek()));
+            err_logger.Error(peek(), "Expected '" ~ to!string(type) ~ "', found:");
             assert(0);
         }
         return consume();
@@ -330,7 +330,7 @@ class Parser : Compilation_Phase  {
             type = parse_type();
         }
         if (type is null && !peek().cmp("=")) {
-            // error: expected type in variable binding!
+            err_logger.Error(peek(), "expected type in variable binding, found:");
         }
 
         auto var = new Variable_Statement_Node(name, type);
@@ -342,6 +342,7 @@ class Parser : Compilation_Phase  {
             var.value = parse_expr();
             if (var.value is null) {
                 // error: expected value after assignment operator.
+                err_logger.Error(peek(), "expected value after assignment operator, found:");
             }
         }
 
@@ -356,7 +357,7 @@ class Parser : Compilation_Phase  {
 
         auto val = parse_expr();
         if (val is null && !peek().cmp(";")) {
-            err_logger.Error("expected expression or terminating semi-colon");
+            err_logger.Error(peek(), "expected expression or terminating semi-colon, found:");
             return null;
         }
         return new Return_Statement_Node(val);
@@ -386,7 +387,7 @@ class Parser : Compilation_Phase  {
 
         auto value = parse_expr();
         if (value is null) {
-            err_logger.Error("yield stat expects an expression: " ~ to!string(peek()));
+            err_logger.Error(peek(), "yield stat expects an expression, found:");
         }
         return new Yield_Statement_Node(value);
     }
@@ -399,7 +400,7 @@ class Parser : Compilation_Phase  {
 
         auto stat = parse_stat();
         if (stat is null) {
-            err_logger.Error("expected statement after defer");
+            err_logger.Error(peek(), "expected statement after defer, found:");
             return null;
         }
         return new Defer_Statement_Node(stat);
@@ -413,12 +414,12 @@ class Parser : Compilation_Phase  {
 
         auto cond = parse_expr();
         if (cond is null) {
-            err_logger.Error("expected condition in while loop");
+            err_logger.Error(peek(), "expected condition in while loop, found:");
         }
 
         auto block = parse_block();
         if (block is null) {
-            err_logger.Error("expected block after while");
+            err_logger.Error(peek(), "expected block after while, found:");
         }
 
         return new While_Statement_Node(cond, block);
@@ -432,7 +433,7 @@ class Parser : Compilation_Phase  {
 
         auto block = parse_block();
         if (block is null) {
-            err_logger.Error("expected block after while");
+            err_logger.Error(peek(), "expected block after while:");
         }
 
         return new Loop_Statement_Node(block);
@@ -446,12 +447,12 @@ class Parser : Compilation_Phase  {
 
         auto cond = parse_expr();
         if (cond is null) {
-            err_logger.Error("expected condition in if construct");
+            err_logger.Error(peek(), "expected condition in if construct, found:");
         }
 
         auto block = parse_block();
         if (block is null) {
-            err_logger.Error("expected block after if");
+            err_logger.Error(peek(), "expected block after if, found:");
         }
 
         return new If_Statement_Node(cond, block);
@@ -465,7 +466,7 @@ class Parser : Compilation_Phase  {
 
         auto block = parse_block();
         if (block is null) {
-            err_logger.Error("expected block after else");
+            err_logger.Error(peek(), "expected block after else, found:");
         }
 
         return new Else_Statement_Node(block);
@@ -478,27 +479,21 @@ class Parser : Compilation_Phase  {
         expect(["else", "if"]);
         auto cond = parse_expr();
         if (cond is null) {
-            err_logger.Error("expected condition for else-if-construct");
+            err_logger.Error(peek(), "expected condition for else-if-construct, found:");
         }
 
         auto block = parse_block();
         if (block is null) {
-            err_logger.Error("expected block for else-if-construct");
+            err_logger.Error(peek(), "expected block for else-if-construct, found:");
         }
 
         return new Else_If_Statement_Node(cond, block);
     }
 
-    bool has_blamed = false;
-
     ast.Statement_Node parse_stat() {
         Token tok = peek();
         switch (tok.lexeme) {
         case keyword.Let:
-            if (!has_blamed) {
-                has_blamed = true;
-                err_logger.Blame_Token(tok);
-            }
             return parse_let();
         case keyword.Defer:
             return parse_defer();
@@ -546,7 +541,7 @@ class Parser : Compilation_Phase  {
         for (int i = 0; has_next() && !peek().cmp("}"); i++) {
             Statement_Node stat = parse_stat();
             if (stat is null) {
-                err_logger.Error("Expected statement, found " ~ to!string(peek()));
+                err_logger.Error(peek(), "Expected statement, found: ");
                 break;
             }
             block.statements ~= stat;

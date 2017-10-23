@@ -31,7 +31,7 @@ static string get_line(const(Source_File*) file, ulong index) {
     return strip(slice);
 }
 
-static void Blame_Token(ref Token tok) {
+static void Blame_Token(ref Token tok, File out_stream = stdout) {
     const Source_File* file = tok.parent;
 
     const uint index = tok.position.start.idx;
@@ -54,18 +54,45 @@ static void Blame_Token(ref Token tok) {
     string tab = replicate(" ", TAB_SIZE);
     auto row_str = to!string(tok.position.start.row);
 
-    writefln("%s|>%s", tok.position.start.row,
+    out_stream.writefln("%s|>%s", tok.position.start.row,
         tab ~ start ~ colour.Bold(colour.Warn(tok.lexeme)) ~ end);
 
     const auto padding = replicate(" ", cast(size_t)row_str.length);
-    writefln("%s >%s", padding, tab ~ underline);
+    out_stream.writefln("%s >%s", padding, tab ~ underline);
 }
 
 static void Log(Log_Level lvl, string str) {
 	auto out_stream = (lvl == Log_Level.Error || lvl == Log_Level.Fatal) ? stderr : stdout;
+
+    auto col = colour.RESET;
+    switch (lvl) {
+    case Log_Level.Error:
+    case Log_Level.Fatal:
+        col = colour.RED;
+        break;
+    case Log_Level.Verbose:
+        col = colour.MAGENTA;
+        break;
+    case Log_Level.Warning:
+        col = colour.YELLOW;
+        break;
+    default: break;
+    }
+
 	import std.uni : toLower;
-	auto error_level = toLower(to!string(lvl));
-	out_stream.writeln(error_level ~ ": " ~ str);
+	auto error_level = colour.Colourize(col, toLower(to!string(lvl)));
+
+	if (lvl == Log_Level.Verbose) {
+	    out_stream.writef("# ");
+	} else {
+       out_stream.writef("%s: ", error_level);
+	}
+	out_stream.writeln(str);
+}
+
+static void Error(Token context, string message) {
+    Error(message);
+    Blame_Token(context, stderr);
 }
 
 static void Error(string str) {
