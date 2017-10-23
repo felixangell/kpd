@@ -5,7 +5,7 @@ import std.algorithm.searching : startsWith;
 import std.algorithm.comparison : equal;
 import std.conv;
 
-import tokenize;
+import lex.lexer;
 
 enum Token_Type {
 	Identifier,

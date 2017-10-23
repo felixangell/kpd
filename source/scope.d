@@ -1,4 +1,4 @@
-module block_scope;
+module scope_sys;
 
 class Scope {
 	Scope outer;

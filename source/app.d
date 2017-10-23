@@ -5,9 +5,10 @@ import std.array;
 import std.algorithm.sorting;
 import std.parallelism;
 
-import ds;
-import program_tree;
+import ds.hash_set;
+import dependency_scanner;
 import krug_module;
+
 import parse.parser;
 import ast;
 import err_logger;

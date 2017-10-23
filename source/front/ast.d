@@ -4,7 +4,7 @@ import std.typecons;
 import std.conv;
 import std.bigint;
 
-import block_scope;
+import scope_sys;
 import krug_module;
 
 // binding of an expression to a token

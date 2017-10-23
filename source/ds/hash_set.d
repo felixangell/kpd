@@ -1,4 +1,4 @@
-module ds;
+module ds.hash_set;
 
 import std.algorithm : joiner, map;
 import std.conv : to;

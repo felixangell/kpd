@@ -4,10 +4,12 @@ import std.stdio;
 import std.conv;
 
 import grammar;
-import err_logger;
 import krug_module;
+import compilation_phase;
 import ast;
-import ds;
+
+import ds.hash_set;
+import err_logger;
 
 static Token EOF_TOKEN;
 static Hash_Set!string PRIMITIVE_TYPES;
@@ -23,7 +25,7 @@ static this() {
     );
 }
 
-struct Parser {
+class Parser : Compilation_Phase  {
 	Token[] toks;
 	uint pos = 0;
 
@@ -417,5 +419,9 @@ struct Parser {
 
 	bool has_next() {
 		return pos < toks.length;
+	}
+
+	string get_name() {
+	    return "Parser";
 	}
 }
