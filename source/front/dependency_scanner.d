@@ -142,7 +142,7 @@ struct Krug_Project {
             const string submodule_name = std.path.stripExtension(file);
 
             Source_File source_file = mod.load_source_file(submodule_name);
-            auto tokens = new Lexer(source_file.contents).tokenize();
+            auto tokens = new Lexer(source_file).tokenize();
             mod.token_streams[submodule_name] = tokens;
 
             auto deps = collect_deps(tokens);
@@ -172,7 +172,7 @@ struct Krug_Project {
 Krug_Project build_krug_project(ref Source_File main_source_file) {
 	err_logger.Verbose("Building program tree `" ~ main_source_file.path ~ "`");
 
-    auto tokens = new Lexer(main_source_file.contents).tokenize();
+    auto tokens = new Lexer(main_source_file).tokenize();
     Load_Directive[] dirs = collect_deps(tokens);
 
     string main_module_path = buildNormalizedPath(absolutePath(main_source_file.path));

@@ -5,6 +5,7 @@ import std.algorithm.searching : startsWith;
 import std.algorithm.comparison : equal;
 import std.conv;
 
+import err_logger;
 import lex.lexer;
 
 enum Token_Type {
@@ -49,6 +50,7 @@ class Span {
 };
 
 class Token {
+	Source_File* parent;
 	string lexeme;
 	Token_Type type;
 	Span position;

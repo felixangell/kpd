@@ -489,10 +489,16 @@ class Parser : Compilation_Phase  {
         return new Else_If_Statement_Node(cond, block);
     }
 
+    bool has_blamed = false;
+
     ast.Statement_Node parse_stat() {
         Token tok = peek();
         switch (tok.lexeme) {
         case keyword.Let:
+            if (!has_blamed) {
+                has_blamed = true;
+                err_logger.Blame_Token(tok);
+            }
             return parse_let();
         case keyword.Defer:
             return parse_defer();
@@ -589,6 +595,7 @@ class Parser : Compilation_Phase  {
 
 	ast.Node parse_node() {
         Token tok = peek();
+
         switch (tok.lexeme) {
         case keyword.Type:
             return parse_named_type();

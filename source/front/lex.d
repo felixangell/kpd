@@ -16,13 +16,16 @@ static bool is_end_of_line(dchar c) {
 }
 
 class Lexer : Compilation_Phase {
+	Source_File* curr_file;
+
 	string input;
 	uint position;
 
 	uint row = 1, col = 1;
 
-	this(string input) {
-		this.input = input;
+	this(ref Source_File file) {
+		this.input = file.contents;
+		this.curr_file = &file;
 	}
 
 	string get_name() {
@@ -281,7 +284,8 @@ class Lexer : Compilation_Phase {
 				Location end = capture_location();
 				end.col -= pad;
 				recognized_token.position = new Span(start_loc, end, tok_stream.length - 1);
-				tok_stream ~= recognized_token;			
+                recognized_token.parent = curr_file;
+				tok_stream ~= recognized_token;
 			}
 		}
 		return tok_stream;
