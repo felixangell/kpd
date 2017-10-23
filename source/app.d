@@ -27,7 +27,6 @@ void main(string[] args) {
     auto main_source_file = new Source_File(args[1]);
     Krug_Project proj = build_krug_project(main_source_file);
     assert("main" in proj.graph);
-    proj.graph.dump();
 
     // TODO: we can move flatten -> sort into
     // one thing instead of a two step solution!
@@ -44,8 +43,10 @@ void main(string[] args) {
     // modules with the least amount of dependencies
     // are first
     auto sorted_deps = flattened.sort!((a, b) => a.dep_count() < b.dep_count());
+    err_logger.Verbose("Parsing: ");
     foreach (dep; sorted_deps) {
         Token_Stream[string] tok_streams = dep.token_streams;
+        err_logger.Verbose("- " ~ dep.name ~ ";");
         foreach (tok_stream; tok_streams) {
             dep.as_trees[dep.name] = new Parser(tok_stream).parse();
         }
