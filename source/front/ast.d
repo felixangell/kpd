@@ -232,6 +232,8 @@ class Primitive_Type_Node : Type_Node {
 	}
 }
 
+
+
 // complex types
 
 class Array_Type_Node : Type_Node {
