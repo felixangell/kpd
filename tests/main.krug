@@ -10,6 +10,13 @@ func foo();
 
 type rgb_colour (u8, u8, u8);
 
+// do comments work?
+/*
+    why yes they do!
+    /* and when they nest!
+    */
+*/
+
 type integer_array [int];
 type ref_integer_array &[int];
 
