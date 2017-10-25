@@ -186,6 +186,8 @@ class Parser : Compilation_Phase  {
         if (tok.lexeme in PRIMITIVE_TYPES) {
             return new Primitive_Type_Node(consume());
         }
+
+
         return null;
     }
 
