@@ -7,6 +7,7 @@ import std.uni;
 import std.conv;
 import std.range.primitives;
 
+import err_logger;
 import krug_module;
 import compilation_phase;
 import grammar;
@@ -185,7 +186,7 @@ class Lexer : Compilation_Phase {
 	Token recognize_identifier(bool keyword_check) {
 		string value = consume_while(is_identifier);
 		auto type = Token_Type.Identifier;
-		if (keyword_check && value in KEYWORDS) {
+		if (keyword_check && (value in KEYWORDS)) {
 			type = Token_Type.Keyword;
 		}
 		return new Token(value, type); 
@@ -286,6 +287,22 @@ class Lexer : Compilation_Phase {
 				recognized_token.position = new Span(start_loc, end, tok_stream.length - 1);
                 recognized_token.parent = curr_file;
 				tok_stream ~= recognized_token;
+
+                // check that the keyword we're avoiding is
+                // actually a keyword. this is mostly to avoid bad
+                // code because otherwise
+                // func $main($a int, $b $uint) $void would be legal!
+                {
+                    // TODO: clean this up, the error message fucks up here because
+                    // we dont account for the $ symbol in the printing thing
+                    // so it's offset by one!
+                    // IMPORTANT:
+                    // we have to do the error check here because otherwise we wont
+                    // have any of the tokens positions set so it will cause an error!
+                    if (curr == '$' && recognized_token.lexeme !in KEYWORDS) {
+                        err_logger.Error(recognized_token, "Attempting to de-keyword a non-keyword, found:");
+                    }
+				}
 			}
 		}
 		return tok_stream;

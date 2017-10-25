@@ -20,7 +20,7 @@ static this() {
 		"if", "else", "loop", "while", "match", "for",
 		"return", "break", "next",
 		"as", "mut", "default", "eval",
-		"length", "size_of", "type_of", "len",
+		"len_of", "size_of", "type_of",
 		"struct", "trait", "union", "enum",
 		"defer", "false", "true", "bool", "rune", "yield",
 		"self", "clang",
@@ -94,7 +94,7 @@ static this() {
 		"*=" ,"%" ,  "=" ,  "*" ,  ":" , "^" , 
 		"+" , "-" , "!" , "#" , "/" , "," , ";" , 
 		"." ,"[" ,  "]" ,  "{" ,  "}" , "(" , ")" ,
-		"<", ">",
+		"<", ">", "&",
 	);
 }
 

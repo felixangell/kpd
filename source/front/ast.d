@@ -232,9 +232,11 @@ class Primitive_Type_Node : Type_Node {
 	}
 }
 
-
-
 // complex types
+
+class Tuple_Type_Node : Type_Node {
+    Type_Node[] types;
+}
 
 class Array_Type_Node : Type_Node {
 public:
@@ -307,10 +309,6 @@ public:
 
 	void add_param(Token twine, Type_Node type, bool mutable = false) {
 		params[twine.lexeme] = Function_Parameter(mutable, twine, type);
-	}
-
-	void set_return_type(Type_Node return_type) {
-		this.return_type = return_type;
 	}
 }
 

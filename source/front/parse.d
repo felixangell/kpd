@@ -77,7 +77,8 @@ class Parser : Compilation_Phase  {
 
     Token expect(Token_Type type) {
         if (!peek().cmp(type)) {
-            err_logger.Error(peek(), "Expected '" ~ to!string(type) ~ "', found:");
+            Token_Type other_type = peek().type;
+            err_logger.Error(peek(), "Expected '" ~ to!string(type) ~ "', found token of type '" ~ to!string(peek().type) ~ "'");
             assert(0);
         }
         return consume();
@@ -147,6 +148,8 @@ class Parser : Compilation_Phase  {
                 value = parse_expr();
                 if (value is null) {
                     err_logger.Error(peek(), "expected value after assignment operator in structure field: ");
+                    recovery_skip("}");
+                    break;
                 }
             }
 
@@ -165,6 +168,153 @@ class Parser : Compilation_Phase  {
         return structure_type_node;
     }
 
+    ast.Function_Type_Node parse_func_type() {
+        if (!peek().cmp(keyword.Function)) {
+            return null;
+        }
+        expect(keyword.Function);
+
+        auto func_type = new Function_Type_Node;
+
+        expect("(");
+        for (int i = 0; has_next() && !peek().cmp(")"); i++) {
+            bool mutable = false;
+            if (peek().cmp(keyword.Mutable)) {
+                mutable = true;
+                consume();
+            }
+
+            auto name = expect(Token_Type.Identifier);
+            if (name is null) {
+                err_logger.Error(peek(), "expected argument name, found:");
+            }
+
+            auto type = parse_type();
+            if (type is null) {
+                err_logger.Error(peek(), "expected argument type, found:");
+            }
+
+            func_type.add_param(name, type, mutable);
+
+            if (peek().cmp(",")) {
+                consume();
+            } else if (!peek().cmp(")")) {
+                err_logger.Error(peek(), "expected comma after argument in function type: ");
+            }
+        }
+        expect(")");
+
+        func_type.return_type = parse_type();
+        if (func_type.return_type is null) {
+            // TODO: error here or allow it and assume void?!
+        }
+
+        return func_type;
+    }
+
+    ast.Trait_Type_Node parse_trait_type() {
+        if (!peek().cmp(keyword.Trait)) {
+            return null;
+        }
+        expect(keyword.Trait);
+
+        auto trait_type_node = new Trait_Type_Node;
+
+        expect("{");
+
+        for (int i = 0; has_next() && !peek().cmp("}"); i++) {
+            auto name = expect(Token_Type.Identifier);
+            auto func_type = parse_func_type();
+            if (func_type is null) {
+                err_logger.Error(peek(), "Expected function in trait, found: ");
+                recovery_skip("}");
+                break;
+            }
+            trait_type_node.add_attrib(name, func_type);
+
+            // trailing comma
+            expect(",");
+        }
+
+        expect("}");
+
+        return trait_type_node;
+    }
+
+    ast.Union_Type_Node parse_union_type() {
+        assert(0); // TODO:
+    }
+
+    ast.Type_Node parse_enum_type() {
+        assert(0); // TODO:
+    }
+
+    ast.Pointer_Type_Node parse_pointer_type() {
+        if (!peek().cmp("*")) {
+            return null;
+        }
+        expect("*");
+        auto type = parse_type();
+        if (type is null) {
+            err_logger.Error(peek(), "expected type after pointer, found:");
+            return null;
+        }
+        return new Pointer_Type_Node(type);
+    }
+
+    ast.Tuple_Type_Node parse_tuple_type() {
+        if (!peek().cmp("(")) {
+            return null;
+        }
+        expect("(");
+
+        auto tuple_type = new Tuple_Type_Node;
+        for (int i = 0; has_next() && !peek().cmp(")"); i++) {
+            auto type = parse_type();
+            if (type is null) {
+                err_logger.Error(peek(), "tuple expects type, found:");
+                recovery_skip(")");
+                break;
+            }
+            tuple_type.types ~= type;
+
+            // TODO: enforce commas properly.
+            if (peek().cmp(",")) {
+                consume();
+            }
+        }
+        expect(")");
+        return tuple_type;
+    }
+
+    ast.Array_Type_Node parse_array_type() {
+        if (!peek().cmp("[")) {
+            return null;
+        }
+        expect("[");
+        auto type = parse_type();
+        if (type is null) {
+            err_logger.Error(peek(), "expected type in array type: ");
+            recovery_skip("]");
+        }
+        expect("]");
+        return new Array_Type_Node(type);
+    }
+
+    ast.Slice_Type_Node parse_slice_type() {
+        if (!peek().cmp("&")) {
+            return null;
+        }
+        expect(["&", "["]);
+        auto type = parse_type();
+        if (type is null) {
+            err_logger.Error(peek(), "expected type in array type: ");
+            recovery_skip("]");
+        }
+        expect("]");
+        return new Slice_Type_Node(type);
+    }
+
     ast.Type_Node parse_type() {
         Token tok = peek();
 
@@ -172,21 +322,27 @@ class Parser : Compilation_Phase  {
         case keyword.Structure:
             return parse_structure_type();
         case keyword.Trait:
-            break;
-        case keyword.Union: break;
-        case keyword.Enum: break;
-        case keyword.Function: break;
-        case "&": break;
-        case "[": break;
-        case "(": break;
-        case "*": break;
+            return parse_trait_type();
+        case keyword.Union:
+            return parse_union_type();
+        case keyword.Enum:
+            return parse_enum_type();
+        case keyword.Function:
+            return parse_func_type();
+        case "&":
+            return parse_slice_type();
+        case "[":
+            return parse_array_type();
+        case "(":
+            return parse_tuple_type();
+        case "*":
+            return parse_pointer_type();
         default: break;
         }
 
         if (tok.lexeme in PRIMITIVE_TYPES) {
             return new Primitive_Type_Node(consume());
         }
-
 
         return null;
     }
@@ -201,6 +357,7 @@ class Parser : Compilation_Phase  {
         auto type = parse_type();
         if (type is null) {
             err_logger.Error(peek(), "expected a type to bind name to, found: ");
+            recovery_skip(";"); // FIXME ?
             return null;
         }
         return new Named_Type(name, type);
@@ -236,7 +393,8 @@ class Parser : Compilation_Phase  {
         expect("(");
         auto expr = parse_expr();
         if (expr is null) {
-            // error: expected expr ting
+            err_logger.Error(peek(), "Expected an expression inside of parenthesis expression, found:");
+            recovery_skip(")");
         }
         expect(")");
         return new Paren_Expression_Node(expr);
@@ -405,6 +563,7 @@ class Parser : Compilation_Phase  {
         // input - throw an error!
         if (type is null && !(peek().cmp("=") || peek().cmp(";"))) {
             err_logger.Error(peek(), "expected type in variable binding, found:");
+            recovery_skip(";");
         }
 
         auto var = new Variable_Statement_Node(name, type);
@@ -416,6 +575,7 @@ class Parser : Compilation_Phase  {
             var.value = parse_expr();
             if (var.value is null) {
                 err_logger.Error(peek(), "expected value after assignment operator, found:");
+                recovery_skip(";");
             }
         }
 
@@ -506,7 +666,7 @@ class Parser : Compilation_Phase  {
 
         auto block = parse_block();
         if (block is null) {
-            err_logger.Error(peek(), "expected block after while:");
+            err_logger.Error(peek(), "expected block after while, found:");
         }
 
         return new Loop_Statement_Node(block);
