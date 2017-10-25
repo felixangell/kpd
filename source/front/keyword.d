@@ -18,6 +18,12 @@ static const string For = "for";
 static const string While = "while";
 static const string Loop = "loop";
 
+// type stuff
+static const string Structure = "struct";
+static const string Union = "union";
+static const string Enum = "enum";
+static const string Trait = "trait";
+
 // these are technically operators:
 static const string Size_Of = "size_of";
 static const string Len_Of = "len_of";

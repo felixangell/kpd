@@ -269,15 +269,27 @@ public:
 
 	void add_field(Token name, Expression_Node value) {
 		fields[name.lexeme] = Binding(name, value);
-	}	
+	}
 }
+
+struct Structure_Field {
+    Token name;
+    Type_Node type;
+    Expression_Node value;
+
+    this(Token name, Type_Node type, Expression_Node value = null) {
+        this.name = name;
+        this.type = type;
+        this.value = value;
+    }
+};
 
 class Structure_Type_Node : Type_Node {
 public:
-	Binding[string] fields;
+	Structure_Field[string] fields;
 
-	void add_field(Token name, Expression_Node value) {
-		fields[name.lexeme] = Binding(name, value);
+	void add_field(Token name, Type_Node type, Expression_Node value = null) {
+		fields[name.lexeme] = Structure_Field(name, type, value);
 	}
 }
 

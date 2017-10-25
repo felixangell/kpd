@@ -117,8 +117,72 @@ class Parser : Compilation_Phase  {
         }
     }
 
+    void recovery_skip(string value) {
+        while (has_next() && !peek().cmp(value)) {
+            consume();
+        }
+    }
+
+    ast.Structure_Type_Node parse_structure_type() {
+        if (!peek().cmp(keyword.Structure)) {
+            return null;
+        }
+        expect(keyword.Structure);
+        expect("{");
+
+        auto structure_type_node = new Structure_Type_Node;
+        for (int i = 0; has_next() && !peek().cmp("}"); i++) {
+            auto name = expect(Token_Type.Identifier);
+
+            auto type = parse_type();
+            if (type is null) {
+                err_logger.Error(peek(), "expected type in structure field, found: ");
+                recovery_skip("}");
+                break;
+            }
+
+            Expression_Node value;
+            if (peek().cmp("=")) {
+                consume();
+                value = parse_expr();
+                if (value is null) {
+                    err_logger.Error(peek(), "expected value after assignment operator in structure field: ");
+                }
+            }
+
+            structure_type_node.add_field(name, type, value);
+
+            if (!peek().cmp("}")) {
+                expect(",");
+            } else {
+                // allow a trailing comma.
+                if (peek().cmp(",")) {
+                    consume();
+                }
+            }
+        }
+        expect("}");
+        return structure_type_node;
+    }
+
     ast.Type_Node parse_type() {
         Token tok = peek();
+
+        switch (tok.lexeme) {
+        case keyword.Structure:
+            return parse_structure_type();
+        case keyword.Trait:
+            break;
+        case keyword.Union: break;
+        case keyword.Enum: break;
+        case keyword.Function: break;
+        case "&": break;
+        case "[": break;
+        case "(": break;
+        case "*": break;
+        default: break;
+        }
+
         if (tok.lexeme in PRIMITIVE_TYPES) {
             return new Primitive_Type_Node(consume());
         }
@@ -133,6 +197,10 @@ class Parser : Compilation_Phase  {
 
         auto name = expect(Token_Type.Identifier);
         auto type = parse_type();
+        if (type is null) {
+            err_logger.Error(peek(), "expected a type to bind name to, found: ");
+            return null;
+        }
         return new Named_Type(name, type);
     }
 

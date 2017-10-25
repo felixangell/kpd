@@ -4,7 +4,9 @@ import std.conv;
 import std.array;
 import std.algorithm.sorting;
 import std.parallelism;
+import std.getopt;
 
+import colour;
 import ds.hash_set;
 import dependency_scanner;
 import krug_module;
@@ -19,8 +21,14 @@ void main(string[] args) {
     StopWatch compilerTimer;
     compilerTimer.start();
 
+    // argument stuff.
+    getopt(args,
+        "no-colours", "disables colourful output logging", &colour.NO_COLOURS,
+        "verbose|v", "enable verbose logging", &err_logger.VERBOSE_LOGGING,
+    );
+
 	if (args.length == 1) {
-        err_logger.Error("no program arguments specified.");
+        err_logger.Error("no input file.");
 	    return;
 	}
 
@@ -53,7 +61,7 @@ void main(string[] args) {
     }
 
 	auto duration = compilerTimer.peek();
-	err_logger.Verbose("Compiler took "
+	err_logger.Info("Compiler took "
 	    ~ to!string(duration.msecs)
 	    ~ "/ms or "
 	    ~ to!string(duration.usecs)

@@ -8,6 +8,16 @@ func blah() int;
 
 func foo();
 
+type foo_bar struct {
+    foo int,
+    baz int,
+    boo uint
+};
+
+type foo struct {
+	foo int,
+};
+
 func add() void {
 	
 }

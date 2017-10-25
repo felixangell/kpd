@@ -10,11 +10,14 @@ import colour;
 
 const uint TAB_SIZE = 4;
 
+bool VERBOSE_LOGGING = false;
+
 enum Log_Level {
 	Fatal,
 	Verbose,
 	Error,
 	Warning,
+	Info,
 }
 
 static string get_line(const(Source_File*) file, ulong index) {
@@ -49,7 +52,7 @@ static void Blame_Token(ref Token tok, File out_stream = stdout) {
 
     auto start = file.contents[token_start .. token_start + prefix_size];
     auto old_start_len = start.length;
-    start = strip(start);
+    start = stripLeft(start);
     auto end = file.contents[token_start + prefix_size + tok.lexeme.length .. line_end_index];
 
     // because we stripped the junk, we have to
@@ -63,13 +66,17 @@ static void Blame_Token(ref Token tok, File out_stream = stdout) {
     auto row_str = to!string(tok.position.start.row);
 
     out_stream.writefln("%s|>%s", tok.position.start.row,
-        tab ~ start ~ colour.Bold(colour.Warn(tok.lexeme)) ~ end);
+        tab ~ start ~ colour.Bold(colour.Err(tok.lexeme)) ~ end);
 
     const auto padding = replicate(" ", cast(size_t)row_str.length);
     out_stream.writefln("%s >%s", padding, tab ~ underline);
 }
 
 static void Log(Log_Level lvl, string str) {
+    if (lvl == Log_Level.Verbose && !VERBOSE_LOGGING) {
+        return;
+    }
+
 	auto out_stream = (lvl == Log_Level.Error || lvl == Log_Level.Fatal) ? stderr : stdout;
 
     auto col = colour.RESET;
@@ -109,6 +116,10 @@ static void Error(string str) {
 
 static void Warn(string str) {
 	Log(Log_Level.Warning, str);
+}
+
+static void Info(string str) {
+    Log(Log_Level.Info, str);
 }
 
 static void Fatal(string str) {
