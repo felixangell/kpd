@@ -411,14 +411,18 @@ class Parser : Compilation_Phase  {
         case keyword.Size_Of:
         case keyword.Len_Of:
         case keyword.Type_Of:
-            // TODO:
-            break;
+            auto op = consume();
+            if (!peek().cmp("(")) {
+                err_logger.Error(peek(), "expected paren expr, found: ");
+            }
+            return new Unary_Expression_Node(op, parse_paren_expr());
         default: break;
         }
 
         // boolean literal
         switch (curr.lexeme) {
-        case keyword.True_Constant: case keyword.False_Constant:
+        case keyword.True_Constant:
+        case keyword.False_Constant:
             return new Boolean_Constant_Node(consume());
         default: break;
         }
@@ -442,6 +446,24 @@ class Parser : Compilation_Phase  {
         return null;
     }
 
+    ast.Generic_Sigil parse_generic_sigil() {
+        Generic_Sigil sigil;
+        sigil.name = expect(Token_Type.Identifier);
+        if (peek().cmp(":")) {
+            consume();
+
+            while (has_next()) {
+                // TODO FIXME, this should be parse_type_path apparently.
+                sigil.restrictions ~= parse_type();
+                if (!peek().cmp("+")) {
+                    break;
+                }
+                expect("+");
+            }
+        }
+        return sigil;
+    }
+
     ast.Expression_Node parse_primary_expr(bool comp_allowed) {
         auto left = parse_operand();
         if (left is null) {
@@ -449,6 +471,7 @@ class Parser : Compilation_Phase  {
         }
 
         // TODO: handle generic arguments
+
         // TODO: handle indexing expr
         // TODO: handle "access" path expr foo.bar.baz
         // TODO: handle composites?

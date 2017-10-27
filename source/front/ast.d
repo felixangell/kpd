@@ -326,3 +326,14 @@ public:
 }
 
 // TODO tagged union node
+
+// GENERIC STUFF
+
+struct Generic_Sigil {
+    Token name;
+    Type_Node[] restrictions;
+}
+
+// i dont think order matters here,
+// associative arrays dont preserve order
+alias Generic_Set = Generic_Sigil[string];
