@@ -52,11 +52,19 @@ void main(string[] args) {
     // are first
     auto sorted_deps = flattened.sort!((a, b) => a.dep_count() < b.dep_count());
     err_logger.Verbose("Parsing: ");
-    foreach (dep; sorted_deps) {
-        Token_Stream[string] tok_streams = dep.token_streams;
-        err_logger.Verbose("- " ~ dep.name ~ ";");
-        foreach (tok_stream; tok_streams) {
-            dep.as_trees[dep.name] = new Parser(tok_stream).parse();
+    foreach (ref dep; sorted_deps) {
+        auto tok_streams = dep.token_streams;
+        foreach (ref entry; tok_streams.byKeyValue) {
+            err_logger.Verbose("- " ~ dep.name ~ "::" ~ entry.key ~ ";");
+            dep.as_trees[entry.key] = new Parser(entry.value).parse();
+        }
+    }
+
+    err_logger.Verbose("Performing semantic analysis on: ");
+    foreach (ref dep; sorted_deps) {
+        auto as_trees = dep.as_trees;
+        foreach (ref entry; as_trees.byKeyValue) {
+            err_logger.Verbose("- " ~ dep.name ~ "::" ~ entry.key);
         }
     }
 
