@@ -89,9 +89,15 @@ func main() int {
 
 	let baz uint;
 
+    let testing union {
+        a int,
+        b int,
+        c uint,
+    };
+
     let x = baz;
     let blah int;
-    blah.func_on_primitive()[5];
+    blah.func_on_primitive()[5 : 123];
 
     if 1 == 1 {
         while true {

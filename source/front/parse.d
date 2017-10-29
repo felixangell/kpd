@@ -238,7 +238,36 @@ class Parser : Compilation_Phase  {
     }
 
     ast.Union_Type_Node parse_union_type() {
-        assert(0); // TODO:
+        if (!peek().cmp(keyword.Union)) {
+            return null;
+        }
+        expect(keyword.Union);
+        expect("{");
+
+        auto union_type_node = new Union_Type_Node;
+        for (int i = 0; has_next() && !peek().cmp("}"); i++) {
+            auto name = expect(Token_Type.Identifier);
+
+            auto type = parse_type();
+            if (type is null) {
+                err_logger.Error(peek(), "expected type in structure field, found: ");
+                recovery_skip("}");
+                break;
+            }
+
+            union_type_node.add_field(name, type);
+
+            if (!peek().cmp("}")) {
+                expect(",");
+            } else {
+                // allow a trailing comma.
+                if (peek().cmp(",")) {
+                    consume();
+                }
+            }
+        }
+        expect("}");
+        return union_type_node;
     }
 
     ast.Type_Node parse_enum_type() {
@@ -397,6 +426,16 @@ class Parser : Compilation_Phase  {
         return new Paren_Expression_Node(expr);
     }
 
+    ast.Slice_Expression_Node parse_slice(Expression_Node left) {
+        expect(":");
+        auto right = parse_expr();
+        if (right is null) {
+            err_logger.Error(peek(), "slice expected end?!!!!!");
+            return null;
+        }
+        return new Slice_Expression_Node(left, right);
+    }
+
     ast.Call_Node parse_call(Expression_Node left) {
         expect("(");
 
@@ -548,6 +587,9 @@ class Parser : Compilation_Phase  {
             break;
         case "(":
             result = parse_call(left);
+            break;
+        case ":":
+            result = parse_slice(left);
             break;
         case ".":
             return parse_path(left);

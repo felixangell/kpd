@@ -216,6 +216,15 @@ class Path_Expression_Node : Expression_Node {
     Expression_Node[] values;
 }
 
+class Slice_Expression_Node : Expression_Node {
+    Expression_Node start, end;
+
+    this(Expression_Node start, Expression_Node end) {
+        this.start = start;
+
+    }
+}
+
 class Index_Expression_Node : Expression_Node {
     Expression_Node array, index;
 
@@ -319,12 +328,14 @@ public:
 	}
 }
 
+alias Union_Field = Tuple!(Token, Type_Node);
+
 class Union_Type_Node : Type_Node {
 public:
-	Binding[string] fields;
+	Union_Field[string] fields;
 
-	void add_field(Token name, Expression_Node value) {
-		fields[name.lexeme] = Binding(name, value);
+	void add_field(Token name, Type_Node type) {
+		fields[name.lexeme] = Union_Field(name, type);
 	}
 }
 
