@@ -193,8 +193,36 @@ class Block_Node : Node {
 
 // EXPRESSION AST NODES
 
-class Expression_Node : Statement_Node {
+class Expression_Node : Statement_Node {}
 
+class Call_Node : Expression_Node {
+    Expression_Node left;
+    Expression_Node[] args;
+
+    this(Expression_Node left) {
+        this.left = left;
+    }
+}
+
+class Symbol_Node : Expression_Node {
+    Token value;
+
+    this(Token value) {
+        this.value = value;
+    }
+}
+
+class Path_Expression_Node : Expression_Node {
+    Expression_Node[] values;
+}
+
+class Index_Expression_Node : Expression_Node {
+    Expression_Node array, index;
+
+    this(Expression_Node array, Expression_Node index) {
+        this.array = array;
+        this.index = index;
+    }
 }
 
 class Lambda_Node : Expression_Node {

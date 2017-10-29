@@ -397,6 +397,36 @@ class Parser : Compilation_Phase  {
         return new Paren_Expression_Node(expr);
     }
 
+    ast.Call_Node parse_call(Expression_Node left) {
+        expect("(");
+
+        auto node = new Call_Node(left);
+        for (int i = 0; !has_next() && peek().cmp(")"); i++) {
+            // these are for annotations, and are erased
+            // these simply exist for reading the code.
+            // one example would be:
+            // world.get_player(name : "Felix");
+            if (peek(1).cmp(":")) {
+                expect(Token_Type.Identifier);
+                expect(":");
+            }
+
+            auto expr = parse_expr();
+            if (expr is null) {
+                err_logger.Error(peek(), "expected an expression in argument list, found: ");
+                break;
+            }
+            node.args ~= expr;
+
+            if (peek().cmp(",")) {
+                consume();
+            }
+        }
+        expect(")");
+
+        return node;
+    }
+
     ast.Expression_Node parse_operand() {
         Token curr = peek();
 
@@ -434,6 +464,8 @@ class Parser : Compilation_Phase  {
             return new Float_Constant_Node(consume());
         case Token_Type.Integer_Literal:
             return new Integer_Constant_Node(consume());
+        case Token_Type.Identifier:
+            return parse_path(new Symbol_Node(consume()));
         default:
             err_logger.Verbose("Potentially unhandled constant " ~ to!string(peek()));
             break;
@@ -461,6 +493,44 @@ class Parser : Compilation_Phase  {
         return sigil;
     }
 
+    ast.Index_Expression_Node parse_index_expr(Expression_Node left) {
+        expect("[");
+        auto index = parse_expr();
+        if (index is null) {
+            err_logger.Error(peek(), "expected indexing expression, found: ");
+            recovery_skip("]");
+        }
+        expect("]");
+        return new Index_Expression_Node(left, index);
+    }
+
+    ast.Path_Expression_Node parse_path(Expression_Node left) {
+        auto pan = new Path_Expression_Node;
+
+        do {
+            if (!has_next() || !peek().cmp(".")) {
+                break;
+            }
+            expect(".");
+
+            auto expr = parse_expr();
+            if (expr is null) {
+                err_logger.Error(peek(), "expected expression in path: ");
+            }
+
+            if (auto path = cast(Path_Expression_Node)expr) {
+                foreach (val; path.values) {
+                    pan.values ~= val;
+                }
+            } else {
+                pan.values ~= expr;
+            }
+        }
+        while (has_next());
+
+        return pan;
+    }
+
     ast.Expression_Node parse_primary_expr(bool comp_allowed) {
         auto left = parse_operand();
         if (left is null) {
@@ -469,12 +539,32 @@ class Parser : Compilation_Phase  {
 
         // TODO: handle generic arguments
 
+        Expression_Node result;
+
+        auto tok = peek();
+        switch (tok.lexeme) {
+        case "[":
+            result = parse_index_expr(left);
+            break;
+        case "(":
+            result = parse_call(left);
+            break;
+        case ".":
+            return parse_path(left);
+        default: break;
+        }
+
+        if (result is null) {
+            return left;
+        }
+
         // TODO: handle indexing expr
         // TODO: handle "access" path expr foo.bar.baz
         // TODO: handle composites?
         // TODO: handle calls, e.g. foo()
 
-        return left;
+        // path!?
+        return result;
     }
 
     ast.Expression_Node parse_left(bool comp_allowed = false) {
@@ -529,7 +619,7 @@ class Parser : Compilation_Phase  {
         if (!peek().cmp(keyword.Function)) {
             return null;
         }
-        // the keyword is handled in parse_func_type
+        // NOTE: the keyword is handled in parse_func_type
 
         auto func_type = parse_func_type();
         if (func_type is null) {
