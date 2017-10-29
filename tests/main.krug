@@ -46,6 +46,14 @@ func blah() int {
     
 }
 
+func (i *int) func_ptr() {
+    
+}
+
+func (i int) func_on_primitive() {
+    
+}
+
 type foo_bar struct {
     foo int,
     baz int,
@@ -62,6 +70,17 @@ func add() void {
 
 func main() int {
 	32 + 32;
+
+    let person_data struct {
+        name *u8,
+        age uint,
+    };
+
+    let {pname, page} = person_data;
+
+    let foo = func() {};
+
+    func() {};
 
 	let x = 69 - 69 / 32 << 5;
 	let y = 22 + -33333 * 59595;

@@ -16,6 +16,18 @@ class Node {}
 
 class Statement_Node : Node {}
 
+// "let" "{" { iden "," } "}" "=" Expr
+class Structure_Destructuring_Statement_Node : Statement_Node, Semicolon_Stat {
+    Token[] values;
+    Expression_Node rhand;
+}
+
+// "let" "(" { iden "," } ")" "=" Expr
+class Tuple_Destructuring_Statement_Node : Statement_Node, Semicolon_Stat {
+    Token[] values;
+    Expression_Node rhand;
+}
+
 // defer ( stat )
 class Defer_Statement_Node : Statement_Node {
     Statement_Node stat;
@@ -108,9 +120,10 @@ class Variable_Statement_Node : Statement_Node, Semicolon_Stat {
     Expression_Node value = null;
     bool mutable = false;
 
-    this(Token twine, Type_Node type) {
+    this(Token twine, Type_Node type, bool mutable = false) {
         this.twine = twine;
         this.type = type;
+        this.mutable = mutable;
     }
 }
 
@@ -165,6 +178,7 @@ class Function_Node : Node {
     Token name;
     Type_Node return_type;
 	Block_Node func_body;
+    Variable_Statement_Node func_recv;
 }
 
 class Block_Node : Node {
@@ -181,6 +195,16 @@ class Block_Node : Node {
 
 class Expression_Node : Statement_Node {
 
+}
+
+class Lambda_Node : Expression_Node {
+    Function_Type_Node func_type;
+    Block_Node block;
+
+    this(Function_Type_Node func_type, Block_Node block) {
+        this.func_type = func_type;
+        this.block = block;
+    }
 }
 
 class Block_Expression_Node : Expression_Node {

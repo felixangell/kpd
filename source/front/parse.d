@@ -178,11 +178,7 @@ class Parser : Compilation_Phase  {
 
         expect("(");
         for (int i = 0; has_next() && !peek().cmp(")"); i++) {
-            bool mutable = false;
-            if (peek().cmp(keyword.Mutable)) {
-                mutable = true;
-                consume();
-            }
+            bool mutable = mutable_check();
 
             auto name = expect(Token_Type.Identifier);
             if (name is null) {
@@ -381,7 +377,8 @@ class Parser : Compilation_Phase  {
         auto op = consume();
         auto right = parse_left(comp_allowed);
         if (right is null) {
-            // error: unary expr expected expr after operator.
+            err_logger.Error(peek(), "Expected expression after unary operand: \n");
+            // how do we recover from this?!
         }
         return new Unary_Expression_Node(op, right);
     }
@@ -528,6 +525,26 @@ class Parser : Compilation_Phase  {
         return left;
     }
 
+    ast.Lambda_Node parse_lambda() {
+        if (!peek().cmp(keyword.Function)) {
+            return null;
+        }
+        // the keyword is handled in parse_func_type
+
+        auto func_type = parse_func_type();
+        if (func_type is null) {
+            err_logger.Error(peek(), "expected lambda, found: \n");
+            return null;
+        }
+
+        auto block = parse_block();
+        if (block is null) {
+            err_logger.Error(peek(), "expected block after lambda: \n");
+        }
+
+        return new Lambda_Node(func_type, block);
+    }
+
     ast.Expression_Node parse_expr(bool comp_allowed = false) {
         // TODO: parsing composite expressions?
 
@@ -537,6 +554,9 @@ class Parser : Compilation_Phase  {
         }
 
         // lambda
+        if (peek().cmp(keyword.Function)) {
+            return parse_lambda();
+        }
 
         auto left = parse_left(comp_allowed);
         if (left is null) {
@@ -558,16 +578,75 @@ class Parser : Compilation_Phase  {
         return parse_bin_op(0, left, comp_allowed);
     }
 
-    ast.Variable_Statement_Node parse_let() {
+    ast.Structure_Destructuring_Statement_Node parse_structure_destructure() {
+        if (!peek().cmp("{")) {
+            return null;
+        }
+        consume();
+
+        auto node = new Structure_Destructuring_Statement_Node;
+        for (int i = 0; has_next() && !peek().cmp("}"); i++) {
+            node.values ~= expect(Token_Type.Identifier);
+
+            // TODO: handle
+            if (peek().cmp(",")) {
+                consume();
+            }
+        }
+        consume();
+
+        expect("=");
+        node.rhand = parse_expr();
+        if (node.rhand is null) {
+            err_logger.Error(peek(), "expected value after assignment operator:\n");
+            recovery_skip(";");
+        }
+
+        return node;
+    }
+
+    ast.Tuple_Destructuring_Statement_Node parse_tuple_destructure() {
+        if (!peek().cmp("(")) {
+            return null;
+        }
+        consume();
+
+        auto node = new Tuple_Destructuring_Statement_Node;
+        for (int i = 0; has_next() && !peek().cmp(")"); i++) {
+            node.values ~= expect(Token_Type.Identifier);
+
+            // TODO: handle
+            if (peek().cmp(",")) {
+                consume();
+            }
+        }
+        consume();
+
+        expect("=");
+        node.rhand = parse_expr();
+        if (node.rhand is null) {
+            err_logger.Error(peek(), "expected value after assignment operator:\n");
+            recovery_skip(";");
+        }
+
+        return node;
+    }
+
+    ast.Statement_Node parse_let() {
         if (!peek().cmp(keyword.Let)) {
             return null;
         }
         consume();
 
-        bool mutable = false;
-        if (peek().cmp(keyword.Mutable)) {
-            mutable = true;
-            consume();
+        // FIXME how will mutability
+        // work regarding destructuring statements?
+        bool mutable = mutable_check();
+
+        auto tok = peek();
+        switch (tok.lexeme) {
+        case "{": return parse_structure_destructure();
+        case "(": return parse_tuple_destructure();
+        default: break;
         }
 
         // TODO: destructuring statements!
@@ -589,8 +668,7 @@ class Parser : Compilation_Phase  {
             recovery_skip(";");
         }
 
-        auto var = new Variable_Statement_Node(name, type);
-        var.mutable = mutable;
+        auto var = new Variable_Statement_Node(name, type, mutable);
 
         if (peek().cmp("=")) {
             consume();
@@ -810,6 +888,15 @@ class Parser : Compilation_Phase  {
         return block;
     }
 
+    bool mutable_check() {
+        bool mutable = false;
+        if (peek().cmp(keyword.Mutable)) {
+            consume();
+            mutable = true;
+        }
+        return mutable;
+    }
+
     ast.Function_Node parse_func() {
         if (!peek().cmp(keyword.Function)) {
             return null;
@@ -817,7 +904,23 @@ class Parser : Compilation_Phase  {
         expect(keyword.Function);
 
         Function_Node func = new Function_Node();
-        // TODO: receiver
+
+        // function receiver parsing!
+        if (peek().cmp("(")) {
+            consume();
+
+            bool mutable = mutable_check();
+            auto name = expect(Token_Type.Identifier);
+            auto parent_type = parse_type();
+            if (parent_type is null) {
+                err_logger.Error(peek(), "expected parent type of func receiver, found:");
+                recovery_skip(")");
+            }
+
+            func.func_recv = new Variable_Statement_Node(name, parent_type, mutable);
+
+            expect(")");
+        }
 
         func.name = expect(Token_Type.Identifier);
 
