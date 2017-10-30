@@ -15,6 +15,10 @@ import parse.parser;
 import ast;
 import err_logger;
 
+import sema.analyzer;
+
+uint OPTIMIZATION_LEVEL = 1;
+const VERSION = "0.0.1";
 const KRUG_EXT = ".krug";
 
 void main(string[] args) {
@@ -25,7 +29,23 @@ void main(string[] args) {
     getopt(args,
         "no-colours", "disables colourful output logging", &colour.NO_COLOURS,
         "verbose|v", "enable verbose logging", &err_logger.VERBOSE_LOGGING,
+        "opt|O", "optimization level", &OPTIMIZATION_LEVEL,
     );
+
+    // argument validation
+    {
+        if (OPTIMIZATION_LEVEL < 1 || OPTIMIZATION_LEVEL > 3) {
+            err_logger.Error("optimization level must be between 1 and 3.");
+        }
+    }
+
+    if (err_logger.VERBOSE_LOGGING) {
+        err_logger.Verbose();
+        err_logger.Verbose("KRUG COMPILER, VERSION " ~ VERSION);
+        err_logger.Verbose("Executing compiler, optimization level O" ~ to!string(OPTIMIZATION_LEVEL));
+        err_logger.Verbose();
+        writeln();
+    }
 
 	if (args.length == 1) {
         err_logger.Error("no input file.");
@@ -42,9 +62,9 @@ void main(string[] args) {
     // flatten the dependency graph into an array
     // of modules.
     Dependency_Graph graph = proj.graph;
-    Module[] flattened;
+    Module*[] flattened;
     foreach (ref mod; graph) {
-        flattened ~= mod;
+        flattened ~= &mod;
     }
 
     // sort the flattened modules such that the
@@ -55,7 +75,7 @@ void main(string[] args) {
     foreach (ref dep; sorted_deps) {
         auto tok_streams = dep.token_streams;
         foreach (ref entry; tok_streams.byKeyValue) {
-            err_logger.Verbose("- " ~ dep.name ~ "::" ~ entry.key ~ ";");
+            err_logger.Verbose("- " ~ dep.name ~ "::" ~ entry.key);
             dep.as_trees[entry.key] = new Parser(entry.value).parse();
         }
     }
@@ -63,8 +83,9 @@ void main(string[] args) {
     err_logger.Verbose("Performing semantic analysis on: ");
     foreach (ref dep; sorted_deps) {
         auto as_trees = dep.as_trees;
+        auto sema = new Semantic_Analysis(graph);
         foreach (ref entry; as_trees.byKeyValue) {
-            err_logger.Verbose("- " ~ dep.name ~ "::" ~ entry.key);
+            sema.process(entry.value, dep.name, entry.key);
         }
     }
 

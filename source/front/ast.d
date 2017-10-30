@@ -103,7 +103,7 @@ class Yield_Statement_Node : Statement_Node, Semicolon_Stat {
 }
 
 // "type" Identifier Type ";"
-class Named_Type : Statement_Node, Semicolon_Stat {
+class Named_Type_Node : Statement_Node, Semicolon_Stat {
     Token twine;
     Type_Node type;
 

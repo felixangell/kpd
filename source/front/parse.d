@@ -372,7 +372,7 @@ class Parser : Compilation_Phase  {
         return null;
     }
 
-    ast.Named_Type parse_named_type() {
+    ast.Named_Type_Node parse_named_type() {
         if (!peek().cmp(keyword.Type)) {
             return null;
         }
@@ -385,7 +385,7 @@ class Parser : Compilation_Phase  {
             recovery_skip(";"); // FIXME ?
             return null;
         }
-        return new Named_Type(name, type);
+        return new Named_Type_Node(name, type);
     }
 
     ast.Function_Parameter parse_func_param() {

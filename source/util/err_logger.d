@@ -127,6 +127,6 @@ static void Fatal(string str) {
 	assert(0); // TODO:
 }
 
-static void Verbose(string str) {
+static void Verbose(string str = "") {
 	Log(Log_Level.Verbose, str);
 }
