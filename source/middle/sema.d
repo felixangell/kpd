@@ -2,6 +2,7 @@ module sema.analyzer;
 
 import std.conv;
 
+import ast;
 import sema.decl;
 import err_logger;
 
@@ -16,8 +17,8 @@ struct Semantic_Module {
     AST[string] as_trees;
 }
 
-class Semantic_Pass {
-    abstract void execute(ref Semantic_Module mod, ref AST as_tree);
+interface Semantic_Pass {
+    void execute(ref Semantic_Module mod, ref AST as_tree);
 }
 
 // the passes to run on
