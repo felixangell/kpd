@@ -16,7 +16,7 @@ class Declaration_Pass : Top_Level_Node_Visitor, Semantic_Pass {
     }
 
     override void analyze_function_node(ref ast.Function_Node) {
-
+        
     }
 
     override void execute(ref Semantic_Module mod, ref AST as_tree) {
