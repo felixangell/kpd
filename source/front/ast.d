@@ -4,7 +4,7 @@ import std.typecons;
 import std.conv;
 import std.bigint;
 
-import scope_sys;
+import sema.range;
 import krug_module;
 
 // binding of an expression to a token
@@ -184,7 +184,7 @@ class Function_Node : Node {
 class Block_Node : Node {
 	Statement_Node[] statements;
 	Function_Node parent;
-	Scope block_scope;
+	Scope _scope;
 
 	this() {
 

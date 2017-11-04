@@ -4,6 +4,7 @@ import std.conv;
 
 import ast;
 import sema.decl;
+import sema.range;
 import err_logger;
 
 import dependency_scanner : AST, Module, Dependency_Graph;
@@ -15,6 +16,7 @@ import dependency_scanner : AST, Module, Dependency_Graph;
 
 struct Semantic_Module {
     AST[string] as_trees;
+    Scope[string] scopes;
 }
 
 interface Semantic_Pass {
