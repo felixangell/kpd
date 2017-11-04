@@ -20,20 +20,60 @@ import sema.analyzer;
 uint OPTIMIZATION_LEVEL = 1;
 const VERSION = "0.0.1";
 const KRUG_EXT = ".krug";
+bool RELEASE_MODE = false;
+string ARCH = "x86_64";
+string OUT_NAME = "main";
+
+// FIXME this only handles a few common cases.
+static string os_name() {
+	version (linux) {
+		return "Linux";
+	}
+	else version (Windows) {
+		return "Windows";
+	}
+	else version (OSX) {
+		return "Mac OS X";
+	}
+	else version (POSIX) {
+		return "POSIX";
+	}
+	else {
+		return "Undefined";
+	}
+}
+
+// FIXME this only handles a few common cases.
+static string arch_type() {
+	version (X86) {
+		return "x86";
+	}
+	version (X86_64) {
+		return "x86_64";
+	}
+}
 
 void main(string[] args) {
     StopWatch compilerTimer;
     compilerTimer.start();
 
     // argument stuff.
+    // todo we should parse this ourselves.
+    // FIXME document these properly.
     getopt(args,
         "no-colours", "disables colourful output logging", &colour.NO_COLOURS,
         "verbose|v", "enable verbose logging", &err_logger.VERBOSE_LOGGING,
         "opt|O", "optimization level", &OPTIMIZATION_LEVEL,
+        "release|r", "compile in release mode", &RELEASE_MODE,
+        "out", "output name", &OUT_NAME,
+        "arch", "force architecture, e.g. x86 or x86_64", &ARCH,
     );
 
     // argument validation
     {
+    	// TODO: sanitize all of them, though we dont need
+    	// to do this just now because we may end up parsing
+    	// the flags ourselves.
         if (OPTIMIZATION_LEVEL < 1 || OPTIMIZATION_LEVEL > 3) {
             err_logger.Error("optimization level must be between 1 and 3.");
         }
@@ -43,6 +83,9 @@ void main(string[] args) {
         err_logger.Verbose();
         err_logger.Verbose("KRUG COMPILER, VERSION " ~ VERSION);
         err_logger.Verbose("Executing compiler, optimization level O" ~ to!string(OPTIMIZATION_LEVEL));
+        err_logger.Verbose("Operating system: " ~ os_name());
+        err_logger.Verbose("Target architecture: " ~ arch_type());
+        err_logger.Verbose("Compiler is in " ~ (RELEASE_MODE ? "release" : "debug") ~ " mode");
         err_logger.Verbose();
         writeln();
     }

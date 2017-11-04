@@ -4,7 +4,7 @@ Krug is a compiled programming language
 ## under the hood
 this is a brief run-down of the architecture 
 of the compiler thus far. things are subject
-to change so take this with a grain of salt as
+to change, so take this with a grain of salt as
 i probably wont keep this section as up to date
 as it should be.
 
@@ -12,15 +12,14 @@ for now to summarize in bullet points:
 
 - load the main module (main.krug)
 - lex the main module
-- parse the tokens for DIRECTIVES
-- load all modules and lex/DIRECTIVE parse them
+- parse the tokens for DIRECTIVES - specifically load directives to build a dependency graph
+- load all modules and lex/LOAD DIRECTIVE parse them
 - build a dependency graph
-- run a tarjan cycle checker on the graph and 
-error on any cycles
-- DFS over the graph to flatten it, sort by 
-least amount of dependencies this is so that 
-it's easier when we run symbol resolution because
-hopefully all of the symbols will have been defined
+- run tarjans algorithm to detect cycles in the dependency graph
+- flatten the graph and sort it by least amount of 
+dependencies this is so that it's easier when we run symbol resolution because
+hopefully all of the symbols will have been defined rather than jumping around dependencies
+hunting for symbols.
 - run the parser over the flattened modules to parse
 into an Abstract Syntax Tree
 - run semantic analysis on the AST
