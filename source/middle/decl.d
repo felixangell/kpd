@@ -45,7 +45,11 @@ class Declaration_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 	}
 
     override void analyze_function_node(ast.Function_Node node) {
-		visit_block(node.func_body);
+        // some functions have no body!
+        // these are prototype functions
+        if (node.func_body !is null) {
+    		visit_block(node.func_body);
+        }
     }
 
     override void execute(ref Module mod, string sub_mod_name) {       
@@ -57,11 +61,6 @@ class Declaration_Pass : Top_Level_Node_Visitor, Semantic_Pass {
         }
 
         auto ast = mod.as_trees[sub_mod_name];
-        if (ast is null) {
-            err_logger.Error("null AST ? " ~ mod.name ~ " :: " ~ sub_mod_name);
-            return;
-        }
-
         foreach (node; ast) {
             if (node !is null) {
                 super.process_node(node);
