@@ -8,14 +8,14 @@ import std.conv;
 // a bunch of visitor helper things
 
 class AST_Visitor {
-    abstract void process_node(ref ast.Node node);
+    abstract void process_node(ast.Node node);
 }
 
 class Top_Level_Node_Visitor : AST_Visitor {
-    abstract void analyze_named_type_node(ref ast.Named_Type_Node);
-    abstract void analyze_function_node(ref ast.Function_Node);
+    abstract void analyze_named_type_node(ast.Named_Type_Node);
+    abstract void analyze_function_node(ast.Function_Node);
 
-    override void process_node(ref ast.Node node) {
+    override void process_node(ast.Node node) {
         if (auto named_type_node = cast(ast.Named_Type_Node) node) {
             analyze_named_type_node(named_type_node);
         } else if (auto func_node = cast(ast.Function_Node) node) {

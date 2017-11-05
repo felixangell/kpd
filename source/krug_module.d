@@ -4,6 +4,11 @@ import std.file;
 import std.algorithm.searching : startsWith;
 import std.algorithm.comparison : equal;
 import std.conv;
+import std.path;
+import std.string;
+
+import ds.hash_set;
+import ast;
 
 import err_logger;
 import lex.lexer;
@@ -71,6 +76,66 @@ class Token {
 	override string toString() const {
 		return lexeme ~ ", " ~ to!string(type) ~ " @ " ~ to!string(position);
 	}
+}
+
+alias Token_Stream = Token[];
+
+class Module {
+    string path, name;
+    Hash_Set!string fileCache;
+
+    Source_File[string] source_files;
+    Token_Stream[string] token_streams;
+    AST[string] as_trees;
+
+    Module[string] edges;
+
+    this() {
+        this.path = "";
+        this.name = "main";
+    }
+
+    this(string path) {
+        this.path = path;
+        this.name = std.path.baseName(path);
+        this.fileCache = list_dir(path);
+    }
+
+    size_t dep_count() {
+        size_t num_deps = 0;
+        foreach (edge; edges) {
+            num_deps += edge.dep_count();
+        }
+        return num_deps + edges.length;
+    }
+
+    bool sub_module_exists(string name) {
+        assert(name.cmp("main") && "can't check for sub-modules in main module");
+
+        // check that the sub-module exists, it's
+        // easier to append the krug extension on at this point
+        return (name ~ ".krug") in fileCache;
+    }
+
+    Source_File load_source_file(string name) {
+        assert(name.cmp("main") && "can't load sub-modules in main module");
+
+        const string source_file_path = this.path ~ std.path.dirSeparator ~ name ~ ".krug";
+        auto source_file = new Source_File(source_file_path);
+        source_files[name] = source_file;
+        return source_file;
+    }
+}
+
+// lists file and directories
+Hash_Set!string list_dir(string pathname) {
+	Hash_Set!string dirs = new Hash_Set!string();
+   	foreach (file; std.file.dirEntries(pathname, SpanMode.shallow)) {
+		if (file.isFile || file.isDir) {
+			dirs.insert(std.path.baseName(file.name));
+		}
+   	}
+   	return dirs;
 }
 
 class Source_File {

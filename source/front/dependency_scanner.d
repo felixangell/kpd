@@ -59,56 +59,6 @@ void register_module(ref Dependency_Graph graph, Module mod) {
 	graph[mod.name] = mod;
 }
 
-alias Token_Stream = Token[];
-alias AST = ast.Node[];
-
-class Module {
-    string path, name;
-    Hash_Set!string fileCache;
-
-    Source_File[string] source_files;
-    Token_Stream[string] token_streams;
-    AST[string] as_trees;
-
-    Module[string] edges;
-
-    this() {
-        this.path = "";
-        this.name = "main";
-    }
-
-    this(string path) {
-        this.path = path;
-        this.name = std.path.baseName(path);
-        this.fileCache = list_dir(path);
-    }
-
-    size_t dep_count() {
-        size_t num_deps = 0;
-        foreach (edge; edges) {
-            num_deps += edge.dep_count();
-        }
-        return num_deps + edges.length;
-    }
-
-    bool sub_module_exists(string name) {
-        assert(name.cmp("main") && "can't check for sub-modules in main module");
-
-        // check that the sub-module exists, it's
-        // easier to append the krug extension on at this point
-        return (name ~ ".krug") in fileCache;
-    }
-
-    Source_File load_source_file(string name) {
-        assert(name.cmp("main") && "can't load sub-modules in main module");
-
-        const string source_file_path = this.path ~ std.path.dirSeparator ~ name ~ ".krug";
-        auto source_file = new Source_File(source_file_path);
-        source_files[name] = source_file;
-        return source_file;
-    }
-}
-
 struct Krug_Project {
     // the directory that the project is based in
     string path;
@@ -134,7 +84,7 @@ struct Krug_Project {
         auto mod = new Module(this.path ~ std.path.dirSeparator ~ name ~ std.path.dirSeparator);
         graph.register_module(mod);
 
-        foreach (file; mod.fileCache) {
+        foreach (ref file; mod.fileCache) {
             if (!file.endsWith(".krug")) {
                 continue;
             }
@@ -142,7 +92,7 @@ struct Krug_Project {
             const string submodule_name = std.path.stripExtension(file);
 
             Source_File source_file = mod.load_source_file(submodule_name);
-            auto tokens = new Lexer(source_file).tokenize();
+            auto tokens = source_file.contents.length == 0 ? [] : new Lexer(source_file).tokenize();
             mod.token_streams[submodule_name] = tokens;
 
             auto deps = collect_deps(tokens);
@@ -199,17 +149,6 @@ Krug_Project build_krug_project(ref Source_File main_source_file) {
     }
 
     return project;
-}
-
-// lists file and directories
-Hash_Set!string list_dir(string pathname) {
-	Hash_Set!string dirs = new Hash_Set!string();
-   	foreach (file; std.file.dirEntries(pathname, SpanMode.shallow)) {
-		if (file.isFile || file.isDir) {
-			dirs.insert(std.path.baseName(file.name));
-		}
-   	}
-   	return dirs;
 }
 
 string strip_file(string path) {

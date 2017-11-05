@@ -105,9 +105,9 @@ void main(string[] args) {
     // flatten the dependency graph into an array
     // of modules.
     Dependency_Graph graph = proj.graph;
-    Module*[] flattened;
+    Module[] flattened;
     foreach (ref mod; graph) {
-        flattened ~= &mod;
+        flattened ~= mod;
     }
 
     // sort the flattened modules such that the
@@ -116,19 +116,27 @@ void main(string[] args) {
     auto sorted_deps = flattened.sort!((a, b) => a.dep_count() < b.dep_count());
     err_logger.Verbose("Parsing: ");
     foreach (ref dep; sorted_deps) {
-        auto tok_streams = dep.token_streams;
-        foreach (ref entry; tok_streams.byKeyValue) {
+        foreach (ref entry; dep.token_streams.byKeyValue) {
             err_logger.Verbose("- " ~ dep.name ~ "::" ~ entry.key);
-            dep.as_trees[entry.key] = new Parser(entry.value).parse();
+
+            // there is no point starting a parser instance
+            // if we have no tokens to parse!
+
+            auto token_stream = entry.value;
+            if (token_stream.length == 0) {
+                dep.as_trees[entry.key] = [];
+                continue;
+            }
+
+            dep.as_trees[entry.key] = new Parser(token_stream).parse();
         }
     }
 
     err_logger.Verbose("Performing semantic analysis on: ");
     foreach (ref dep; sorted_deps) {
-        auto as_trees = dep.as_trees;
         auto sema = new Semantic_Analysis(graph);
-        foreach (ref entry; as_trees.byKeyValue) {
-            sema.process(entry.value, dep.name, entry.key);
+        foreach (ref entry; dep.as_trees.byKeyValue) {
+            sema.process(dep, entry.key);
         }
     }
 

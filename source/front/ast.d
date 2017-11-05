@@ -12,6 +12,8 @@ alias Binding = Tuple!(Token, "twine", Expression_Node, "value");
 
 interface Semicolon_Stat {}
 
+alias AST = ast.Node[];
+
 class Node {}
 
 class Statement_Node : Node {}
@@ -184,7 +186,7 @@ class Function_Node : Node {
 class Block_Node : Node {
 	Statement_Node[] statements;
 	Function_Node parent;
-	Scope _scope;
+	Scope range;
 
 	this() {
 

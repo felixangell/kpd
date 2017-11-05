@@ -6,21 +6,12 @@ import ast;
 import sema.decl;
 import sema.range;
 import err_logger;
+import krug_module;
 
-import dependency_scanner : AST, Module, Dependency_Graph;
-
-/+
-    NOTE! we could use the visitor pattern here but i honestly
-    think its pretty messy to use so im avoiding it.
-+/
-
-struct Semantic_Module {
-    AST[string] as_trees;
-    Scope[string] scopes;
-}
+import dependency_scanner;
 
 interface Semantic_Pass {
-    void execute(ref Semantic_Module mod, ref AST as_tree);
+    void execute(ref Module mod, string sub_mod_name);
 }
 
 // the passes to run on
@@ -31,19 +22,16 @@ Semantic_Pass[] passes = [
 
 struct Semantic_Analysis {
     Dependency_Graph graph;
-    Semantic_Module mod;
 
     this(ref Dependency_Graph graph) {
         this.graph = graph;
     }
 
-    void process(ref AST as_tree, string mod_name, string sub_mod_name) {
-        mod.as_trees[sub_mod_name] = as_tree;
-
-        err_logger.Verbose("- " ~ mod_name ~ "::" ~ sub_mod_name);
+    void process(ref Module mod, string sub_mod_name) {
+        err_logger.Verbose("- " ~ mod.name ~ "::" ~ sub_mod_name);
         foreach (pass; passes) {
             err_logger.Verbose("  * " ~ to!string(pass));
-            pass.execute(mod, as_tree);
+            pass.execute(mod, sub_mod_name);
         }
     }
 }
