@@ -37,7 +37,10 @@ class Scope {
 
 	this(Scope outer) {
 		this.outer = outer;
-		this.id = outer.id + 1;
+		this.id = 0;
+		if (outer !is null) {
+		    this.id = outer.id + 1;
+		}
 	}
 
 	Symbol lookup_sym(string name) {
