@@ -385,6 +385,7 @@ class Parser : Compilation_Phase  {
             recovery_skip(";"); // FIXME ?
             return null;
         }
+
         return new Named_Type_Node(name, type);
     }
 
@@ -1072,11 +1073,10 @@ class Parser : Compilation_Phase  {
 
         if (peek().cmp("{")) {
             func.func_body = parse_block();
-        }
-        else {
-            expect(";");
+            return func;
         }
 
+        expect(";");
         return func;
     }
 

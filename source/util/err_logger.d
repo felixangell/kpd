@@ -4,6 +4,7 @@ import std.conv;
 import std.stdio;
 import std.string;
 import std.array;
+import std.outbuffer;
 
 import krug_module;
 import colour;
@@ -36,7 +37,7 @@ static string get_line(const(Source_File*) file, ulong index) {
 
 // FIXME
 // this code is very spaghetti but it works.
-static void Blame_Token(ref Token tok, File out_stream = stdout) {
+static string Blame_Token(ref Token tok) {
     const Source_File* file = tok.parent;
 
     const uint index = tok.position.start.idx;
@@ -65,11 +66,20 @@ static void Blame_Token(ref Token tok, File out_stream = stdout) {
     string tab = replicate(" ", TAB_SIZE);
     auto row_str = to!string(tok.position.start.row);
 
-    out_stream.writefln("%s|>%s", tok.position.start.row,
-        tab ~ start ~ colour.Bold(colour.Err(tok.lexeme)) ~ end);
-
     const auto padding = replicate(" ", cast(size_t)row_str.length);
-    out_stream.writefln("%s >%s", padding, tab ~ underline);
+
+    auto buff = new OutBuffer();
+
+    // TODO show a line before and after for context
+    // rather than the individual line. have a flag
+    // option to disable this for when we get a LOT of errors!
+
+    buff.writefln("%s> %s:%d", replicate("-", cast(size_t)row_str.length + 1), tok.parent.path, tok.position.start.row);
+    buff.writefln("%s| %s", tok.position.start.row,
+        tab ~ start ~ colour.Bold(colour.Err(tok.lexeme)) ~ end);
+    buff.writefln("%s| %s", padding, tab ~ underline);
+
+    return buff.toString();
 }
 
 static void Log(Log_Level lvl, string str) {
@@ -107,7 +117,14 @@ static void Log(Log_Level lvl, string str) {
 
 static void Error(Token context, string message) {
     Error(message);
-    Blame_Token(context, stderr);
+    writeln(Blame_Token(context));
+}
+
+static void Error(string[] str) {
+    Error(str[0]);
+    for (int i = 1; i < str.length; i++) {
+        stderr.writeln(str[i]);
+    }
 }
 
 static void Error(string str) {

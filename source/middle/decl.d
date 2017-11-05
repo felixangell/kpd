@@ -4,6 +4,7 @@ import std.stdio;
 import std.conv;
 
 import err_logger;
+import colour;
 import ast;
 import sema.analyzer : Semantic_Pass;
 import sema.visitor;
@@ -22,29 +23,28 @@ class Declaration_Pass : Top_Level_Node_Visitor, Semantic_Pass {
     }
 
     override void analyze_named_type_node(ast.Named_Type_Node node) {
-        writeln("analyzing " ~ node.twine.lexeme);
+        auto existing = current.register_sym(new Symbol(node, node.twine));
+        if (existing !is null) {
+            err_logger.Error([
+                "Named type '" ~ colour.Bold(node.twine.lexeme) ~ "' defined here:",
+                Blame_Token(node.twine),
+                "Conflicts with symbol defined here: ",
+                // Blame_Token(existing),
+            ]);
+        }
     }
 
-	Scope push_scope() {
-		auto s = new Scope(current);
-		current = s;
-		return s;
-	}
-	
-	Scope pop_scope() {
-		auto old = current;
-		current = current.outer;
-		return old;	
-	}
-
-	void visit_block(ast.Block_Node block) {
-		if (block.range is null) {
-			block.range = push_scope();
-		}
-		current = block.range; 
-	}
-
     override void analyze_function_node(ast.Function_Node node) {
+        auto existing = current.register_sym(new Symbol(node, node.name));
+        if (existing !is null) {
+            err_logger.Error([
+                "Function '" ~ colour.Bold(node.name.lexeme) ~ "' defined here:",
+                Blame_Token(node.name),
+                "Conflicts with symbol defined here: ",
+                // Blame_Token(existing),
+            ]);
+        }
+
         // some functions have no body!
         // these are prototype functions
         if (node.func_body !is null) {
@@ -66,6 +66,25 @@ class Declaration_Pass : Top_Level_Node_Visitor, Semantic_Pass {
                 super.process_node(node);
             }
         }
+    }
+
+    Scope push_scope() {
+        auto s = new Scope(current);
+        current = s;
+        return s;
+    }
+
+    Scope pop_scope() {
+        auto old = current;
+        current = current.outer;
+        return old;
+    }
+
+    void visit_block(ast.Block_Node block) {
+        if (block.range is null) {
+            block.range = push_scope();
+        }
+        current = block.range;
     }
 
     override string toString() const {

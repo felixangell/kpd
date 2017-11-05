@@ -2,11 +2,20 @@
 // a module called range for now
 module sema.range;
 
+import ast;
+import krug_module : Token;
+
 class Symbol {
+	ast.Node reference;
 	string name;
-	
-	this(string name) {
-		this.name = name;
+
+	this(ast.Node reference, Token tok) {
+	    this(reference, tok.lexeme);
+	}
+
+	this(ast.Node reference, string name) {
+        this.reference = reference;
+        this.name = name;
 	}
 }
 
