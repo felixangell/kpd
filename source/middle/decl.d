@@ -18,10 +18,6 @@ import krug_module;
 class Declaration_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 	Scope current;
 
-    this() {
-		this.current = new Scope;    
-    }
-
     override void analyze_named_type_node(ast.Named_Type_Node node) {
         auto existing = current.register_sym(new Symbol(node, node.twine));
         if (existing !is null) {
@@ -70,15 +66,19 @@ class Declaration_Pass : Top_Level_Node_Visitor, Semantic_Pass {
         // push the global scope for this sub-module.
         // this global scope contains all of the top
         // level declarations: named types, functions, ...
-        push_scope();
+        // this scope is stored for the sub-module we're working with
+        auto new_scope = push_scope();
+        mod.scopes[sub_mod_name] = new_scope;
 
-        auto ast = mod.as_trees[sub_mod_name];
-        foreach (node; ast) {
-            if (node !is null) {
-                super.process_node(node);
+        {
+            auto ast = mod.as_trees[sub_mod_name];
+            foreach (node; ast) {
+                if (node !is null) {
+                    super.process_node(node);
+                }
             }
         }
-
+    
         pop_scope();
     }
 

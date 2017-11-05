@@ -9,6 +9,7 @@ import std.string;
 
 import ds.hash_set;
 import ast;
+import sema.range;
 
 import err_logger;
 import lex.lexer;
@@ -84,10 +85,13 @@ class Module {
     string path, name;
     Hash_Set!string fileCache;
 
+    // this looks messy but modules are
+    // structured as SOA
+
     Source_File[string] source_files;
     Token_Stream[string] token_streams;
     AST[string] as_trees;
-
+    Scope[string] scopes;
     Module[string] edges;
 
     this() {
