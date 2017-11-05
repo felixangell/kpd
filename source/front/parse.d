@@ -1082,20 +1082,19 @@ class Parser : Compilation_Phase  {
 
 	ast.Node parse_node() {
         Token tok = peek();
-
         switch (tok.lexeme) {
-        case keyword.Type:
-            return parse_named_type();
-        case keyword.Function:
-            return parse_func();
-        case keyword.Directive_Symbol:
-            skip_dir();
-            break;
-        default:
-            err_logger.Verbose("unhandled top level node parse_node " ~ to!string(peek()));
-            break;
+            case keyword.Type:
+                return parse_named_type();
+            case keyword.Function:
+                return parse_func();
+            case keyword.Directive_Symbol:
+                skip_dir();
+                break;
+            default:
+                err_logger.Verbose("unhandled top level node parse_node " ~ to!string(peek()));
+                break;
         }
-		return null;
+        return null;
 	}
 
 	Token peek(uint offs = 0) {

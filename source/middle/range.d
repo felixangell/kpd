@@ -2,7 +2,10 @@
 // a module called range for now
 module sema.range;
 
+import std.conv;
+
 import ast;
+import err_logger;
 import krug_module : Token;
 
 class Symbol {
@@ -16,6 +19,10 @@ class Symbol {
 	this(ast.Node reference, string name) {
         this.reference = reference;
         this.name = name;
+	}
+
+	override string toString() const {
+	    return name ~ " -> " ~ to!string(typeid(reference));
 	}
 }
 
@@ -46,6 +53,7 @@ class Scope {
 	// symbol already exists it will be
 	// returned from the symbol table in the scope.
 	Symbol register_sym(Symbol s) {
+		err_logger.Verbose("Registering symbol " ~ to!string(s));
 		if (s.name in symbols) {
 			return symbols[s.name];
 		}

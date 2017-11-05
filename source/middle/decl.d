@@ -50,6 +50,13 @@ class Declaration_Pass : Top_Level_Node_Visitor, Semantic_Pass {
         if (node.func_body !is null) {
     		visit_block(node.func_body);
         }
+
+        // TODO do checks here!
+        // we don't really do anything in this pass to the functions
+        // bodies, this is the decl pass so we go over the top level
+        // declarations first.
+
+        pop_scope();
     }
 
     override void execute(ref Module mod, string sub_mod_name) {       
@@ -60,12 +67,19 @@ class Declaration_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 			return;
         }
 
+        // push the global scope for this sub-module.
+        // this global scope contains all of the top
+        // level declarations: named types, functions, ...
+        push_scope();
+
         auto ast = mod.as_trees[sub_mod_name];
         foreach (node; ast) {
             if (node !is null) {
                 super.process_node(node);
             }
         }
+
+        pop_scope();
     }
 
     Scope push_scope() {
