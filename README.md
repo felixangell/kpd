@@ -25,6 +25,7 @@ into an Abstract Syntax Tree
 - run semantic analysis on the AST
     * declaration pass - go through all of the declarations
     and register them as symbols, scope emulation, etc.
+    * 
 
 ## warning
 this is in no way a production-quality compiler!
