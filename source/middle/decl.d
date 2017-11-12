@@ -78,7 +78,7 @@ class Declaration_Pass : Top_Level_Node_Visitor, Semantic_Pass {
                 }
             }
         }
-    
+
         pop_scope();
     }
 
