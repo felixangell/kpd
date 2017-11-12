@@ -5,6 +5,7 @@ import std.array;
 import std.algorithm.sorting;
 import std.parallelism;
 import std.getopt;
+import std.datetime.stopwatch : StopWatch;
 
 import colour;
 import ds.hash_set;
@@ -142,8 +143,8 @@ void main(string[] args) {
 
 	auto duration = compilerTimer.peek();
 	err_logger.Info("Compiler took "
-	    ~ to!string(duration.msecs)
+	    ~ to!string(duration.total!"msecs")
 	    ~ "/ms or "
-	    ~ to!string(duration.usecs)
+	    ~ to!string(duration.total!"usecs")
 	    ~ "/µs");
 }
