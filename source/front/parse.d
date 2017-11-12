@@ -11,9 +11,9 @@ import keyword;
 
 import containers.hashset;
 import err_logger;
+import sema.type : PRIMITIVE_TYPES;
 
 static Token EOF_TOKEN;
-static HashSet!string PRIMITIVE_TYPES;
 
 // ???
 template populate_hash_set(T) {
@@ -26,13 +26,6 @@ template populate_hash_set(T) {
 
 static this() {
     EOF_TOKEN = new Token("<EOF>", Token_Type.EOF);
-    populate_hash_set!(string).insert(PRIMITIVE_TYPES,
-        "s8", "s16", "s32", "s64",
-        "u8", "u16", "u32", "u64",
-        "f32", "f64",
-        "rune", "int", "uint",
-        "bool", "void",
-    );
 }
 
 class Parser : Compilation_Phase  {

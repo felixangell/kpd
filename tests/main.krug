@@ -1,5 +1,15 @@
+type Person struct {
+	name string,	
+};
+
+func bar() {
+		
+}
+
 func main() int {
+	let foooo = foo.bar();
 	let x = 3;
 	let y int = x;
+	let foo s32 = 69;
 	let x = y;
 }
