@@ -9,15 +9,24 @@ import compilation_phase;
 import ast;
 import keyword;
 
-import ds.hash_set;
+import containers.hashset;
 import err_logger;
 
 static Token EOF_TOKEN;
-static Hash_Set!string PRIMITIVE_TYPES;
+static HashSet!string PRIMITIVE_TYPES;
+
+// ???
+template populate_hash_set(T) {
+    void insert(HashSet, T...)(ref HashSet set, T values) {
+        foreach (val; values) {
+            set.insert(val);
+        }
+    }
+}
 
 static this() {
     EOF_TOKEN = new Token("<EOF>", Token_Type.EOF);
-    PRIMITIVE_TYPES = new Hash_Set!string(
+    populate_hash_set!(string).insert(PRIMITIVE_TYPES,
         "s8", "s16", "s32", "s64",
         "u8", "u16", "u32", "u64",
         "f32", "f64",

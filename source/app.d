@@ -8,7 +8,6 @@ import std.getopt;
 import std.datetime.stopwatch : StopWatch;
 
 import colour;
-import ds.hash_set;
 import dependency_scanner;
 import krug_module;
 

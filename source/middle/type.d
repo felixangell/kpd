@@ -1,8 +1,9 @@
 module sema.type;
 
 import std.conv;
+import containers.hashmap;
 
-static Type_Operator[string] PRIMITIVE_TYPES;
+static HashMap!(string, Type_Operator) PRIMITIVE_TYPES;
 
 static this() {
     register_types(

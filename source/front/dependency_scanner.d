@@ -8,7 +8,7 @@ import std.file;
 import std.path;
 import std.string : lastIndexOf;
 
-import ds.hash_set;
+import containers.hashset;
 import lex.lexer;
 import parse.load_directive_parser;
 import ast;

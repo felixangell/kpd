@@ -1,21 +1,30 @@
 import std.string;
 import std.uni;
+import containers.hashset;
+import containers.hashmap;
 
-import ds.hash_set;
+static HashSet!string EXPRESSION_KEYWORDS;
+static HashSet!string BINARY_OPERATORS;
+static HashSet!string RELATIONAL_OPERATORS;
+static HashSet!string ADD_OPERATORS;
+static HashSet!string MUL_OPERATORS;
+static HashSet!string UNARY_OPERATORS;
+static HashSet!string SYMBOLS;
+static HashSet!string KEYWORDS;
 
-static Hash_Set!string EXPRESSION_KEYWORDS;
-static Hash_Set!string BINARY_OPERATORS;
-static Hash_Set!string RELATIONAL_OPERATORS;
-static Hash_Set!string ADD_OPERATORS;
-static Hash_Set!string MUL_OPERATORS;
-static Hash_Set!string UNARY_OPERATORS;
-static Hash_Set!string SYMBOLS;
-static Hash_Set!string KEYWORDS;
+static HashMap!(string, uint) OPERATOR_PRECEDENCE;
 
-static uint[string] OPERATOR_PRECEDENCE;
+// ???
+template populate_hash_set(T) {
+	void insert(HashSet, T...)(ref HashSet set, T values) {
+		foreach (val; values) {
+			set.insert(val);
+		}
+	}
+}
 
 static this() {
-	KEYWORDS = new Hash_Set!string(
+	populate_hash_set!(string).insert(KEYWORDS, 
 		"fn", "let", "type",
 		"if", "else", "loop", "while", "match", "for",
 		"return", "break", "next",
@@ -61,33 +70,33 @@ static this() {
 	OPERATOR_PRECEDENCE["..."] = 1;
 	OPERATOR_PRECEDENCE[".."] = 1;
 
-	EXPRESSION_KEYWORDS = new Hash_Set!string(
+	populate_hash_set!(string).insert(EXPRESSION_KEYWORDS,
 		"size_of", "type_of", "len_of",
 		"true", "false",
 	);
 
-	BINARY_OPERATORS = new Hash_Set!string(
+	populate_hash_set!(string).insert(BINARY_OPERATORS,
 		"||", "&&", "=", "as", "::", "..", "...",
 		"+=", "-=", "/=", "*=",
 	);
 
-	RELATIONAL_OPERATORS = new Hash_Set!string(
+	populate_hash_set!(string).insert(RELATIONAL_OPERATORS,
 		"==", "!=", "<", ">", "<=", ">="
 	);
 	
-	ADD_OPERATORS = new Hash_Set!string(
+	populate_hash_set!(string).insert(ADD_OPERATORS,
 		"+", "-", "|", "^"
 	);
 	
-	MUL_OPERATORS = new Hash_Set!string(
+	populate_hash_set!(string).insert(MUL_OPERATORS,
 		"*", "/", "%", "<<", ">>", "&"
 	);
 	
-	UNARY_OPERATORS = new Hash_Set!string(
+	populate_hash_set!(string).insert(UNARY_OPERATORS,
 		"+", "-", "!", "^", "@", "&"
 	);
 
-	SYMBOLS = new Hash_Set!string(
+	populate_hash_set!(string).insert(SYMBOLS,
 		"::" , "->" , "@"  ,  "=>" , "<-" , "!=" , 
 		"==" ,"<=" , ">=" , "<<" , ">>" , ".." , 
 		"&&" , "||" , "as" ,"+=" , "-=" , "/=" , 
@@ -107,23 +116,23 @@ static int get_op_prec(string s) {
 }
 
 static bool is_binary_op(string s) {
-	return s in BINARY_OPERATORS || is_rel_op(s) || is_add_op(s) || is_mul_op(s);
+	return BINARY_OPERATORS.contains(s) || is_rel_op(s) || is_add_op(s) || is_mul_op(s);
 }
 
 static bool is_rel_op(string s) {
-	return s in RELATIONAL_OPERATORS;
+	return RELATIONAL_OPERATORS.contains(s);
 }
 
 static bool is_add_op(string s) {
-	return s in ADD_OPERATORS;
+	return ADD_OPERATORS.contains(s);
 }
 
 static bool is_mul_op(string s) {
-	return s in MUL_OPERATORS;
+	return MUL_OPERATORS.contains(s);
 }
 
 static bool is_unary_op(string s) {
-	return s in UNARY_OPERATORS;
+	return UNARY_OPERATORS.contains(s);
 }
 
 auto is_identifier = (dchar c) => isAlpha(c) || isNumber(c) || c == '_';

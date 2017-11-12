@@ -1,5 +1,6 @@
 name "krug"
 description "krug compiler"
+dependency "emsi_containers" version="~>0.5.3"
 authors "Felix"
 copyright "Copyright © 2017, Felix"
 license "MIT"
