@@ -1,11 +1,7 @@
 module exec.virtual_thread;
 
+import exec.exec_engine;
 import exec.stack_frame;
-
-const auto KILOBYTE = 1000;
-const auto MEGABYTE = KILOBYTE * 1000;
-const auto STACK_SIZE = MEGABYTE * 1;
-const auto DATA_SEGMENT_SIZE = MEGABYTE * 1;
 
 struct Virtual_Thread {
 	byte[STACK_SIZE] stack;
@@ -17,7 +13,7 @@ struct Virtual_Thread {
 	uint program_counter = 0;
 
 	Stack_Frame push_frame() {
-		auto frame = Stack_Frame(this);
+		auto frame = new Stack_Frame(this);
 		frame.parent = current_frame;
 		current_frame = frame;
 		return frame;
