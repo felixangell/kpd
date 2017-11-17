@@ -1,15 +1,5 @@
-type Person struct {
-	name string,	
-};
+type SDL_Window struct {};
 
-func bar() {
-		
-}
-
-func main() int {
-	let foooo = foo.bar();
-	let x = 3;
-	let y int = x;
-	let foo s32 = 69;
-	let x = y;
+func main() {
+	let window *SDL_Window;
 }
