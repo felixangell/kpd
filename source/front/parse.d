@@ -509,11 +509,9 @@ class Parser : Compilation_Phase  {
         case Token_Type.Identifier:
             return parse_path(new Symbol_Node(consume()));
         default:
-            err_logger.Verbose("Potentially unhandled constant " ~ to!string(peek()));
             break;
         }
 
-        writeln("parse_operand what is " ~ to!string(peek()));
         return null;
     }
 

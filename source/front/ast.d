@@ -371,6 +371,11 @@ class Function_Type_Node : Type_Node {
 public:
 	Type_Node return_type;
 	Function_Parameter[string] params;
+    Function_Parameter[string] recv_params;
+
+    void add_recv_param(Token twine, Type_Node type, bool mutable = false) {
+        recv_params[twine.lexeme] = Function_Parameter(mutable, twine, type);
+    }
 
 	void add_param(Token twine, Type_Node type, bool mutable = false) {
 		params[twine.lexeme] = Function_Parameter(mutable, twine, type);
