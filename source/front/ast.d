@@ -297,6 +297,10 @@ class Primitive_Type_Node : Type_Node {
 
 // complex types
 
+class Type_Path_Node : Type_Node {
+    Token[] values;
+}
+
 class Tuple_Type_Node : Type_Node {
     Type_Node[] types;
 }

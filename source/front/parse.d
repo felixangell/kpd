@@ -16,6 +16,8 @@ import sema.type : PRIMITIVE_TYPES;
 static Token EOF_TOKEN;
 
 // ???
+// this is copied twice and can probably
+// be removed.
 template populate_hash_set(T) {
     void insert(HashSet, T...)(ref HashSet set, T values) {
         foreach (val; values) {
@@ -371,7 +373,7 @@ class Parser : Compilation_Phase  {
             return new Primitive_Type_Node(consume());
         }
 
-        return null;
+        return parse_type_path();
     }
 
     ast.Named_Type_Node parse_named_type() {
