@@ -344,6 +344,23 @@ class Parser : Compilation_Phase  {
         return new Slice_Type_Node(type);
     }
 
+    ast.Type_Path_Node parse_type_path() {
+        if (!peek().cmp(Token_Type.Identifier)) {
+            return null;
+        }
+
+        auto res = new Type_Path_Node;
+        while (peek().cmp(Token_Type.Identifier)) {
+            res.values ~= consume();
+            if (!peek().cmp(".")) {
+                break;
+            }
+            expect(".");
+        }
+        
+        return res;
+    }
+
     ast.Type_Node parse_type() {
         Token tok = peek();
 
