@@ -8,10 +8,10 @@ const auto STACK_SIZE = MEGABYTE * 1;
 const auto DATA_SEGMENT_SIZE = MEGABYTE * 1;
 
 struct Virtual_Thread {
-	byte[STACK_SIZE] stack;
+	ubyte[STACK_SIZE] stack;
 	uint stack_ptr = 0;
 
-	byte[DATA_SEGMENT_SIZE] globals;
+	ubyte[DATA_SEGMENT_SIZE] globals;
 
 	Stack_Frame current_frame;
 	uint program_counter = 0;
