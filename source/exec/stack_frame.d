@@ -9,7 +9,7 @@ class Stack_Frame {
 	Virtual_Thread parent_thread;
 	Stack_Frame parent;
 
-	byte[LOCALS_SIZE] locals;
+	ubyte[LOCALS_SIZE] locals;
 	uint local_index = 0;
 
 	this(Virtual_Thread parent_thread) {
