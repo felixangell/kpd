@@ -357,7 +357,7 @@ class Parser : Compilation_Phase  {
             }
             expect(".");
         }
-        
+
         return res;
     }
 
@@ -541,8 +541,7 @@ class Parser : Compilation_Phase  {
             consume();
 
             while (has_next()) {
-                // TODO FIXME, this should be parse_type_path apparently.
-                sigil.restrictions ~= parse_type();
+                sigil.restrictions ~= parse_type_path();
                 if (!peek().cmp("+")) {
                     break;
                 }
