@@ -15,7 +15,9 @@ import parse.parser;
 import ast;
 import err_logger;
 
+import exec.instruction;
 import sema.analyzer;
+import back.code_gen;
 
 uint OPTIMIZATION_LEVEL = 1;
 const VERSION = "0.0.1";
@@ -138,6 +140,26 @@ void main(string[] args) {
         foreach (ref entry; dep.as_trees.byKeyValue) {
             sema.process(dep, entry.key);
         }
+    }
+
+    alias Instruction_Set = Instruction[];
+    Instruction_Set[] module_programs;
+
+    // TODO:
+    // is it worth converting to some kind
+    // of IR like SSA for optimisation and
+    // then code genning the IR?
+    err_logger.Verbose("Generating code for: ");
+    foreach (ref dep; sorted_deps) {
+        auto gen = new Code_Generator(graph);
+        foreach (ref entry; dep.as_trees.byKeyValue) {
+            gen.process(dep, entry.key);
+        }
+        module_programs ~= gen.program;
+    }
+
+    foreach (ref program; module_programs) {
+
     }
 
 	auto duration = compilerTimer.peek();

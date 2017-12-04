@@ -12,6 +12,15 @@ struct Virtual_Thread {
 	Stack_Frame current_frame;
 	uint program_counter = 0;
 
+	// do we segment this ?
+	void store_global(T)(T value, uint addr) {
+		globals[addr].append!T(value, Endian.bigEndian);
+	}
+
+	T get_local(T)(uint addr) {
+		return locals[addr].peek!(T, Endian.bigEndian);
+	}
+
 	Stack_Frame push_frame() {
 		auto frame = new Stack_Frame(this);
 		frame.parent = current_frame;

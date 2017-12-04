@@ -1,5 +1,15 @@
 type SDL_Window struct {};
 
+type Foo struct {
+	name int,
+	blah uint,
+};
+
 func main() {
 	let window *SDL_Window;
+	if window == 0 {
+		loop {
+			window.do_thing();
+		}
+	}
 }
