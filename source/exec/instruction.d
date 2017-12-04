@@ -1,8 +1,9 @@
 module exec.instruction;
 
 import std.bitmanip;
+import std.conv;
 
-static enum OP {
+static enum OP : ushort {
 	// pushes the given value to the
 	// operand stack.
 	PSH, PSHS, PSHI, PSHL,
@@ -84,7 +85,7 @@ struct Instruction {
 		// offsetting PAST the id, im not sure
 		// if this is a good idea or not so
 		// FIXME?
-		return data[(offs + 2)..$].peek!(T, Endian.bigEndian);
+		return data[(offs + 2)..$].peek!(T);
 	}
 
 	void put(T)(T val) {
@@ -92,11 +93,12 @@ struct Instruction {
 	}
 }
 
-static Instruction encode(Op, T...)(Op id, T values) {
-	ubyte[] data;
-	data.append!(ushort, to!ushort(id));
+static Instruction encode(OP, T...)(OP id, T values) {
+	import std.array;
+	auto buff = appender!(ubyte[])();
+	buff.append!ushort(cast(ushort)(id));
 	foreach (val; values) {
-		data.append!(T, val);
+		buff.append!T(val);
 	}
-	return Instruction(data);
+	return Instruction(buff.data);
 }

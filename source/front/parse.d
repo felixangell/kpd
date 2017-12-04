@@ -566,6 +566,9 @@ class Parser : Compilation_Phase  {
     ast.Path_Expression_Node parse_path(Expression_Node left) {
         auto pan = new Path_Expression_Node;
 
+        // append the left as a value of the path
+        pan.values ~= left;
+
         do {
             if (!has_next() || !peek().cmp(".")) {
                 break;

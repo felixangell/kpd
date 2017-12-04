@@ -5,11 +5,21 @@ type Foo struct {
 	blah uint,
 };
 
+func hello_world() {
+	
+}
+
+func say_apple() {
+	
+}
+
+func call_native_func() {
+	
+}
+
 func main() {
-	let window *SDL_Window;
-	if window == 0 {
-		loop {
-			window.do_thing();
-		}
+	loop {
+		say_apple();
 	}
+	say_apple();
 }

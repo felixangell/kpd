@@ -16,6 +16,7 @@ import ast;
 import err_logger;
 
 import exec.instruction;
+import exec.exec_engine;
 import sema.analyzer;
 import back.code_gen;
 
@@ -25,6 +26,7 @@ const KRUG_EXT = ".krug";
 bool RELEASE_MODE = false;
 string ARCH = "x86_64";
 string OUT_NAME = "main";
+bool RUN_PROGRAM = false;
 
 // FIXME this only handles a few common cases.
 static string os_name() {
@@ -66,9 +68,10 @@ void main(string[] args) {
         "no-colours", "disables colourful output logging", &colour.NO_COLOURS,
         "verbose|v", "enable verbose logging", &err_logger.VERBOSE_LOGGING,
         "opt|O", "optimization level", &OPTIMIZATION_LEVEL,
-        "release|r", "compile in release mode", &RELEASE_MODE,
+        "release|re", "compile in release mode", &RELEASE_MODE,
         "out", "output name", &OUT_NAME,
         "arch", "force architecture, e.g. x86 or x86_64", &ARCH,
+        "run|r", "run program after compilation", &RUN_PROGRAM,
     );
 
     // argument validation
@@ -142,8 +145,8 @@ void main(string[] args) {
         }
     }
 
-    alias Instruction_Set = Instruction[];
-    Instruction_Set[] module_programs;
+    // TOOD: do this properly.
+    Instruction[] entire_program;
 
     // TODO:
     // is it worth converting to some kind
@@ -155,11 +158,7 @@ void main(string[] args) {
         foreach (ref entry; dep.as_trees.byKeyValue) {
             gen.process(dep, entry.key);
         }
-        module_programs ~= gen.program;
-    }
-
-    foreach (ref program; module_programs) {
-
+        entire_program ~= gen.program;
     }
 
 	auto duration = compilerTimer.peek();
@@ -168,4 +167,21 @@ void main(string[] args) {
 	    ~ "/ms or "
 	    ~ to!string(duration.total!"usecs")
 	    ~ "/µs");
+
+    if (!RUN_PROGRAM) {
+        return;
+    }    
+
+    StopWatch rtTimer;
+    rtTimer.start();
+
+    // run the vm on the generated code.
+    auto exec = new Execution_Engine(entire_program);
+
+    auto rtDuration = rtTimer.peek();
+    err_logger.Info("Program execution took "
+        ~ to!string(rtDuration.total!"msecs")
+        ~ "/ms or "
+        ~ to!string(rtDuration.total!"usecs")
+        ~ "/µs");
 }

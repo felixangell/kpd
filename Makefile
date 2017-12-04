@@ -12,4 +12,4 @@ all: $(exe)
 clean:
 	-rm $(exe)
 
-.PHONY: clean
+.PHONY: clean $(exe)

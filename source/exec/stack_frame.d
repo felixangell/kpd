@@ -11,9 +11,18 @@ class Stack_Frame {
 
 	ubyte[LOCALS_SIZE] locals;
 	uint local_index = 0;
+	uint return_addr = -1;
 
 	this(Virtual_Thread parent_thread) {
 		this.parent_thread = parent_thread;
+	}
+
+	void push(T)(T val) {
+		parent_thread.stack.push(val, Endian.bigEndian);
+	}
+
+	T pop(T)() {
+		return parent_thread.stack.read();
 	}
 
 	uint store_local(T)(T value) {

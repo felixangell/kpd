@@ -212,6 +212,10 @@ class Symbol_Node : Expression_Node {
     this(Token value) {
         this.value = value;
     }
+
+    override string toString() const {
+        return "ast.Symbol_Node(" ~ value.lexeme ~ ")";
+    }
 }
 
 class Path_Expression_Node : Expression_Node {
