@@ -50,7 +50,7 @@ class Execution_Engine {
 			
 			auto stack = curr_stack_frame();
 			if (stack !is null) {
-				stack.return_addr = stack.pop!ulong();
+				stack.return_addr = stack.pop!uint();
 			}
 			break;
 		}

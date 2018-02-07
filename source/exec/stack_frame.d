@@ -18,15 +18,15 @@ class Stack_Frame {
 	}
 
 	void push(T)(T val) {
-		parent_thread.stack.push(val, Endian.bigEndian);
+		write!(T)(val, parent_thread.stack, &parent_thread.stack_ptr);
 	}
 
 	T pop(T)() {
-		return parent_thread.stack.read();
+		return peek!T(parent_thread.stack[parent_thread.stack_ptr .. $]);
 	}
 
 	uint store_local(T)(T value) {
-		locals[local_index].append!T(value, Endian.bigEndian);
+		locals[local_index].append!(T)(value, Endian.bigEndian);
 		local_index += value.size_of;
 		return local_index;
 	}
