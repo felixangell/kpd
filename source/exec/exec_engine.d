@@ -27,6 +27,8 @@ class Execution_Engine {
 
 	Instruction[] program;
 
+	uint call_ret_addr = 0;
+
 	this(Instruction[] program, uint entryAddr = 0) {
 		this.program = program;
 
@@ -52,13 +54,16 @@ class Execution_Engine {
 			
 			{
 				auto stack_frame = curr_stack_frame();
-				Byte_Stack* stack = &stack_frame.parent_thread.stack;
 
-				// we ARE in a function!
+				// if we've been called from a function
+				// then we want to cache the current
+				// functions stack
 				if (stack_frame !is null) {
-					// pop the return address which is where
-					// we have come from
-					stack_frame.return_addr = stack.pop!uint();
+					Byte_Stack* stack = &stack_frame.parent_thread.stack;
+
+					// the stack should be empty in theory before we 
+					// do a function call, so anything on the stack 
+					// is an argument to the function
 
 					err_logger.Info("caching stack!");
 					while (!stack.is_empty()) {
@@ -70,35 +75,46 @@ class Execution_Engine {
 
 			err_logger.Info("Pushing new stack frame");
 			{
-				// push a frame!
 				thread.push_frame();
+
 				auto stack_frame = curr_stack_frame();
 				Byte_Stack* stack = &stack_frame.parent_thread.stack;
+
+				stack_frame.return_addr = call_ret_addr;
 
 				// first thing we have to do is put 
 				// all of the contents of the 
 				// cache into this stack frame.
+				//
+				// everything that was cached is the arguments
+				// to this function
 				while (!cache.is_empty()) {
 					err_logger.Info("restoring cache");
 					ubyte popped = cache.pop!ubyte();
 					stack.push!ubyte(popped);
 				}
-
-				err_logger.Info("pushing return addr!");
-				stack.push!uint(stack_frame.return_addr);				
 			}
 
 			break;
 		}
 		case OP.RET: {
-			auto return_addr = curr_stack_frame().parent_thread.stack.pop!uint();
-			auto frame = thread.pop_frame();
-			thread.program_counter = return_addr;
+			auto prev_frame = curr_stack_frame();
+			thread.pop_frame();
+			
+			if (prev_frame !is null) {
+				// one issue here is this could be zero
+				// if we dont have a return address which 
+				// may mean the program starts executing again?
+
+				err_logger.Verbose("Jumping to addr" ~ to!string(prev_frame.return_addr));
+				thread.program_counter = prev_frame.return_addr;
+			}
 			break;
 		}
 		case OP.CALL: {
 			auto addr = instr.peek!uint();
 			err_logger.Info("Calling function at addr" ~ to!string(addr));
+			call_ret_addr = thread.program_counter;
 			thread.program_counter = addr;
 			break;
 		}

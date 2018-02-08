@@ -11,7 +11,7 @@ class Stack_Frame {
 
 	ubyte[LOCALS_SIZE] locals;
 	uint local_index = 0;
-	uint return_addr = -1;
+	uint return_addr = 0;
 
 	this(Virtual_Thread parent_thread) {
 		this.parent_thread = parent_thread;

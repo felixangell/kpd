@@ -30,7 +30,11 @@ struct Virtual_Thread {
 
 	Stack_Frame pop_frame() {
 		auto old = current_frame;
-		current_frame = current_frame.parent;
+		// technically this should 
+		// never happen
+		if (current_frame !is null) {
+			current_frame = current_frame.parent;			
+		}
 		return old;
 	}
 }
