@@ -139,8 +139,14 @@ bool occurs_in_type(Type a, Type b) {
 	return false;
 }
 
+Type_Node resolve(Type_Node old, Type resolved) {
+    return new Resolved_Type(old, resolved);
+}
+
 struct Type_Inferrer {
-	Type get_type(string name, Type_Environment e) {
+	Type_Environment e;
+
+	Type get_type(string name) {
 		if (name in e.data) {
 			return fresh(e.data[name]);
 		}
@@ -159,10 +165,45 @@ struct Type_Inferrer {
 		return prim_type(type_name);
 	}
 
+	Type analyze_variable(Variable_Statement_Node node) {
+		if (node.type !is null) {
+			// resolve the type we're given.
+			return analyze(node.type, e);
+		}
+
+		// we have to infer the type from the value of the
+		// expression instead. TODO handle no expression! (error)
+		auto resolved = analyze(node.value, e);
+		node.type = resolve(node.type, resolved);
+		return resolved;
+	}
+
 	Type analyze(ast.Node node, Type_Environment e) {
+		this.e = e;
+
 		if (auto prim = cast(Primitive_Type_Node)node) {
 			return analyze_primitive(prim);
 		}
+		else if (auto var = cast(Variable_Statement_Node)node) {
+			return analyze_variable(var);
+		}
+		else if (auto integer = cast(Integer_Constant_Node)node) {
+			return prim_type("int");
+		}
+		else if (auto integer = cast(Float_Constant_Node)node) {
+			// the widest type for floating point
+			return prim_type("f64"); // "double"
+		}
+		else if (auto integer = cast(Boolean_Constant_Node)node) {
+			return prim_type("bool");
+		}
+		else if (auto integer = cast(String_Constant_Node)node) {
+			return prim_type("string");
+		}
+		else if (auto integer = cast(Rune_Constant_Node)node) {
+			return prim_type("rune");
+		}
+		
 
 		err_logger.Fatal("infer: unhandled node " ~ to!string(node));
 		assert(0);

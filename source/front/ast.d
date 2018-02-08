@@ -4,6 +4,7 @@ import std.typecons;
 import std.conv;
 import std.bigint;
 
+import sema.type : Type;
 import sema.range;
 import krug_module;
 
@@ -290,6 +291,20 @@ class Paren_Expression_Node : Expression_Node {
 // TYPE AST NODES
 
 class Type_Node : Node {}
+
+class Resolved_Type : Type_Node {
+    // a copy of the node itself before
+    // we resolved it.
+    Type_Node before;
+
+    // the real type
+    Type type;
+
+    this(Type_Node before, Type type) {
+        this.before = before;
+        this.type = type;
+    }
+}
 
 class Primitive_Type_Node : Type_Node {
 	Token type_name;

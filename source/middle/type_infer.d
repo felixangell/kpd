@@ -14,9 +14,9 @@ import err_logger;
 class Type_Infer_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 	Scope current;
 
-	override void analyze_named_type_node(ast.Named_Type_Node node) {
-		
-    }
+    Type_Inferrer inferrer;
+
+	override void analyze_named_type_node(ast.Named_Type_Node node) {}
 
     override void analyze_function_node(ast.Function_Node node) {
         // some functions have no body!
@@ -29,7 +29,7 @@ class Type_Infer_Pass : Top_Level_Node_Visitor, Semantic_Pass {
     }
 
     void visit_variable_stat(ast.Variable_Statement_Node var) {
-
+        inferrer.analyze(var, current.env);
     }
 
     void visit_stat(ast.Statement_Node stat) {
@@ -44,6 +44,13 @@ class Type_Infer_Pass : Top_Level_Node_Visitor, Semantic_Pass {
     void visit_block(ast.Block_Node block) {
     	assert(block.range !is null);
         current = block.range;
+
+        foreach (stat; block.statements) {
+            if (stat is null) {
+                err_logger.Fatal("what? " ~ to!string(block));
+            }
+            visit_stat(stat);
+        }
     }
 
     Scope pop_scope() {
