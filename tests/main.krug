@@ -6,7 +6,7 @@ type Foo struct {
 };
 
 func hello_world() {
-	
+	say_apple();
 }
 
 func say_apple() {
@@ -18,8 +18,6 @@ func call_native_func() {
 }
 
 func main() {
-	say_apple();
-	say_apple();
-	say_apple();
+	hello_world();
 	say_apple();
 }

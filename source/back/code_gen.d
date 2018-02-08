@@ -63,7 +63,9 @@ struct Code_Generator {
 
             // HACK
             const string name = to!string(fst.value.lexeme);
-            assert(name in func_addr_reg);
+            if (name !in func_addr_reg) {
+                err_logger.Fatal("No such function " ~ name ~ " registered");
+            }
 
             uint addr = func_addr_reg[name];
             writeln("emitting func call to ", name, " @addr: ", addr);
