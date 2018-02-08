@@ -1,5 +1,7 @@
 module sema.infer;
 
+import std.conv;
+
 import sema.type;
 import ast;
 import err_logger;
@@ -151,7 +153,18 @@ struct Type_Inferrer {
 		assert(0);
 	}
 
-	void analyze(ast.Node node, Type_Environment e) {
+	Type analyze_primitive(ast.Primitive_Type_Node node) {
+		auto type_name = node.type_name.lexeme;
+		// handle if this primitive doesn't exist.
+		return prim_type(type_name);
+	}
 
+	Type analyze(ast.Node node, Type_Environment e) {
+		if (auto prim = cast(Primitive_Type_Node)node) {
+			return analyze_primitive(prim);
+		}
+
+		err_logger.Fatal("infer: unhandled node " ~ to!string(node));
+		assert(0);
 	}
 }

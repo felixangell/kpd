@@ -12,7 +12,7 @@ static this() {
         "f32", "f64",
         "string", "rune", "bool", "void",
 
-        // TODO what are these types?
+        // TODO define these types properly.
         "int", "uint",
     );
 }
@@ -92,7 +92,7 @@ class Type_Operator : Type {
         case 0:
             return name;
         case 2:
-            return to!string(types[0]) ~ name ~ to!string(types[1]);
+            return name ~ " " ~ to!string(types[0]) ~ " " ~ to!string(types[1]);
         default:
             return to!string(types);
         }

@@ -18,13 +18,38 @@ import err_logger;
 // in the type environments
 class Type_Define_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 	Scope current;
+	Type_Inferrer inferrer;
 
-	void define_type_node(Type_Node t) {
+	void define_structure(string name, Structure_Type_Node s) {
+		Type[] field_types;
 
+		foreach (entry; s.fields.byKeyValue()) {
+			// what if we fail to infer the type here because 
+			// it has not been defined? 
+			Structure_Field field = entry.value;
+			field_types ~= inferrer.analyze(field.type, current.env);
+		}
+
+		auto structure_op = new Type_Operator(name, field_types);
+		current.env.register_type(name, structure_op);
+	}
+
+	void define_type_node(string name, Type_Node t) {
+		if (auto structure = cast(Structure_Type_Node) t) {
+			define_structure(name, structure);
+		}
+		else {
+			err_logger.Fatal("Unhandled type node " ~ to!string(t));
+			assert(0);
+		}
 	}
 
 	override void analyze_named_type_node(ast.Named_Type_Node node) {
-        define_type_node(node.type);
+        define_type_node(node.twine.lexeme, node.type);
+
+        foreach (entry; current.env.data.byKeyValue()) {
+        	err_logger.Verbose(entry.key ~ " is " ~ to!string(entry.value));
+        }
     }
 
     override void analyze_function_node(ast.Function_Node node) {
@@ -32,6 +57,10 @@ class Type_Define_Pass : Top_Level_Node_Visitor, Semantic_Pass {
         // these are prototype functions
         if (node.func_body !is null) {
     		visit_block(node.func_body);
+        }
+
+        foreach (entry; current.env.data.byKeyValue()) {
+        	err_logger.Verbose(entry.key ~ " is " ~ to!string(entry.value));
         }
 
         pop_scope();
