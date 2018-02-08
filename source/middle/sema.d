@@ -7,6 +7,7 @@ import sema.range;
 import err_logger;
 import krug_module;
 import sema.decl;
+import sema.type_def;
 import sema.type_infer;
 
 import dependency_scanner;
@@ -19,7 +20,8 @@ interface Semantic_Pass {
 // the semantic modules in order
 Semantic_Pass[] passes = [
     new Declaration_Pass,
-    new Type_Inferrer_Pass,
+    new Type_Define_Pass,
+    new Type_Infer_Pass,
 ];
 
 struct Semantic_Analysis {

@@ -1,4 +1,4 @@
-module sema.type_infer;
+module sema.type_def;
 
 import std.conv;
 
@@ -11,11 +11,20 @@ import sema.infer;
 import krug_module;
 import err_logger;
 
-class Type_Infer_Pass : Top_Level_Node_Visitor, Semantic_Pass {
+// Type_Define_Pass defines all of the types, these include
+// functions and structures
+//
+// we need to find a way to handle methods 
+// in the type environments
+class Type_Define_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 	Scope current;
 
+	void define_type_node(Type_Node t) {
+
+	}
+
 	override void analyze_named_type_node(ast.Named_Type_Node node) {
-		
+        define_type_node(node.type);
     }
 
     override void analyze_function_node(ast.Function_Node node) {
@@ -37,7 +46,7 @@ class Type_Infer_Pass : Top_Level_Node_Visitor, Semantic_Pass {
     		visit_variable_stat(var);
     	}
     	else {
-	    	err_logger.Warn("type_infer: unhandled statement " ~ to!string(stat));
+	    	err_logger.Warn("type_def: unhandled statement " ~ to!string(stat));
     	}
     }
 
@@ -71,7 +80,7 @@ class Type_Infer_Pass : Top_Level_Node_Visitor, Semantic_Pass {
     }
 
     override string toString() const {
-        return "type-infer-pass";
+        return "type-def-pass";
     }
 
 }

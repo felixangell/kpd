@@ -7,6 +7,7 @@ import std.conv;
 import ast;
 import err_logger;
 import krug_module : Token;
+import sema.infer : Type_Environment;
 
 class Symbol {
 	ast.Node reference;
@@ -30,14 +31,16 @@ class Scope {
 	uint id;
 	Scope outer;
 	Symbol[string] symbols;
+	Type_Environment env;
 
 	this() {
-		this.id = 0;
+		this(null);
 	}
 
 	this(Scope outer) {
 		this.outer = outer;
 		this.id = outer is null ? 0 : (outer.id + 1);
+		env = outer is null ? new Type_Environment() : new Type_Environment(outer.env);
 	}
 
 	Symbol lookup_sym(string name) {
