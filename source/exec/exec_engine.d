@@ -23,7 +23,7 @@ const auto BYTE_SIZE = 1,
 
 class Execution_Engine {
 	Virtual_Thread[] stack;
-	Virtual_Thread main, current;
+	Virtual_Thread main, thread;
 
 	Instruction[] program;
 
@@ -31,23 +31,23 @@ class Execution_Engine {
 		this.program = program;
 
 		stack ~= main;
-		current = main;
+		thread = main;
 
-		current.program_counter = entryAddr;
-		while (current.program_counter < program.length) {
+		err_logger.Verbose("Starting program at addr " ~ to!string(entryAddr));
+
+		thread.program_counter = entryAddr;
+		while (thread.program_counter < program.length) {
 			execute_instr(next());
 		}
 	}
 
 	Stack_Frame curr_stack_frame() {
-		return current.current_frame;
+		return thread.current_frame;
 	}
 
 	void execute_instr(Instruction instr) {
 		switch (instr.id) {
-		case OP.ENTR: {
-			err_logger.Info("Pushing new stack frame");
-			
+		case OP.ENTR: {			
 			Byte_Stack cache;
 			
 			{
@@ -68,9 +68,10 @@ class Execution_Engine {
 				}
 			}
 
+			err_logger.Info("Pushing new stack frame");
 			{
 				// push a frame!
-				current.push_frame();
+				thread.push_frame();
 				auto stack_frame = curr_stack_frame();
 				Byte_Stack* stack = &stack_frame.parent_thread.stack;
 
@@ -90,21 +91,20 @@ class Execution_Engine {
 			break;
 		}
 		case OP.RET: {
-			auto frame = current.pop_frame();
-			if (frame.parent !is null) {
-				current.program_counter = frame.parent.return_addr;
-			}
+			auto return_addr = curr_stack_frame().parent_thread.stack.pop!uint();
+			auto frame = thread.pop_frame();
+			thread.program_counter = return_addr;
 			break;
 		}
 		case OP.CALL: {
 			auto addr = instr.peek!uint();
 			err_logger.Info("Calling function at addr" ~ to!string(addr));
-			current.program_counter = addr;
+			thread.program_counter = addr;
 			break;
 		}
 		case OP.GOTO: {
 			auto addr = instr.peek!uint();
-			current.program_counter = addr;
+			thread.program_counter = addr;
 			break;
 		}
 		default:
@@ -114,6 +114,6 @@ class Execution_Engine {
 	}
 
 	Instruction next() {
-		return program[current.program_counter++];
+		return program[thread.program_counter++];
 	}
 }

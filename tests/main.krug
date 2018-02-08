@@ -19,4 +19,7 @@ func call_native_func() {
 
 func main() {
 	say_apple();
+	say_apple();
+	say_apple();
+	say_apple();
 }

@@ -147,6 +147,7 @@ void main(string[] args) {
 
     // TOOD: do this properly.
     Instruction[] entire_program;
+    uint main_func_addr = 0;
 
     // TODO:
     // is it worth converting to some kind
@@ -157,6 +158,10 @@ void main(string[] args) {
         auto gen = new Code_Generator(graph);
         foreach (ref entry; dep.as_trees.byKeyValue) {
             gen.process(dep, entry.key);
+        }
+
+        if ("main" in gen.func_addr_reg) {
+            main_func_addr = gen.func_addr_reg["main"];
         }
 
         err_logger.Verbose("addr tables");
@@ -173,8 +178,9 @@ void main(string[] args) {
 	    ~ to!string(duration.total!"usecs")
 	    ~ "/µs");
 
+    uint idx = 0;
     foreach (instr; entire_program) {
-        err_logger.Verbose(to!string(instr));
+        err_logger.Verbose(to!string(idx++) ~ ": " ~ to!string(instr));
     }
 
     if (!RUN_PROGRAM) {
@@ -185,7 +191,7 @@ void main(string[] args) {
     rtTimer.start();
 
     // run the vm on the generated code.
-    auto exec = new Execution_Engine(entire_program);
+    auto exec = new Execution_Engine(entire_program, main_func_addr);
 
     auto rtDuration = rtTimer.peek();
     err_logger.Info("Program execution took "
