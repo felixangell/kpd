@@ -7,8 +7,8 @@ import err_logger;
 import colour;
 import ast;
 import sema.analyzer : Semantic_Pass;
-import sema.visitor;
 import sema.range;
+import sema.visitor;
 import krug_module;
 
 /// this pass will go through all declarations in the module

@@ -5,12 +5,12 @@ type Foo struct {
 	blah uint,
 };
 
-func hello_world() {
-	say_apple();
-}
-
 func say_apple() {
 	
+}
+
+func hello_world() {
+	say_apple();
 }
 
 func call_native_func() {
