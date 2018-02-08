@@ -18,8 +18,5 @@ func call_native_func() {
 }
 
 func main() {
-	loop {
-		say_apple();
-	}
 	say_apple();
 }

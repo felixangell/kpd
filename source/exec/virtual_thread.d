@@ -1,11 +1,11 @@
 module exec.virtual_thread;
 
 import exec.exec_engine;
+import exec.byte_stack;
 import exec.stack_frame;
 
 struct Virtual_Thread {
-	ubyte[STACK_SIZE] stack;
-	uint stack_ptr = 0;
+	Byte_Stack stack;
 
 	ubyte[DATA_SEGMENT_SIZE] globals;
 

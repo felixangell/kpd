@@ -158,6 +158,11 @@ void main(string[] args) {
         foreach (ref entry; dep.as_trees.byKeyValue) {
             gen.process(dep, entry.key);
         }
+
+        err_logger.Verbose("addr tables");
+        foreach (entry; gen.func_addr_reg.byKeyValue()) {
+            err_logger.Verbose(entry.key ~ " @ " ~ to!string(entry.value));
+        }
         entire_program ~= gen.program;
     }
 
@@ -167,6 +172,10 @@ void main(string[] args) {
 	    ~ "/ms or "
 	    ~ to!string(duration.total!"usecs")
 	    ~ "/µs");
+
+    foreach (instr; entire_program) {
+        err_logger.Verbose(to!string(instr));
+    }
 
     if (!RUN_PROGRAM) {
         return;

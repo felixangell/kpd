@@ -1,6 +1,6 @@
 module exec.stack_frame;
 
-import std.bitmanip;
+import std.conv;
 
 import exec.exec_engine;
 import exec.virtual_thread;
@@ -17,12 +17,8 @@ class Stack_Frame {
 		this.parent_thread = parent_thread;
 	}
 
-	void push(T)(T val) {
-		write!(T)(val, parent_thread.stack, &parent_thread.stack_ptr);
-	}
-
-	T pop(T)() {
-		return peek!T(parent_thread.stack[parent_thread.stack_ptr .. $]);
+	bool is_empty() {
+		return parent_thread.stack.stack_ptr == 0;
 	}
 
 	uint store_local(T)(T value) {

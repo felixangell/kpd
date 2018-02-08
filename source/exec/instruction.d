@@ -70,22 +70,20 @@ static enum OP : ushort {
 }
 
 struct Instruction {
-	ushort id;
+	OP id;
+	
 	ubyte[] data;
 
 	this(ubyte[] data) {
 		// the id of the instruction is copied from
 		// the first two bytes of the data we pass thru.
-		this.id = data.peek!(ushort, Endian.bigEndian);
+		this.id = cast(OP)(data.peek!(ushort, Endian.bigEndian));
 		this.data = data;
 	}
 
-	T peek_from(T)(uint offs) {
-		// we add two here so we're always
-		// offsetting PAST the id, im not sure
-		// if this is a good idea or not so
-		// FIXME?
-		return data[(offs + 2)..$].peek!(T);
+	T peek(T)(uint offs = 0) {
+		// offset by the id
+		return data[(offs + id.sizeof)..$].peek!(T);
 	}
 
 	void put(T)(T val) {

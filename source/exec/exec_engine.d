@@ -7,6 +7,7 @@ import err_logger;
 import exec.virtual_thread;
 import exec.instruction;
 import exec.stack_frame;
+import exec.byte_stack;
 
 const auto KILOBYTE = 1000;
 const auto MEGABYTE = KILOBYTE * 1000;
@@ -46,19 +47,64 @@ class Execution_Engine {
 		switch (instr.id) {
 		case OP.ENTR: {
 			err_logger.Info("Pushing new stack frame");
-			ubyte[] stack_cache;
 			
-			auto stack = curr_stack_frame();
-			if (stack !is null) {
-				stack.return_addr = stack.pop!uint();
+			Byte_Stack cache;
+			
+			{
+				auto stack_frame = curr_stack_frame();
+				Byte_Stack* stack = &stack_frame.parent_thread.stack;
+
+				// we ARE in a function!
+				if (stack !is null) {
+					// pop the return address which is where
+					// we have come from
+					stack_frame.return_addr = stack.pop!uint();
+
+					err_logger.Info("caching stack!");
+					while (!stack.is_empty()) {
+						err_logger.Info("caching stack, stack_ptr is " ~ to!string(stack.stack_ptr));
+						cache.push!ubyte(stack.pop!ubyte());
+					}
+				}
 			}
+
+			{
+				// push a frame!
+				current.push_frame();
+				auto stack_frame = curr_stack_frame();
+				Byte_Stack* stack = &stack_frame.parent_thread.stack;
+
+				// first thing we have to do is put 
+				// all of the contents of the 
+				// cache into this stack frame.
+				while (!cache.is_empty()) {
+					err_logger.Info("restoring cache");
+					ubyte popped = cache.pop!ubyte();
+					stack.push!ubyte(popped);
+				}
+
+				err_logger.Info("pushing return addr!");
+				stack.push!uint(stack_frame.return_addr);				
+			}
+
 			break;
 		}
 		case OP.RET: {
+			auto frame = current.pop_frame();
+			if (frame.parent !is null) {
+				current.program_counter = frame.parent.return_addr;
+			}
 			break;
 		}
 		case OP.CALL: {
-
+			auto addr = instr.peek!uint();
+			err_logger.Info("Calling function at addr" ~ to!string(addr));
+			current.program_counter = addr;
+			break;
+		}
+		case OP.GOTO: {
+			auto addr = instr.peek!uint();
+			current.program_counter = addr;
 			break;
 		}
 		default:
