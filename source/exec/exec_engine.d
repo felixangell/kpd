@@ -55,7 +55,7 @@ class Execution_Engine {
 				Byte_Stack* stack = &stack_frame.parent_thread.stack;
 
 				// we ARE in a function!
-				if (stack !is null) {
+				if (stack_frame !is null) {
 					// pop the return address which is where
 					// we have come from
 					stack_frame.return_addr = stack.pop!uint();
