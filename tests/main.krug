@@ -5,6 +5,13 @@ type Foo struct {
 	blah uint,
 };
 
+/*
+	i cant remember if comments nest.
+	/*
+		yes they do!
+	*/
+*/
+
 func say_apple() {
 	let foo = 5;
 	let bar = 3.141;
@@ -12,8 +19,11 @@ func say_apple() {
 	let is_krug_the_greatest = true;
 	let foopa = "hello world";
 	let blah = 'a';
+
+	// these types do not mismatch!
 	let foopa = 5 + 10;
-	let blah = 3.141 + 69;
+	let blah = 3.141 + 69.3;
+	let booper = "foo" + "bar" + "baz";
 }
 
 func hello_world() {
