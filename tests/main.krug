@@ -12,6 +12,8 @@ func say_apple() {
 	let is_krug_the_greatest = true;
 	let foopa = "hello world";
 	let blah = 'a';
+	let foopa = 5 + 10;
+	let blah = 3.141 + 69;
 }
 
 func hello_world() {

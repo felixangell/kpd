@@ -1,6 +1,7 @@
 module sema.infer;
 
 import std.conv;
+import std.algorithm : cmp;
 
 import sema.type;
 import ast;
@@ -109,7 +110,14 @@ void unify(Type a, Type b) {
 			unify(var, opa);
 		}
 		else if (auto opb = cast(Type_Operator)pb) {
-			// type mismatch here
+			if (cmp(opa.name, opb.name) || opa.types.length != opb.types.length) {
+				err_logger.Error([
+	                "Type mismatch '" ~ to!string(a) ~ "' defined here:",
+	                // Blame_Token(node.twine),
+	                "Conflicts with symbol defined here: ",
+	                to!string(b)
+	            ]);
+			}
 
 			foreach (idx, t; opa.types) {
 				unify(t, opb.types[idx]);
@@ -187,6 +195,15 @@ struct Type_Inferrer {
 		else if (auto var = cast(Variable_Statement_Node)node) {
 			return analyze_variable(var);
 		}
+
+		else if (auto binary = cast(Binary_Expression_Node)node) {
+			auto left = analyze(binary.left, e);
+			auto right = analyze(binary.right, e);
+			unify(left, right);
+			return left;
+		}
+
+		// constants
 		else if (auto integer = cast(Integer_Constant_Node)node) {
 			return prim_type("int");
 		}
@@ -203,7 +220,6 @@ struct Type_Inferrer {
 		else if (auto integer = cast(Rune_Constant_Node)node) {
 			return prim_type("rune");
 		}
-		
 
 		err_logger.Fatal("infer: unhandled node " ~ to!string(node));
 		assert(0);
