@@ -55,6 +55,10 @@ class Declaration_Pass : Top_Level_Node_Visitor, Semantic_Pass {
         pop_scope();
     }
 
+    override void analyze_let_node(ast.Variable_Statement_Node) {
+
+    }
+
     override void execute(ref Module mod, string sub_mod_name) {       
         assert(mod !is null);
 

@@ -1112,6 +1112,8 @@ class Parser : Compilation_Phase  {
             case keyword.Directive_Symbol:
                 skip_dir();
                 break;
+            case keyword.Let:
+                return parse_let();
             default:
                 err_logger.Verbose("unhandled top level node parse_node " ~ to!string(peek()));
                 break;

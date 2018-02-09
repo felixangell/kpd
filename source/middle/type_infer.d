@@ -18,6 +18,10 @@ class Type_Infer_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 
 	override void analyze_named_type_node(ast.Named_Type_Node node) {}
 
+    override void analyze_let_node(ast.Variable_Statement_Node) {
+
+    }
+
     override void analyze_function_node(ast.Function_Node node) {
         // some functions have no body!
         // these are prototype functions
