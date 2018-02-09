@@ -28,8 +28,8 @@ string ARCH = "x86_64";
 string OUT_NAME = "main";
 bool RUN_PROGRAM = false;
 
-// FIXME this only handles a few common cases.
 static string os_name() {
+    // this should cover most of the important-ish ones
 	version (linux) {
 		return "Linux";
 	}

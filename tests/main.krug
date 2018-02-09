@@ -12,6 +12,8 @@ type Foo struct {
 	*/
 */
 
+let a_global_var = 3;
+
 func say_apple() {
 	let foo = 5;
 	let bar = 3.141;
@@ -34,7 +36,24 @@ func call_native_func() {
 	
 }
 
+func foo() {}
+func foo2() {}
+func foo3() {}
+func foo4() {}
+func foo5() {}
+func foo6() {}
+func foo7() {}
+func foo8() {}
+func foo9() {}
+
 func main() {
 	hello_world();
 	say_apple();
+	foo9();
+	let blah = 1;
+	if 1 == 1 {
+		foo9();
+	} else {
+		foo();
+	}
 }

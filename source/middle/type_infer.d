@@ -32,10 +32,17 @@ class Type_Infer_Pass : Top_Level_Node_Visitor, Semantic_Pass {
         inferrer.analyze(var, current.env);
     }
 
+    void visit_call(ast.Call_Node call) {
+        // TODO:
+    }
+
     void visit_stat(ast.Statement_Node stat) {
     	if (auto var = cast(Variable_Statement_Node) stat) {
     		visit_variable_stat(var);
     	}
+        else if (auto call = cast(Call_Node)stat) {
+            visit_call(call);
+        }
     	else {
 	    	err_logger.Warn("type_infer: unhandled statement " ~ to!string(stat));
     	}
