@@ -462,7 +462,7 @@ class Parser : Compilation_Phase  {
         expect("(");
 
         auto node = new Call_Node(left);
-        for (int i = 0; !has_next() && peek().cmp(")"); i++) {
+        for (int i = 0; has_next() && !peek().cmp(")"); i++) {
             // these are for annotations, and are erased
             // these simply exist for reading the code.
             // one example would be:
@@ -1098,6 +1098,8 @@ class Parser : Compilation_Phase  {
 
         func.name = expect(Token_Type.Identifier);
 
+        // TODO: we dont use the Function Type here... hmm?
+
         {
             // func params
             expect("(");
@@ -1105,7 +1107,8 @@ class Parser : Compilation_Phase  {
                 if (idx > 0) {
                     expect(",");
                 }
-                parse_func_param();
+                auto param = parse_func_param();
+                func.params[param.twine.lexeme] = param;
             }
             expect(")");
         }

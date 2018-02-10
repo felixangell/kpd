@@ -3,9 +3,10 @@ module sema.infer;
 import std.conv;
 import std.algorithm : cmp;
 
+import err_logger;
 import sema.type;
 import ast;
-import err_logger;
+import colour;
 
 // type environment contains all of the types that have
 // been registered, this works _alongside_ the scope though

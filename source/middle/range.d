@@ -9,26 +9,7 @@ import err_logger;
 import krug_module : Token;
 import sema.infer : Type_Environment;
 import sema.type;
-
-class Symbol {
-	ast.Node reference;
-	string name;
-
-	Type type;
-
-	this(ast.Node reference, Token tok) {
-	    this(reference, tok.lexeme);
-	}
-
-	this(ast.Node reference, string name) {
-        this.reference = reference;
-        this.name = name;
-	}
-
-	override string toString() const {
-	    return name ~ " -> " ~ to!string(typeid(reference));
-	}
-}
+import sema.symbol;
 
 class Scope {
 	uint id;

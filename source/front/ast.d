@@ -185,6 +185,7 @@ class Function_Node : Node {
     Type_Node return_type;
 	Block_Node func_body;
     Variable_Statement_Node func_recv;
+    Function_Parameter[string] params;
 }
 
 class Block_Node : Node {
@@ -397,6 +398,8 @@ class Function_Type_Node : Type_Node {
 public:
 	Type_Node return_type;
 	Function_Parameter[string] params;
+
+    // make this just one receiver param
     Function_Parameter[string] recv_params;
 
     void add_recv_param(Token twine, Type_Node type, bool mutable = false) {

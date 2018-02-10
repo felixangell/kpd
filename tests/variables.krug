@@ -2,24 +2,24 @@ type Person struct {
 	name string,	
 };
 
-func say_apple() {
+func say_apple(count int) {
 	
 }
 
 func main() {
 	let z = 32;
 	if z == 69 {
-		say_apple();
+		say_apple(32);
 	}
 	z = 69;
 	if z == 69 {
-		say_apple();
+		say_apple(64, 32);
 	}
 
 	let person Person;
 
 	let y = 3232;
 	if person.age == 19 {
-		say_apple();
+		say_apple(55, 55, 55);
 	}
 }

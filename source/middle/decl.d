@@ -8,6 +8,7 @@ import colour;
 import ast;
 import sema.analyzer : Semantic_Pass;
 import sema.range;
+import sema.symbol;
 import sema.visitor;
 import krug_module;
 
@@ -46,6 +47,9 @@ class Declaration_Pass : Top_Level_Node_Visitor, Semantic_Pass {
         if (node.func_body !is null) {
     		visit_block(node.func_body);
         }
+
+        // TODO check that the function receiver
+        // is a valid symbol
 
         // TODO do checks here!
         // we don't really do anything in this pass to the functions
