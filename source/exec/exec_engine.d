@@ -163,6 +163,20 @@ class Execution_Engine {
 			break;
 		}
 
+		case OP.AND: {
+			auto b = thread.stack.pop!byte();
+			auto a = thread.stack.pop!byte();
+			thread.stack.push!byte(a && b);		
+			break;
+		}
+
+		case OP.OR: {
+			auto b = thread.stack.pop!byte();
+			auto a = thread.stack.pop!byte();
+			thread.stack.push!byte(a || b);		
+			break;
+		}
+
 		case OP.CMP: {
 			// because it's a stack we have to 
 			// pop b first then a, because some

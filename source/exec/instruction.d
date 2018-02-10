@@ -55,6 +55,8 @@ static enum OP : ushort {
 	// is a return address, jumps to that 
 	// instruction.
 	RET, 
+
+	AND, OR,
 	
 	// same as RET, though the given
 	// value is pushed onto the callers

@@ -69,6 +69,12 @@ struct Code_Generator {
         case "==":
             emit(encode(OP.CMPI));
             break;
+        case "&&":
+            emit(encode(OP.AND));
+            break;
+        case "||":
+            emit(encode(OP.OR));
+            break;
         default:
             err_logger.Fatal("unhandled operator in gen_binary_expr " ~ operator);
             break;
