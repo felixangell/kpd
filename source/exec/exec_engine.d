@@ -106,6 +106,14 @@ class Execution_Engine {
 			// we only have a main function for example
 			// we'll pop this and there will be no
 			// frames left and the program should exit
+			//
+			// in other words, as soon as the stack frame is
+			// null the program should exit because we are
+			// not in any functions anymore and there is nothing
+			// left to execute.
+			//
+			// checking the prev_frame is not null is more of
+			// a weird error check for rare cases?
 			if (prev_frame !is null && curr_stack_frame() !is null) {
 				// one issue here is this could be zero
 				// if we dont have a return address which 
