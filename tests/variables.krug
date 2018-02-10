@@ -8,7 +8,12 @@ func main() {
 		say_apple();
 	}
 	z = 69;
-	if z.y.z.foo()[0] == 69 {
+	if z == 69 {
+		say_apple();
+	}
+
+	let z = 3232;
+	if person.age == 19 {
 		say_apple();
 	}
 }

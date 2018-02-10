@@ -55,8 +55,18 @@ class Declaration_Pass : Top_Level_Node_Visitor, Semantic_Pass {
         pop_scope();
     }
 
-    override void analyze_let_node(ast.Variable_Statement_Node) {
+    override void analyze_let_node(ast.Variable_Statement_Node node) {
+        err_logger.Warn("Registering symbol " ~ to!string(node.twine));
 
+        auto existing = current.register_sym(new Symbol(node, node.twine));
+        if (existing !is null) {
+            err_logger.Error([
+                "Variable '" ~ colour.Bold(node.twine.lexeme) ~ "' defined here:",
+                Blame_Token(node.twine),
+                "Conflicts with symbol defined here: ",
+                // Blame_Token(existing),
+            ]);
+        }
     }
 
     override void execute(ref Module mod, string sub_mod_name) {       
@@ -103,6 +113,12 @@ class Declaration_Pass : Top_Level_Node_Visitor, Semantic_Pass {
             block.range = push_scope();
         }
         current = block.range;
+
+        foreach (stat; block.statements) {
+            if (auto var = cast(Variable_Statement_Node) stat) {
+                analyze_let_node(var);
+            }
+        }
     }
 
     override string toString() const {

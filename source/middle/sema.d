@@ -9,6 +9,7 @@ import krug_module;
 import sema.decl;
 import sema.type_def;
 import sema.type_infer;
+import sema.resolve;
 
 import dependency_scanner;
 
@@ -22,6 +23,7 @@ Semantic_Pass[] passes = [
     new Declaration_Pass,
     new Type_Define_Pass,
     new Type_Infer_Pass,
+    new Resolve_Pass,
 ];
 
 struct Semantic_Analysis {
