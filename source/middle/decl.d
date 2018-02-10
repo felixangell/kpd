@@ -56,8 +56,6 @@ class Declaration_Pass : Top_Level_Node_Visitor, Semantic_Pass {
     }
 
     override void analyze_let_node(ast.Variable_Statement_Node node) {
-        err_logger.Warn("Registering symbol " ~ to!string(node.twine));
-
         auto existing = current.register_sym(new Symbol(node, node.twine));
         if (existing !is null) {
             err_logger.Error([

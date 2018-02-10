@@ -12,7 +12,7 @@ func main() {
 		say_apple();
 	}
 
-	let z = 3232;
+	let y = 3232;
 	if person.age == 19 {
 		say_apple();
 	}
