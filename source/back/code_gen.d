@@ -50,8 +50,42 @@ struct Code_Generator {
         emit(encode(OP.RET));
     }
 
-    void gen_if_stat(ast.If_Statement_Node if_stat) {
+    // TODO: for generating expressions
+    // we need type information so we know whethejr
+    // to emit byte, short, integer, long, etc.
+    // as well as how is signed-ness going to be handled?
 
+    void gen_binary_expr(ast.Binary_Expression_Node binary) {
+        gen_expr(binary.left);
+        gen_expr(binary.right);
+
+        // handle the operation
+        auto operator = binary.operand.lexeme;
+        switch (operator) {
+        case "==":
+            emit(encode(OP.CMPI));
+            break;
+        default:
+            err_logger.Fatal("unhandled operator in gen_binary_expr " ~ operator);
+            break;
+        }
+    }
+
+    void gen_expr(ast.Expression_Node expr) {
+        if (auto binary = cast(ast.Binary_Expression_Node) expr) {
+            gen_binary_expr(binary);
+        }
+        else if (auto integer = cast(ast.Integer_Constant_Node) expr) {
+            // TODO handle types here.
+            emit(encode(OP.PSHI, integer.value.to!int));
+        }
+        else {
+            err_logger.Fatal("unhandled expr " ~ to!string(expr));            
+        }
+    }
+
+    void gen_if_stat(ast.If_Statement_Node if_stat) {
+        gen_expr(if_stat.condition);
     }
 
     void gen_call_node(ast.Call_Node call_node) {

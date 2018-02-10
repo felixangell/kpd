@@ -136,6 +136,61 @@ class Execution_Engine {
 			thread.program_counter = addr;
 			break;
 		}
+
+		// pushes the given value to the
+		// operand stack.
+		// PSH, PSHS, PSHI, PSHL,
+		// 1 byte, 2 byte, 3 byte, 4 byte
+
+		case OP.PSH: {
+			auto val = instr.peek!byte();
+			thread.stack.push!byte(val);
+			break;
+		}
+		case OP.PSHS: {
+			auto val = instr.peek!short();
+			thread.stack.push!short(val);						
+			break;
+		}
+		case OP.PSHI: {
+			auto val = instr.peek!int();
+			thread.stack.push!int(val);
+			break;
+		}
+		case OP.PSHL: {
+			auto val = instr.peek!long();
+			thread.stack.push!long(val);			
+			break;
+		}
+
+		case OP.CMP: {
+			// because it's a stack we have to 
+			// pop b first then a, because some
+			// operations are not symmetrical
+			auto b = thread.stack.pop!byte();
+			auto a = thread.stack.pop!byte();
+			thread.stack.push!byte(a == b);		
+			break;
+		}
+		case OP.CMPS: {
+			auto b = thread.stack.pop!short();
+			auto a = thread.stack.pop!short();
+			thread.stack.push!short(a == b);
+			break;
+		}
+		case OP.CMPI: {
+			auto b = thread.stack.pop!int();
+			auto a = thread.stack.pop!int();
+			thread.stack.push!int(a == b);		
+			break;
+		}
+		case OP.CMPL: {
+			auto b = thread.stack.pop!long();
+			auto a = thread.stack.pop!long();
+			thread.stack.push!long(a == b);		
+			break;
+		}
+
 		default:
 			err_logger.Fatal("unhandled instr " ~ to!string(instr));
 			break;
