@@ -100,8 +100,13 @@ class Execution_Engine {
 		case OP.RET: {
 			auto prev_frame = curr_stack_frame();
 			thread.pop_frame();
-			
-			if (prev_frame !is null) {
+
+			// HACK? we only jump to a previous frame
+			// if there is a stack frame otherwise if
+			// we only have a main function for example
+			// we'll pop this and there will be no
+			// frames left and the program should exit
+			if (prev_frame !is null && curr_stack_frame() !is null) {
 				// one issue here is this could be zero
 				// if we dont have a return address which 
 				// may mean the program starts executing again?
