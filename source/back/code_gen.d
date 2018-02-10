@@ -34,6 +34,10 @@ struct Code_Generator {
         return idx;
     }
 
+    void rewrite(uint index, Instruction instr) {
+        program[index] = instr;
+    }
+
     void gen_func(ast.Function_Node func) {
         immutable string func_name = func.name.lexeme;
 
@@ -86,6 +90,20 @@ struct Code_Generator {
 
     void gen_if_stat(ast.If_Statement_Node if_stat) {
         gen_expr(if_stat.condition);
+
+        // the if must be a boolean expression
+        // after the evaluation if the value is a 
+        // 0 then we jump to the end of the address
+        // skipping the body of the if statement
+        uint jne_instr_addr = emit(encode(OP.JNE, 0));
+
+        gen_block(if_stat.block);
+        uint if_end_addr = program_index;
+
+        // rewrite the instruction so that
+        // our address is correct
+        // TODO: find a nicer way to approach this.
+        rewrite(jne_instr_addr, encode(OP.JNE, if_end_addr));
     }
 
     void gen_call_node(ast.Call_Node call_node) {

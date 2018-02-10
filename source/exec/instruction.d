@@ -21,7 +21,10 @@ static enum OP : ushort {
 	// the result
 	ADD, ADDS, ADDI, ADDL,
 	
-	// TODO:
+	// pops the two values and compares them
+	// if equal pushes a 1, if not equal pushes a 0
+	// note that the comparison result pushed to the stack is
+	// always a byte!
 	CMP, CMPS, CMPI, CMPL,
 
 	// pops and subtract the top two values
@@ -58,6 +61,10 @@ static enum OP : ushort {
 	// stack.
 	RETV,
 	
+	// JE {addr}?
+	JE,
+
+	// JNE {addr}?
 	JNE,
 	
 	// calls a native func
