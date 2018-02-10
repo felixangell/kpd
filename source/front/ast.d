@@ -15,7 +15,9 @@ interface Semicolon_Stat {}
 
 alias AST = ast.Node[];
 
-class Node {}
+class Node {
+    Type realType;
+}
 
 class Statement_Node : Node {}
 
@@ -108,6 +110,7 @@ class Yield_Statement_Node : Statement_Node, Semicolon_Stat {
 // "type" Identifier Type ";"
 class Named_Type_Node : Statement_Node, Semicolon_Stat {
     Token twine;
+
     Type_Node type;
 
     this(Token twine, Type_Node type) {

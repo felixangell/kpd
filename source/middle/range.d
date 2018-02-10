@@ -8,10 +8,13 @@ import ast;
 import err_logger;
 import krug_module : Token;
 import sema.infer : Type_Environment;
+import sema.type;
 
 class Symbol {
 	ast.Node reference;
 	string name;
+
+	Type type;
 
 	this(ast.Node reference, Token tok) {
 	    this(reference, tok.lexeme);

@@ -18,8 +18,8 @@ class Type_Infer_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 
 	override void analyze_named_type_node(ast.Named_Type_Node node) {}
 
-    override void analyze_let_node(ast.Variable_Statement_Node) {
-
+    override void analyze_let_node(ast.Variable_Statement_Node var) {
+        var.realType = inferrer.analyze(var, current.env);
     }
 
     override void analyze_function_node(ast.Function_Node node) {
@@ -32,17 +32,13 @@ class Type_Infer_Pass : Top_Level_Node_Visitor, Semantic_Pass {
         pop_scope();
     }
 
-    void visit_variable_stat(ast.Variable_Statement_Node var) {
-        inferrer.analyze(var, current.env);
-    }
-
     void visit_call(ast.Call_Node call) {
         // TODO:
     }
 
     void visit_stat(ast.Statement_Node stat) {
     	if (auto var = cast(Variable_Statement_Node) stat) {
-    		visit_variable_stat(var);
+    		analyze_let_node(var);
     	}
         else if (auto call = cast(Call_Node)stat) {
             visit_call(call);

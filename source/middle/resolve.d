@@ -15,6 +15,10 @@ import err_logger;
 class Resolve_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 	Scope current;
 
+	Symbol resolve_sym_via(Symbol left, Symbol curr) {
+		
+	}
+
 	// for example
 	// a.b.c
 	// resolve_via(sym of a, b)
@@ -22,6 +26,10 @@ class Resolve_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 	Symbol resolve_via(Symbol left, Expression_Node curr) {
 		if (left is null) {
 			return resolve(curr);
+		}
+
+		if (auto sym = cast(ast.Symbol_Node) curr) {
+			resolve_sym_via(left, sym);
 		}
 
 		err_logger.Fatal("need to look for " ~ to!string(curr) ~ " in " ~ to!string(left));
