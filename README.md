@@ -1,6 +1,19 @@
 # krug
 Krug is a compiled programming language.
 
+## try it out
+Nothing is in working order, but some tests might run!
+
+Make sure you have `dub` installed as well as a D compiler,
+I'm using `ldc2`.
+
+	$ git clone http://github.com/felixangell/krug
+	$ cd krug
+	$ dub build
+	$ ./krug tests/some_test_here.krug 				# to compile only
+	$ ./krug tests/some_test_here.krug -r 			# to compile and run
+	$ ./krug tests/some_test_here.krug -r -v 		# compile and run with verbose output
+
 ## future plans
 The idea of this language is to keep the features and syntax
 relatively simple.
