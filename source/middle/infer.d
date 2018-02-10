@@ -44,6 +44,16 @@ class Type_Environment {
 
 	Type[string] data;
 
+	Type lookup_type(string name) {
+		for (Type_Environment e = this; e !is null; e = e.parent) {
+			if (name in e.data) {
+				return e.data[name];
+			}
+		}
+
+		return null;
+	}
+
 	// for example we could register that
 	// true -> bool
 	// false -> bool
@@ -159,11 +169,6 @@ struct Type_Inferrer {
 			return fresh(e.data[name]);
 		}
 
-		// is string?
-		// is char?
-		// is int
-		// is float
-
 		assert(0);
 	}
 
@@ -202,22 +207,39 @@ struct Type_Inferrer {
 			unify(left, right);
 			return left;
 		}
+	
+		// this is mostly like
+		// module.sub_mod.Type
+		// Type
+		// etc.
+		// TODO: support module access		
+		else if (auto path_type = cast(ast.Type_Path_Node) node) {
+			auto type = path_type.values[0];
+			Type t = e.lookup_type(type.lexeme);
+			if (t is null) {
+				err_logger.Error([
+	                "Failed to resolve type '" ~ colour.Bold(type.lexeme) ~ "':",
+	                Blame_Token(type)
+	            ]);
+			}
+			return t;
+		}
 
 		// constants
-		else if (auto integer = cast(Integer_Constant_Node)node) {
+		else if (cast(Integer_Constant_Node)node) {
 			return prim_type("int");
 		}
-		else if (auto integer = cast(Float_Constant_Node)node) {
+		else if (cast(Float_Constant_Node)node) {
 			// the widest type for floating point
 			return prim_type("f64"); // "double"
 		}
-		else if (auto integer = cast(Boolean_Constant_Node)node) {
+		else if (cast(Boolean_Constant_Node)node) {
 			return prim_type("bool");
 		}
-		else if (auto integer = cast(String_Constant_Node)node) {
+		else if (cast(String_Constant_Node)node) {
 			return prim_type("string");
 		}
-		else if (auto integer = cast(Rune_Constant_Node)node) {
+		else if (cast(Rune_Constant_Node)node) {
 			return prim_type("rune");
 		}
 

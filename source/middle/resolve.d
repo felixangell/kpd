@@ -24,6 +24,7 @@ class Resolve_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 			return resolve(curr);
 		}
 
+		err_logger.Fatal("need to look for " ~ to!string(curr) ~ " in " ~ to!string(left));
 		// look IN left for the current expr.
 		return null;
 	}
@@ -41,6 +42,8 @@ class Resolve_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 			return null;
 		}
 		else if (auto binary = cast(ast.Binary_Expression_Node) node) {
+			// i presume right now this is mostly for assignment
+			// left = right
 			resolve(binary.left);
 
 			// how should this work
