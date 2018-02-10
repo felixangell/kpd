@@ -563,7 +563,9 @@ class Parser : Compilation_Phase  {
         return new Index_Expression_Node(left, index);
     }
 
-    ast.Path_Expression_Node parse_path(Expression_Node left) {
+    // FIXME this is really weird and we have some
+    // crazy hacks to make things parse properly.
+    ast.Expression_Node parse_path(Expression_Node left) {
         auto pan = new Path_Expression_Node;
 
         // append the left as a value of the path
@@ -580,6 +582,23 @@ class Parser : Compilation_Phase  {
                 err_logger.Error(peek(), "expected expression in path: ");
             }
 
+            // we have to re-write the binary expression so that
+            // we just the left into the path, and then we
+            // move it into a new binary expr
+            if (auto binary = cast(Binary_Expression_Node) expr) {
+                // flatten if necessaru
+                if (auto path = cast(Path_Expression_Node) binary.left) {
+                    foreach (val; path.values) {
+                        pan.values ~= val;
+                    }
+                } else {
+                    pan.values ~= binary.left;                    
+                }
+                return new Binary_Expression_Node(pan, binary.operand, binary.right);
+            }
+
+            // if we parse another path, flatten it into this 
+            // path
             if (auto path = cast(Path_Expression_Node)expr) {
                 foreach (val; path.values) {
                     pan.values ~= val;

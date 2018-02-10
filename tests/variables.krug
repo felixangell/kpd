@@ -1,0 +1,14 @@
+func say_apple() {
+	
+}
+
+func main() {
+	let z = 32;
+	if z == 69 {
+		say_apple();
+	}
+	z = 69;
+	if z.y.z.foo()[0] == 69 {
+		say_apple();
+	}
+}

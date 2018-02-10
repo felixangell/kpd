@@ -81,6 +81,13 @@ struct Code_Generator {
         }
     }
 
+    // (sym x) (binary (. y ?))
+    void gen_path_expr(ast.Path_Expression_Node path) {
+        foreach (expr; path.values) {
+            err_logger.Warn(to!string(expr));
+        }
+    }
+
     void gen_expr(ast.Expression_Node expr) {
         if (auto binary = cast(ast.Binary_Expression_Node) expr) {
             gen_binary_expr(binary);
@@ -88,6 +95,9 @@ struct Code_Generator {
         else if (auto integer = cast(ast.Integer_Constant_Node) expr) {
             // TODO handle types here.
             emit(encode(OP.PSHI, integer.value.to!int));
+        }
+        else if (auto path = cast(ast.Path_Expression_Node) expr) {
+            gen_path_expr(path);
         }
         else {
             err_logger.Fatal("unhandled expr " ~ to!string(expr));            
