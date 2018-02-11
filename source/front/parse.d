@@ -11,6 +11,7 @@ import keyword;
 
 import containers.hashset;
 import err_logger;
+import colour;
 import sema.type : PRIMITIVE_TYPES;
 
 static Token EOF_TOKEN;

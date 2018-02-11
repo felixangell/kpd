@@ -4,6 +4,8 @@ import std.typecons;
 import std.conv;
 import std.bigint;
 
+import err_logger;
+import colour;
 import sema.type : Type;
 import sema.range;
 import krug_module;
@@ -385,7 +387,15 @@ public:
 	Structure_Field[string] fields;
 
 	void add_field(Token name, Type_Node type, Expression_Node value = null) {
-		fields[name.lexeme] = Structure_Field(name, type, value);
+		if (name.lexeme in fields) {
+            err_logger.Error([
+                "Structure field '" ~ colour.Bold(name.lexeme) ~ "' defined here:",
+                Blame_Token(name),
+                "Conflicts with symbol defined here: ",
+                Blame_Token(fields[name.lexeme].name),
+            ]);
+        }
+        fields[name.lexeme] = Structure_Field(name, type, value);
 	}
 }
 
