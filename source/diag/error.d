@@ -13,12 +13,8 @@ struct Compiler_Error {
 Compiler_Error make_err(string detail, string[] errors ...) {
 	Compiler_Error compiler_err;
 	compiler_err.detail = detail;
+	compiler_err.errors = errors;
 
-	compiler_err.errors.length = errors.length;
-	foreach (error; errors) {
-		compiler_err.errors ~= error;
-	}
-	
 	return compiler_err;
 }
 

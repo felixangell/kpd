@@ -1,15 +1,12 @@
 module diag.engine;
 
 import std.format;
+import std.conv;
 
 import err_logger;
 import krug_module : Token;
 import diag.error;
 import colour;
-
-char[] sformat_expand(Args...)(char[] buf, string format, Args args) {
-    return sformat(buf, format, args);
-}
 
 struct Diagnostic_Engine {
 	static bool[Compiler_Error] thrown_errors; 
@@ -18,7 +15,6 @@ struct Diagnostic_Engine {
 		thrown_errors[err] = true;
 
 		string[] token_names;
-		token_names.length = context.length;
 
 		foreach (idx, tok; context) {
 			token_names ~= colour.Bold(tok.lexeme);
@@ -27,7 +23,7 @@ struct Diagnostic_Engine {
 		string error_msg; // todo buffer thing
 		foreach (idx, error; err.errors) {
 			char[1024] buff;
-			error_msg ~= sformat_expand(buff[], error, token_names);
+			error_msg ~= sformat(buff[], error, token_names[idx]);
 			error_msg ~= '\n';
 			error_msg ~= Blame_Token(context[idx]);
 		}
