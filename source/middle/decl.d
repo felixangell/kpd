@@ -48,15 +48,34 @@ class Declaration_Pass : Top_Level_Node_Visitor, Semantic_Pass {
     		visit_block(node.func_body);
         }
 
+        foreach (param_entry; node.params.byKeyValue()) {
+            auto param = param_entry.value;
+            // we don't have to check for conflicts here because
+            // this HAS to be done during the parsing stage!
+            current.register_sym(new Symbol(param, param.twine.lexeme));
+        }
+
         // TODO check that the function receiver
         // is a valid symbol
 
-        // TODO do checks here!
-        // we don't really do anything in this pass to the functions
-        // bodies, this is the decl pass so we go over the top level
-        // declarations first.
+        // TODO store a ptr to this method
+        // in the Structure it's a member of.
+        // if func recvr exists.
 
         pop_scope();
+    }
+
+    void visit_block(ast.Block_Node block) {
+        if (block.range is null) {
+            block.range = push_scope();
+        }
+        current = block.range;
+
+        foreach (stat; block.statements) {
+            if (auto var = cast(Variable_Statement_Node) stat) {
+                analyze_let_node(var);
+            }
+        }
     }
 
     override void analyze_let_node(ast.Variable_Statement_Node node) {
@@ -108,19 +127,6 @@ class Declaration_Pass : Top_Level_Node_Visitor, Semantic_Pass {
         auto old = current;
         current = current.outer;
         return old;
-    }
-
-    void visit_block(ast.Block_Node block) {
-        if (block.range is null) {
-            block.range = push_scope();
-        }
-        current = block.range;
-
-        foreach (stat; block.statements) {
-            if (auto var = cast(Variable_Statement_Node) stat) {
-                analyze_let_node(var);
-            }
-        }
     }
 
     override string toString() const {

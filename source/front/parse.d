@@ -418,7 +418,7 @@ class Parser : Compilation_Phase  {
         }
         auto name = expect(Token_Type.Identifier);
         auto type = parse_type();
-        return Function_Parameter(mutable, name, type);
+        return new Function_Parameter(mutable, name, type);
     }
 
     ast.Unary_Expression_Node parse_unary_expr(bool comp_allowed) {
@@ -1108,7 +1108,16 @@ class Parser : Compilation_Phase  {
                     expect(",");
                 }
                 auto param = parse_func_param();
-                func.params[param.twine.lexeme] = param;
+                if (param.twine.lexeme in func.params) {
+                    err_logger.Error([
+                        "Parameter '" ~ colour.Bold(param.twine.lexeme) ~ "' defined here:",
+                        Blame_Token(param.twine),
+                        "Conflicts with symbol defined here: ",
+                        Blame_Token(func.params[param.twine.lexeme].twine),
+                    ]);
+                } else {
+                    func.params[param.twine.lexeme] = param;                    
+                }
             }
             expect(")");
         }

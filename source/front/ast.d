@@ -389,10 +389,17 @@ public:
 	}
 }
 
-alias Function_Parameter = Tuple!(
-	bool, "mutable", 
-	Token, "twine",
-	Type_Node, "type");
+class Function_Parameter : Node {
+    bool mutable;
+    Token twine;
+    Type_Node type;
+
+    this(bool mutable, Token twine, Type_Node type) {
+        this.mutable = mutable;
+        this.twine = twine;
+        this.type = type;
+    }
+}
 
 class Function_Type_Node : Type_Node {
 public:
@@ -403,11 +410,11 @@ public:
     Function_Parameter[string] recv_params;
 
     void add_recv_param(Token twine, Type_Node type, bool mutable = false) {
-        recv_params[twine.lexeme] = Function_Parameter(mutable, twine, type);
+        recv_params[twine.lexeme] = new Function_Parameter(mutable, twine, type);
     }
 
 	void add_param(Token twine, Type_Node type, bool mutable = false) {
-		params[twine.lexeme] = Function_Parameter(mutable, twine, type);
+		params[twine.lexeme] = new Function_Parameter(mutable, twine, type);
 	}
 }
 
