@@ -1,6 +1,7 @@
 type Person struct {
 	name string,
 	age string,
+	age string,
 };
 
 func say_apple(count int) {

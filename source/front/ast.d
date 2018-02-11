@@ -4,6 +4,9 @@ import std.typecons;
 import std.conv;
 import std.bigint;
 
+import diag.error;
+import diag.engine;
+
 import err_logger;
 import colour;
 import sema.type : Type;
@@ -388,14 +391,10 @@ public:
 
 	void add_field(Token name, Type_Node type, Expression_Node value = null) {
 		if (name.lexeme in fields) {
-            err_logger.Error([
-                "Structure field '" ~ colour.Bold(name.lexeme) ~ "' defined here:",
-                Blame_Token(name),
-                "Conflicts with symbol defined here: ",
-                Blame_Token(fields[name.lexeme].name),
-            ]);
+            Diagnostic_Engine.throw_error(Error_Set.SYMBOL_CONFLICT, name, fields[name.lexeme].name);
+        } else {
+            fields[name.lexeme] = Structure_Field(name, type, value);            
         }
-        fields[name.lexeme] = Structure_Field(name, type, value);
 	}
 }
 
