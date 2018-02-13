@@ -26,7 +26,7 @@ SCC[] get_scc(ref Dependency_Graph g) {
 		auto n = entry.value;
 		if (n.index == -1) {
 			SCC cycle = tarjans.strong_connect(entry.value);
-			if (cycle.length > 0) {
+			if (cycle.length > 1) {
 				cycle_set ~= cycle;
 			}
 		}
@@ -44,19 +44,18 @@ SCC strong_connect(ref Tarjan t, Module m) {
 	t.stack.put(m.path);
 
 	Module[string] neighbours = m.edges;
-	if (neighbours is null) {
-		return null;
-	}
+	if (neighbours !is null) {
+		foreach (entry; neighbours.byKeyValue()) {
+			auto n = entry.value;
+			if (n.index == -1) {
+				t.strong_connect(n);
+				m.low_link = min(m.low_link, n.low_link);
+			}
+			else if (t.stack.contains(n.path)) {
+				m.low_link = min(m.low_link, n.index);
+			}
+		}
 
-	foreach (entry; neighbours.byKeyValue()) {
-		auto n = entry.value;
-		if (n.index == -1) {
-			t.strong_connect(n);
-			m.low_link = min(m.low_link, n.low_link);
-		}
-		else if (t.stack.contains(n.path)) {
-			m.low_link = min(m.low_link, n.index);
-		}
 	}
 
 	SCC cycle;

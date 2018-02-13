@@ -78,10 +78,11 @@ struct Krug_Project {
             err_logger.Verbose("Module '" ~ name ~ "' already loaded - skipping.");
             return modules[name];
         }
-
         err_logger.Verbose("Loading module '" ~ name ~ "'.");
 
         auto mod = new Module(this.path ~ std.path.dirSeparator ~ name ~ std.path.dirSeparator);
+        modules[name] = mod;   
+
         graph.register_module(mod);
 
         foreach (ref file; mod.fileCache) {
@@ -103,7 +104,6 @@ struct Krug_Project {
             }
         }
 
-        modules[name] = mod;
         return mod;
     }
 

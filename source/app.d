@@ -126,6 +126,9 @@ void main(string[] args) {
             }            
             Diagnostic_Engine.throw_custom_error(Error_Set.DEPENDENCY_CYCLE, "There is a cycle in the project dependencies: " ~ dep_string);
         }
+
+        // let's not continue with compilation!
+        return;
     }
 
     // TODO: we can move flatten -> sort into
