@@ -8,8 +8,11 @@ import std.getopt;
 import std.datetime.stopwatch : StopWatch;
 
 import colour;
+import tarjans_scc;
 import dependency_scanner;
 import krug_module;
+import diag.engine;
+import diag.error : Error_Set;
 
 import parse.parser;
 import ast;
@@ -102,7 +105,28 @@ void main(string[] args) {
 
     auto main_source_file = new Source_File(args[1]);
     Krug_Project proj = build_krug_project(main_source_file);
+
+    // run tarjan's strongly connected components
+    // algorithm on the graph of the project to ensure
+    // there are no cycles in the krug project graph
+
+    
+    // TODO: this should be elsewhere... ?
     assert("main" in proj.graph);
+
+    SCC[] cycles = proj.graph.get_scc();
+    if (cycles.length > 0) {
+        foreach (cycle; cycles) {
+            string dep_string;
+            foreach (idx, mod; cycle) {
+                if (idx > 0) {
+                    dep_string ~= " ";
+                }
+                dep_string ~= "'" ~ mod.name ~ "'";
+            }            
+            Diagnostic_Engine.throw_custom_error(Error_Set.DEPENDENCY_CYCLE, "There is a cycle in the project dependencies: " ~ dep_string);
+        }
+    }
 
     // TODO: we can move flatten -> sort into
     // one thing instead of a two step solution!

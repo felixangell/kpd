@@ -94,6 +94,9 @@ class Module {
     Scope[string] scopes;
     Module[string] edges;
 
+    // for tarjans scc
+    int index = -1, low_link = -1;
+
     this() {
         this.path = "";
         this.name = "main";

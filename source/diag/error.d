@@ -115,4 +115,7 @@ enum Error_Set : Compiler_Error {
 		"This occurs when two types mismatch.\n", 
 		"Type '%s':", 
 		"Mismatch with type '%s':"),
+
+	DEPENDENCY_CYCLE = make_err(
+		"TODO"),
 }

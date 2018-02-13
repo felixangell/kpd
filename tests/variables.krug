@@ -1,3 +1,5 @@
+#load foopa
+
 type Person struct {
 	name string,
 	age string,

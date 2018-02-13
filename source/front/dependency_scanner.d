@@ -140,6 +140,7 @@ Krug_Project build_krug_project(ref Source_File main_source_file) {
         string module_name = dir[0].lexeme;
 
         if (!project.module_exists(module_name)) {
+            // TODO: better error message.
             err_logger.Error(dir[0], "No such module '" ~ module_name ~ "'.");
             continue;
         }
