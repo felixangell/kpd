@@ -1,7 +1,10 @@
 module diag.engine;
 
+import std.stdio;
 import std.format;
 import std.conv;
+
+import std.algorithm.searching : countUntil;
 
 import err_logger;
 import krug_module : Token;
@@ -29,7 +32,8 @@ struct Diagnostic_Engine {
 		}
 
 		char[8] id_buff;
-		ushort id = typeid(err);
+		auto enum_type_name = to!string(cast(Error_Set)(err));
+		ushort id = cast(ushort)([__traits(allMembers, Error_Set)].countUntil(enum_type_name));
 		err_logger.Error(colour.Err("error[E" ~ to!string(sformat(id_buff[], "%04d", id)) ~ "]:\n") ~ error_msg);
 	}
 }

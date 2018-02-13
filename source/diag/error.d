@@ -17,14 +17,6 @@ Compiler_Error make_err(string detail, string[] errors ...) {
 	return compiler_err;
 }
 
-int get_error_id(T)(T value) if (is(T == enum)) {
-    static foreach (i, member; __traits(allMembers, T)) {
-        if (value == __traits(getMember, T, member))
-            return i;
-    }
-    return -1;
-}
-
 // TODO arae there raw strings or something where we can not
 // do the runtime appendy stuff?
 
