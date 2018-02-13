@@ -14,7 +14,6 @@ Compiler_Error make_err(string detail, string[] errors ...) {
 	Compiler_Error compiler_err;
 	compiler_err.detail = detail;
 	compiler_err.errors = errors;
-
 	return compiler_err;
 }
 

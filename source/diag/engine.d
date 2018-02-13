@@ -28,6 +28,8 @@ struct Diagnostic_Engine {
 			error_msg ~= Blame_Token(context[idx]);
 		}
 
-		err_logger.Error(colour.Err("error[E0000]:\n") ~ error_msg);
+		char[8] id_buff;
+		ushort id = typeid(err);
+		err_logger.Error(colour.Err("error[E" ~ to!string(sformat(id_buff[], "%04d", id)) ~ "]:\n") ~ error_msg);
 	}
 }
