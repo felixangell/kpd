@@ -13,6 +13,7 @@ I'm using `ldc2`.
 	$ ./krug tests/some_test_here.krug 				# to compile only
 	$ ./krug tests/some_test_here.krug -r 			# to compile and run
 	$ ./krug tests/some_test_here.krug -r -v 		# compile and run with verbose output
+	$ ./krug -e E0001 								# explain error message 1
 
 ## future plans
 The idea of this language is to keep the features and syntax
@@ -27,6 +28,7 @@ Here's a list of a lot of ideas I have for the language.
 * when we compile, produce an executable with the vm bytuecode -> native machine code system
 * how do we handle multi threading if we generate asm?
 * optimisation pass! SSA will help with this
+* implement the vm in krug
 
 ## notes
 Though this compiler is written in D, most of the code

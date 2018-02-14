@@ -9,11 +9,13 @@ import krug_module : Token;
 class Symbol {
 	ast.Node reference;
 
+	Token tok;
 	string name;
 	Type type;
 
 	this(ast.Node reference, Token tok) {
 	    this(reference, tok.lexeme);
+	    this.tok = tok;
 	}
 
 	this(ast.Node reference, string name) {

@@ -1,0 +1,21 @@
+I'm a bit stuck with name resolution and type checking for my compiler. I'm not sure what pass to do first: name resolution or type checking? It seems like there is an order problem. Take this example:
+	
+	class Bar {
+		void say_bar() {
+			// do stuff
+		}
+	}
+
+	class Foo {
+		Bar b;
+	}
+
+	int main() {
+		Foo f;
+		f.b.say_bar();
+	}
+
+My compiler works in two passes. The first pass declares everything. So the compiler
+puts Bar and Foo in the symbol table. 
+
+Then the second pass is 

@@ -1026,9 +1026,9 @@ class Parser : Compilation_Phase  {
             return parse_break();
         case keyword.Next:
             return parse_next();
-        default: break;
         case "{":
             return parse_block();
+        default: break;
         }
 
         // FIXME

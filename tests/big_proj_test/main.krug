@@ -62,7 +62,7 @@ func another_blah() int {
         }
     }
     {
-    
+
     }
 }
 
@@ -88,7 +88,7 @@ func add() void {
 	
 }
 
-func main() int {
+func main(mut a int, b int) int {
 	32 + 32;
 
     let person_data struct {
@@ -96,6 +96,7 @@ func main() int {
         age uint,
     };
 
+    let mut {a, b} = person_data;
     let {pname, page} = person_data;
 
     let foo_anon = func() {};

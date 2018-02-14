@@ -1,0 +1,10 @@
+type Foo struct {
+	name string,
+};
+
+func main() {
+	let foo Foo;
+	foo.name = "Felix Angell";
+	foo.doesnt_exist = false;
+	doesnt_exist = foo.doesnt_exist;
+}

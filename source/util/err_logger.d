@@ -38,20 +38,28 @@ static string get_line(const(Source_File*) file, ulong index) {
 // FIXME
 // this code is very spaghetti but it works.
 static string Blame_Token(ref Token tok) {
+    if (tok is null) {
+        return "token is null!";
+    }
+
     const Source_File* file = tok.parent;
 
-    const uint index = tok.position.start.idx;
+    const size_t index = tok.position.start.idx;
 
-    uint token_start = cast(uint) lastIndexOf(file.contents, '\n', cast(size_t)index);
-    uint prefix_size = tok.position.start.idx - token_start;
+    long token_start = lastIndexOf(file.contents, '\n', cast(size_t)index);
+    if (token_start == -1) token_start = 0;
 
-    auto line_end_index = cast(uint) indexOf(file.contents, '\n', cast(size_t)index);
-    line_end_index = line_end_index == -1 ? 0 : line_end_index;
+    long prefix_size = tok.position.start.idx - token_start;
+
+    auto line_end_index = indexOf(file.contents, '\n', cast(size_t)index);
+    if (line_end_index == -1) line_end_index = 0;
+
     if (line_end_index < token_start) {
-        line_end_index = cast(uint) file.contents.length;
+        line_end_index = file.contents.length;
     }
 
     auto start = file.contents[token_start .. token_start + prefix_size];
+
     auto old_start_len = start.length;
     start = stripLeft(start);
     auto end = file.contents[token_start + prefix_size + tok.lexeme.length .. line_end_index];

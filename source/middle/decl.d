@@ -25,8 +25,8 @@ class Declaration_Pass : Top_Level_Node_Visitor, Semantic_Pass {
             err_logger.Error([
                 "Named type '" ~ colour.Bold(node.twine.lexeme) ~ "' defined here:",
                 Blame_Token(node.twine),
-                "Conflicts with symbol defined here: \nTODO",
-                // Blame_Token(existing),
+                "Conflicts with symbol defined here:",
+                Blame_Token(existing.tok),
             ]);
         }
     }
@@ -42,8 +42,8 @@ class Declaration_Pass : Top_Level_Node_Visitor, Semantic_Pass {
             err_logger.Error([
                 "Function '" ~ colour.Bold(node.name.lexeme) ~ "' defined here:",
                 Blame_Token(node.name),
-                "Conflicts with symbol defined here: \nTODO",
-                // Blame_Token(existing),
+                "Conflicts with symbol defined here:",
+                Blame_Token(existing.tok),
             ]);
         }
 
