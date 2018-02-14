@@ -12,7 +12,7 @@ import tarjans_scc;
 import dependency_scanner;
 import krug_module;
 import diag.engine;
-import diag.error : Error_Set;
+import compiler_error;
 
 import parse.parser;
 import ast;
@@ -30,6 +30,7 @@ bool RELEASE_MODE = false;
 string ARCH = "x86_64";
 string OUT_NAME = "main";
 bool RUN_PROGRAM = false;
+string ERROR_CODE = null;
 
 static string os_name() {
     // this should cover most of the important-ish ones
@@ -60,6 +61,27 @@ static string arch_type() {
 	}
 }
 
+void explain_err(string err_code) {
+    // validate the error code first:
+    if (err_code.length != 5) {
+        err_logger.Error("Invalid error code '" ~ err_code ~ "' - error code format is EXXXX");
+        return;
+    }
+
+    auto num = to!ushort(err_code[1..$]);
+    if (num < 0) {
+        err_logger.Error("Invalid error code sign '" ~ err_code ~ "'");
+        return;
+    }
+
+    if (num in compiler_error.ERROR_REGISTER) {
+        auto error = compiler_error.ERROR_REGISTER[num];
+        writeln(error.detail);
+    } else {
+        err_logger.Error("No such error defined for '" ~ err_code ~ "'");
+    }
+}
+
 void main(string[] args) {
     StopWatch compilerTimer;
     compilerTimer.start();
@@ -75,6 +97,7 @@ void main(string[] args) {
         "out", "output name", &OUT_NAME,
         "arch", "force architecture, e.g. x86 or x86_64", &ARCH,
         "run|r", "run program after compilation", &RUN_PROGRAM,
+        "explain|e", "explains the given error code, e.g. -e E0001", &ERROR_CODE,
     );
 
     // argument validation
@@ -85,6 +108,11 @@ void main(string[] args) {
         if (OPTIMIZATION_LEVEL < 1 || OPTIMIZATION_LEVEL > 3) {
             err_logger.Error("optimization level must be between 1 and 3.");
         }
+    }
+
+    if (ERROR_CODE !is null) {
+        explain_err(ERROR_CODE);
+        return;
     }
 
     if (err_logger.VERBOSE_LOGGING) {
@@ -124,7 +152,7 @@ void main(string[] args) {
                 }
                 dep_string ~= "'" ~ mod.name ~ "'";
             }            
-            Diagnostic_Engine.throw_custom_error(Error_Set.DEPENDENCY_CYCLE, "There is a cycle in the project dependencies: " ~ dep_string);
+            Diagnostic_Engine.throw_custom_error(DEPENDENCY_CYCLE, "There is a cycle in the project dependencies: " ~ dep_string);
         }
 
         // let's not continue with compilation!

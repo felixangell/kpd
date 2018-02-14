@@ -4,7 +4,7 @@ import std.typecons;
 import std.conv;
 import std.bigint;
 
-import diag.error;
+import compiler_error;
 import diag.engine;
 
 import err_logger;
@@ -391,7 +391,7 @@ public:
 
 	void add_field(Token name, Type_Node type, Expression_Node value = null) {
 		if (name.lexeme in fields) {
-            Diagnostic_Engine.throw_error(Error_Set.SYMBOL_CONFLICT, name, fields[name.lexeme].name);
+            Diagnostic_Engine.throw_error(compiler_error.SYMBOL_CONFLICT, name, fields[name.lexeme].name);
         } else {
             fields[name.lexeme] = Structure_Field(name, type, value);            
         }

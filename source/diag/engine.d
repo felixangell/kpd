@@ -8,7 +8,7 @@ import std.algorithm.searching : countUntil;
 
 import err_logger;
 import krug_module : Token;
-import diag.error;
+import compiler_error;
 import colour;
 
 // this is messy, fixme!
@@ -19,11 +19,10 @@ struct Diagnostic_Engine {
 	// this is an error with a custom error message
 	static void throw_custom_error(Compiler_Error err, string msg) {
 		char[8] id_buff;
-		auto enum_type_name = to!string(cast(Error_Set)(err));
-		ushort id = cast(ushort)([__traits(allMembers, Error_Set)].countUntil(enum_type_name));
+		auto err_code_str = to!string(sformat(id_buff[], "%04d", err.id));
 
-		err_logger.Error(colour.Err("error[E" ~ to!string(sformat(id_buff[], "%04d", id)) ~ "]:\n") 
-			~ msg);
+		err_logger.Error(colour.Err("[E" ~ err_code_str ~ "]:\n") 
+			~ msg ~ "\n\n./krug --explain E" ~ err_code_str ~ " to explain the error.");
 	}
 
 	// this is a code error as it takes tokens for context and
@@ -47,8 +46,6 @@ struct Diagnostic_Engine {
 		}
 
 		char[8] id_buff;
-		auto enum_type_name = to!string(cast(Error_Set)(err));
-		ushort id = cast(ushort)([__traits(allMembers, Error_Set)].countUntil(enum_type_name));
-		err_logger.Error(colour.Err("error[E" ~ to!string(sformat(id_buff[], "%04d", id)) ~ "]:\n") ~ error_msg);
+		err_logger.Error(colour.Err("[E" ~ to!string(sformat(id_buff[], "%04d", err.id)) ~ "]:\n") ~ error_msg);
 	}
 }
