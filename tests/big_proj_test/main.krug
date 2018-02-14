@@ -44,7 +44,26 @@ type some_trait trait {
 };
 
 func another_blah() int {
+    {
+        {
+            {
+
+            }
+        }
+        {
+            {
+
+            }
+        }
+    }   
+    {
+        {
+
+        }
+    }
+    {
     
+    }
 }
 
 func (i *int) func_ptr() {
@@ -80,6 +99,8 @@ func main() int {
     let {pname, page} = person_data;
 
     let foo_anon = func() {};
+    foo_anon();
+    pname.foopa();
 
     func() {};
 

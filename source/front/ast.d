@@ -193,7 +193,7 @@ class Function_Node : Node {
     Function_Parameter[string] params;
 }
 
-class Block_Node : Node {
+class Block_Node : Statement_Node {
 	Statement_Node[] statements;
 	Function_Node parent;
 	Scope range;
