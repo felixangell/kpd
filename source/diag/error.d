@@ -31,6 +31,8 @@ string emit(strings...)() if (allSatisfy!(is_string, strings)) {
 template make_err(string name, string id, string detail, strings...) {
 	const char[] make_err = 
 		"enum " ~ name ~ " = Compiler_Error(" ~ id ~ ",`" ~ detail ~ "`,[" ~ emit!(strings) ~ "]);"
+
+		// this is weird, we generate a static block for each error
 		~ "static this() { ERROR_REGISTER[" ~ id ~ "] = " ~ name ~ "; }";
     pragma(msg, "result ", make_err);
 }

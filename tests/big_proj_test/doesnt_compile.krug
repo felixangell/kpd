@@ -19,9 +19,9 @@ type rgb_colour (u8, u8, u8);
 
 type integer_array [int];
 type ref_integer_array &[int];
-type float_array [f32];
+type integer_array [f32];
 
-type blah_struct struct {
+type blah struct {
     left struct {
         a int,
         b int,
@@ -43,7 +43,7 @@ type some_trait trait {
     render func(vsync bool) void,
 };
 
-func another_blah() int {
+func blah() int {
     
 }
 
@@ -61,7 +61,7 @@ type foo_bar struct {
     boo uint
 };
 
-type foo_struct struct {
+type foo struct {
 	foo int,
 };
 
@@ -79,7 +79,7 @@ func main() int {
 
     let {pname, page} = person_data;
 
-    let foo_anon = func() {};
+    let foo = func() {};
 
     func() {};
 
@@ -96,7 +96,7 @@ func main() int {
         c uint,
     };
 
-    let x_y = baz;
+    let x = baz;
     let blah int;
     blah.func_on_primitive()[5 : 123];
 
@@ -112,7 +112,7 @@ func main() int {
         }
     }
 
-    let x_y_z = eval {
+    let x = eval {
         yield 69;
     };
 

@@ -25,19 +25,24 @@ class Declaration_Pass : Top_Level_Node_Visitor, Semantic_Pass {
             err_logger.Error([
                 "Named type '" ~ colour.Bold(node.twine.lexeme) ~ "' defined here:",
                 Blame_Token(node.twine),
-                "Conflicts with symbol defined here: ",
+                "Conflicts with symbol defined here: \nTODO",
                 // Blame_Token(existing),
             ]);
         }
     }
 
     override void analyze_function_node(ast.Function_Node node) {
+        if (current is null) {
+            err_logger.Fatal("no scope pushed for " ~ Blame_Token(node.name));
+            return;
+        }
+
         auto existing = current.register_sym(new Symbol(node, node.name));
         if (existing !is null) {
             err_logger.Error([
                 "Function '" ~ colour.Bold(node.name.lexeme) ~ "' defined here:",
                 Blame_Token(node.name),
-                "Conflicts with symbol defined here: ",
+                "Conflicts with symbol defined here: \nTODO",
                 // Blame_Token(existing),
             ]);
         }
@@ -62,7 +67,14 @@ class Declaration_Pass : Top_Level_Node_Visitor, Semantic_Pass {
         // in the Structure it's a member of.
         // if func recvr exists.
 
-        pop_scope();
+        // only pop the scope if the function has
+        // a definition. otherwise we wont have
+        // a scope pushed and we'll be popping the parent
+        // scope which is likely the only scope we have
+        // which would cause a seg fault!
+        if (node.func_body !is null) {
+            pop_scope();            
+        }
     }
 
     void visit_block(ast.Block_Node block) {
