@@ -153,5 +153,6 @@ static void Fatal(string str) {
 }
 
 static void Verbose(string str = "") {
+    writeln("yo whatup", str);
 	Log(Log_Level.Verbose, str);
 }

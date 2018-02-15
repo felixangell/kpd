@@ -182,8 +182,6 @@ class Declaration_Pass : Top_Level_Node_Visitor, Semantic_Pass {
                 }
             }
         }
-
-        leave_sym_table();
     }
 
     override string toString() const {
