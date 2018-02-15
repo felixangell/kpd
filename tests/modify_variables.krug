@@ -4,6 +4,8 @@ func foo() {
 	
 }
 
+let goo int;
+
 func main() {
 	let foo f64 = 3;
 	foo = 5;
