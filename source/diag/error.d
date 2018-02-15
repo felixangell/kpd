@@ -13,6 +13,8 @@ struct Compiler_Error {
 	string[] errors;
 }
 
+immutable bool DUMP_ERROR_MIXINS = false;
+
 Compiler_Error[ushort] ERROR_REGISTER;
 
 enum is_string(string s) = true;
@@ -34,7 +36,10 @@ template make_err(string name, string id, string detail, strings...) {
 
 		// this is weird, we generate a static block for each error
 		~ "static this() { ERROR_REGISTER[" ~ id ~ "] = " ~ name ~ "; }";
-    pragma(msg, "result ", make_err);
+    
+    static if (DUMP_ERROR_MIXINS) {
+        pragma(msg, "result ", make_err);
+    }
 }
 
 mixin(make_err!("SYMBOL_CONFLICT", "0000u", `Two symbols in the same scope have been defined

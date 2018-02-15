@@ -10,6 +10,7 @@ import diag.engine;
 import err_logger;
 import colour;
 import sema.type : Type;
+import sema.symbol;
 import sema.range;
 import krug_module;
 
@@ -197,6 +198,7 @@ class Block_Node : Statement_Node {
 	Statement_Node[] statements;
 	Function_Node parent;
 	Scope range;
+    Symbol_Table sym_table;
 
 	this() {
 
@@ -362,18 +364,26 @@ public:
 	}
 }
 
-alias Union_Field = Tuple!(Token, Type_Node);
+class Union_Field : Node {
+    Token name;
+    Type_Node type;
+
+    this(Token name, Type_Node type) {
+        this.name = name;
+        this.type = type;
+    }
+};
 
 class Union_Type_Node : Type_Node {
 public:
 	Union_Field[string] fields;
 
 	void add_field(Token name, Type_Node type) {
-		fields[name.lexeme] = Union_Field(name, type);
+		fields[name.lexeme] = new Union_Field(name, type);
 	}
 }
 
-struct Structure_Field {
+class Structure_Field : Node {
     Token name;
     Type_Node type;
     Expression_Node value;
@@ -393,7 +403,7 @@ public:
 		if (name.lexeme in fields) {
             Diagnostic_Engine.throw_error(compiler_error.SYMBOL_CONFLICT, name, fields[name.lexeme].name);
         } else {
-            fields[name.lexeme] = Structure_Field(name, type, value);            
+            fields[name.lexeme] = new Structure_Field(name, type, value);            
         }
 	}
 }

@@ -1,7 +1,16 @@
-func main() {
+func down() {
+	
+}
+
+func done() {
 	
 }
 
 func main() int {
-	
+	let foo = 3;
+	while foo > 0 {
+		foo = foo - 1;
+		down();
+	}
+	done();
 }

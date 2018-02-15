@@ -1,4 +1,4 @@
-module sema.type_infer;
+module sema.name_resolve;
 
 import std.conv;
 
@@ -6,20 +6,21 @@ import ast;
 import sema.visitor;
 import sema.analyzer : Semantic_Pass;
 import sema.range;
+import sema.symbol;
 import sema.type;
-import sema.infer;
 import krug_module;
 import err_logger;
 
-class Type_Infer_Pass : Top_Level_Node_Visitor, Semantic_Pass {
+class Name_Resolve_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 	Scope current;
+    Symbol_Table curr_sym_table;
 
-    Type_Inferrer inferrer;
+	override void analyze_named_type_node(ast.Named_Type_Node node) {
 
-	override void analyze_named_type_node(ast.Named_Type_Node node) {}
+	}
 
     override void analyze_let_node(ast.Variable_Statement_Node var) {
-        var.realType = inferrer.analyze(var, current.env);
+        
     }
 
     override void analyze_function_node(ast.Function_Node node) {
@@ -28,38 +29,19 @@ class Type_Infer_Pass : Top_Level_Node_Visitor, Semantic_Pass {
         if (node.func_body !is null) {
     		visit_block(node.func_body);
         }
-
-        pop_scope();
-    }
-
-    void visit_while_loop(ast.While_Statement_Node while_loop) {
-        // TODO. this should be a boolean
-        // inferrer.analyze(while_loop.condition, current.env);
-        pragma(msg, "while loop infer");
-    }
-
-    void visit_call(ast.Call_Node call) {
-        // TODO:
     }
 
     void visit_stat(ast.Statement_Node stat) {
-    	if (auto var = cast(Variable_Statement_Node) stat) {
-    		analyze_let_node(var);
-    	}
-        else if (auto call = cast(Call_Node) stat) {
-            visit_call(call);
+        if (auto variable = cast(ast.Variable_Statement_Node) stat) {
+            analyze_let_node(variable);
+        } else {
+            err_logger.Warn("resolve: unhandled statement " ~ to!string(stat));            
         }
-        else if (auto while_loop = cast(While_Statement_Node) stat) {
-            visit_while_loop(while_loop);
-        }
-    	else {
-	    	err_logger.Warn("type_infer: unhandled statement " ~ to!string(stat));
-    	}
     }
 
     void visit_block(ast.Block_Node block) {
-    	assert(block.range !is null);
-        current = block.range;
+    	assert(block.sym_table !is null);
+        curr_sym_table = block.sym_table;
 
         foreach (stat; block.statements) {
             if (stat is null) {
@@ -67,12 +49,8 @@ class Type_Infer_Pass : Top_Level_Node_Visitor, Semantic_Pass {
             }
             visit_stat(stat);
         }
-    }
 
-    Scope pop_scope() {
-        auto old = current;
-        current = current.outer;
-        return old;
+        curr_sym_table = curr_sym_table.parent;
     }
 
 	override void execute(ref Module mod, string sub_mod_name) {       
@@ -83,7 +61,8 @@ class Type_Infer_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 			return;
         }
 
-        current = mod.scopes[sub_mod_name];
+        // current = mod.scopes[sub_mod_name];
+        curr_sym_table = mod.sym_tables[sub_mod_name];
 
         auto ast = mod.as_trees[sub_mod_name];
         foreach (node; ast) {
@@ -94,7 +73,7 @@ class Type_Infer_Pass : Top_Level_Node_Visitor, Semantic_Pass {
     }
 
     override string toString() const {
-        return "type-infer-pass";
+        return "resolve-pass";
     }
 
 }

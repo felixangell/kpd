@@ -1,11 +1,13 @@
 module sema.type_def;
 
+import std.stdio;
 import std.conv;
 
 import ast;
 import sema.visitor;
 import sema.analyzer : Semantic_Pass;
 import sema.range;
+import sema.symbol;
 import sema.type;
 import sema.infer;
 import krug_module;
@@ -17,21 +19,27 @@ import err_logger;
 // we need to find a way to handle methods 
 // in the type environments
 class Type_Define_Pass : Top_Level_Node_Visitor, Semantic_Pass {
-	Scope current;
+    Symbol_Table curr_sym_table;
 	Type_Inferrer inferrer;
 
 	void define_structure(string name, Structure_Type_Node s) {
+        assert(name in curr_sym_table.symbols);
+
+        curr_sym_table = cast(Symbol_Table) curr_sym_table.symbols[name];
+        
 		Type[] field_types;
 
 		foreach (entry; s.fields.byKeyValue()) {
 			// what if we fail to infer the type here because 
 			// it has not been defined? 
 			Structure_Field field = entry.value;
-			field_types ~= inferrer.analyze(field.type, current.env);
+			field_types ~= inferrer.analyze(field.type, curr_sym_table.env);
 		}
 
 		auto structure_op = new Type_Operator(name, field_types);
-		current.env.register_type(name, structure_op);
+		curr_sym_table.env.register_type(name, structure_op);
+
+        leave_sym_table();
 	}
 
 	void define_type_node(string name, Type_Node t) {
@@ -47,7 +55,7 @@ class Type_Define_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 	override void analyze_named_type_node(ast.Named_Type_Node node) {
         define_type_node(node.twine.lexeme, node.type);
 
-        foreach (entry; current.env.data.byKeyValue()) {
+        foreach (entry; curr_sym_table.env.data.byKeyValue()) {
         	err_logger.Verbose(entry.key ~ " is " ~ to!string(entry.value));
         }
     }
@@ -63,11 +71,13 @@ class Type_Define_Pass : Top_Level_Node_Visitor, Semantic_Pass {
     		visit_block(node.func_body);
         }
 
-        foreach (entry; current.env.data.byKeyValue()) {
+        foreach (entry; curr_sym_table.env.data.byKeyValue()) {
         	err_logger.Verbose(entry.key ~ " is " ~ to!string(entry.value));
         }
 
-        pop_scope();
+        if (node.func_body !is null) {
+            leave_sym_table();            
+        }
     }
 
     void visit_variable_stat(ast.Variable_Statement_Node var) {
@@ -84,14 +94,16 @@ class Type_Define_Pass : Top_Level_Node_Visitor, Semantic_Pass {
     }
 
     void visit_block(ast.Block_Node block) {
-    	assert(block.range !is null);
-        current = block.range;
+    	assert(block.sym_table !is null);
+        curr_sym_table = block.sym_table;
     }
 
-    Scope pop_scope() {
-        auto old = current;
-        current = current.outer;
-        return old;
+    void leave_sym_table() {
+        if (curr_sym_table.parent is null) {
+            return;
+        }
+
+        curr_sym_table = curr_sym_table.parent;
     }
 
 	override void execute(ref Module mod, string sub_mod_name) {       
@@ -102,9 +114,10 @@ class Type_Define_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 			return;
         }
 
-        current = mod.scopes[sub_mod_name];
-
         auto ast = mod.as_trees[sub_mod_name];
+        curr_sym_table = mod.sym_tables[sub_mod_name];
+        assert(curr_sym_table !is null);
+
         foreach (node; ast) {
             if (node !is null) {
 		        super.process_node(node);

@@ -10,6 +10,7 @@ import std.string;
 import containers.hashset;
 import ast;
 import sema.range;
+import sema.symbol;
 
 import err_logger;
 import lex.lexer;
@@ -81,6 +82,7 @@ class Token {
 
 alias Token_Stream = Token[];
 
+// module is like a SOA for sub modules
 class Module {
     string path, name;
     HashSet!string fileCache;
@@ -89,10 +91,17 @@ class Module {
     // structured as SOA
 
     Source_File[string] source_files;
+    
     Token_Stream[string] token_streams;
+    
     AST[string] as_trees;
+    
     Scope[string] scopes;
+
     Module[string] edges;
+
+    // the root symbol table
+    Symbol_Table[string] sym_tables;
 
     // for tarjans scc
     int index = -1, low_link = -1;

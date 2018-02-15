@@ -17,10 +17,58 @@ import krug_module;
 /// build a virtualized scope, each declaration is local to its
 /// scope
 class Declaration_Pass : Top_Level_Node_Visitor, Semantic_Pass {
-	Scope current;
+    Symbol_Table curr_sym_table;
+
+    Symbol_Table push_sym_table() {
+        if (curr_sym_table is null) {
+            curr_sym_table = new Symbol_Table;
+            curr_sym_table.env = new Type_Environment;
+            return curr_sym_table;
+        }
+
+        if (curr_sym_table.child !is null) {
+            curr_sym_table = curr_sym_table.child;
+            return curr_sym_table;
+        }
+
+        auto new_table = new Symbol_Table;
+        new_table.id = curr_sym_table.id + 1;
+        new_table.env = new Type_Environment(curr_sym_table.env);
+
+        // do the swap.
+        curr_sym_table.child = new_table;
+        new_table.parent = curr_sym_table;
+        curr_sym_table = new_table;
+
+        return new_table;
+    }
+
+    void leave_sym_table() {
+        if (curr_sym_table.parent !is null) {
+            curr_sym_table = curr_sym_table.parent;   
+        }
+    }
+
+    Symbol_Table analyze_structure_type_node(ast.Structure_Type_Node s) {
+        auto table = push_sym_table();
+        foreach (idx, field; s.fields) {
+            table.register_sym(new Symbol(field, field.name));
+            // conflicts pls
+        }
+        return table;
+    }
+
+    Symbol_Table analyze_anon_union_type_node(ast.Union_Type_Node u) {
+        auto table = push_sym_table();
+        foreach (idx, field; u.fields) {
+            table.register_sym(new Symbol(field, field.name));
+            // conflicts pls
+        }
+        return table;
+    }
 
     override void analyze_named_type_node(ast.Named_Type_Node node) {
-        auto existing = current.register_sym(new Symbol(node, node.twine));
+        auto existing = curr_sym_table.register_sym(new Symbol(node, node.twine));
         if (existing !is null) {
             err_logger.Error([
                 "Named type '" ~ colour.Bold(node.twine.lexeme) ~ "' defined here:",
@@ -29,15 +77,31 @@ class Declaration_Pass : Top_Level_Node_Visitor, Semantic_Pass {
                 Blame_Token(existing.tok),
             ]);
         }
+
+        const auto name = node.twine.lexeme;
+
+        // analyze the type node
+        auto tn = node.type;
+        if (auto structure = cast(Structure_Type_Node) tn) {
+            auto table = analyze_structure_type_node(structure);
+            table.name = name;
+            table.reference = node;
+            curr_sym_table.register_sym(name, table);
+            leave_sym_table();
+        }
+        else if (auto anon_union = cast(Union_Type_Node) tn) {
+            auto table = analyze_anon_union_type_node(anon_union);
+            table.name = name;
+            table.reference = node;
+            curr_sym_table.register_sym(name, table);
+            leave_sym_table();
+        }
+
+        // TODO: traits.
     }
 
     override void analyze_function_node(ast.Function_Node node) {
-        if (current is null) {
-            err_logger.Fatal("no scope pushed for " ~ Blame_Token(node.name));
-            return;
-        }
-
-        auto existing = current.register_sym(new Symbol(node, node.name));
+        auto existing = curr_sym_table.register_sym(new Symbol(node, node.name));
         if (existing !is null) {
             err_logger.Error([
                 "Function '" ~ colour.Bold(node.name.lexeme) ~ "' defined here:",
@@ -57,7 +121,7 @@ class Declaration_Pass : Top_Level_Node_Visitor, Semantic_Pass {
             auto param = param_entry.value;
             // we don't have to check for conflicts here because
             // this HAS to be done during the parsing stage!
-            current.register_sym(new Symbol(param, param.twine.lexeme));
+            curr_sym_table.register_sym(new Symbol(param, param.twine.lexeme));
         }
 
         // TODO check that the function receiver
@@ -73,15 +137,15 @@ class Declaration_Pass : Top_Level_Node_Visitor, Semantic_Pass {
         // scope which is likely the only scope we have
         // which would cause a seg fault!
         if (node.func_body !is null) {
-            pop_scope();            
+            leave_sym_table();
         }
     }
 
     void visit_block(ast.Block_Node block) {
-        if (block.range is null) {
-            block.range = push_scope();
+        if (block.sym_table is null) {
+            block.sym_table = push_sym_table();
         }
-        current = block.range;
+        curr_sym_table = block.sym_table;
 
         foreach (stat; block.statements) {
             if (auto var = cast(Variable_Statement_Node) stat) {
@@ -91,7 +155,7 @@ class Declaration_Pass : Top_Level_Node_Visitor, Semantic_Pass {
     }
 
     override void analyze_let_node(ast.Variable_Statement_Node node) {
-        auto existing = current.register_sym(new Symbol(node, node.twine));
+        auto existing = curr_sym_table.register_sym(new Symbol(node, node.twine));
         if (existing !is null) {
             err_logger.Error([
                 "Variable '" ~ colour.Bold(node.twine.lexeme) ~ "' defined here:",
@@ -110,12 +174,7 @@ class Declaration_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 			return;
         }
 
-        // push the global scope for this sub-module.
-        // this global scope contains all of the top
-        // level declarations: named types, functions, ...
-        // this scope is stored for the sub-module we're working with
-        auto new_scope = push_scope();
-        mod.scopes[sub_mod_name] = new_scope;
+        mod.sym_tables[sub_mod_name] = push_sym_table();
 
         {
             auto ast = mod.as_trees[sub_mod_name];
@@ -126,19 +185,7 @@ class Declaration_Pass : Top_Level_Node_Visitor, Semantic_Pass {
             }
         }
 
-        pop_scope();
-    }
-
-    Scope push_scope() {
-        auto s = new Scope(current);
-        current = s;
-        return s;
-    }
-
-    Scope pop_scope() {
-        auto old = current;
-        current = current.outer;
-        return old;
+        leave_sym_table();
     }
 
     override string toString() const {

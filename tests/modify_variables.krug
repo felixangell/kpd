@@ -1,0 +1,11 @@
+#load fun_variables
+
+func main() {
+	let foo f64 = 3;
+	foo = 5;
+
+	let pi_copy = fun_variables.PI;
+	let etc = fun_variables.global_boo.name;
+
+	doesnt_exist = foo;
+}

@@ -20,7 +20,7 @@ class Resolve_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 	}
 
     override void analyze_let_node(ast.Variable_Statement_Node var) {
-
+        
     }
 
     override void analyze_function_node(ast.Function_Node node) {
@@ -34,7 +34,11 @@ class Resolve_Pass : Top_Level_Node_Visitor, Semantic_Pass {
     }
 
     void visit_stat(ast.Statement_Node stat) {
-    	err_logger.Warn("resolve: unhandled statement " ~ to!string(stat));
+        if (auto variable = cast(ast.Variable_Statement_Node) stat) {
+            analyze_let_node(variable);
+        } else {
+            err_logger.Warn("resolve: unhandled statement " ~ to!string(stat));            
+        }
     }
 
     void visit_block(ast.Block_Node block) {

@@ -1,0 +1,8 @@
+let PI = 3.141592653589793;
+let E = 2.718281828459045;
+
+type Blah struct {
+	name string,
+};
+
+let global_boo Blah;
