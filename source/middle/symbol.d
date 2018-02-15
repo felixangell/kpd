@@ -1,6 +1,8 @@
 module sema.symbol;
 
 import std.conv;
+import std.string;
+import std.array;
 
 import err_logger;
 import ast;
@@ -33,9 +35,11 @@ class Symbol_Value {
 	    if (reference is null) {
 	    	return name;
 	    }
-	    return name ~ " -> " ~ to!string(typeid(reference));
+	    return name ~ " val " ~ to!string(typeid(reference));
 	}
 }
+
+uint SYM_TABLE_LEVEL = 0;
 
 class Symbol_Table : Symbol_Value {
 	Symbol_Table parent, child;
@@ -54,13 +58,17 @@ class Symbol_Table : Symbol_Value {
 
 	this() {
 		super();
+		env = new Type_Environment;
 	}
 
 	// registers the given symbol, if the
 	// symbol already exists it will be
 	// returned from the symbol table in the scope.
 	Symbol_Value register_sym(string name, Symbol_Value s) {
-		err_logger.Verbose("Registering symbol " ~ name ~ " // " ~ to!string(s));
+		// FIXME debug shit
+	    string pad = replicate(" ", SYM_TABLE_LEVEL);
+
+		err_logger.Verbose(pad ~ "Registering symbol " ~ name ~ " // " ~ to!string(s));
 		if (name in symbols) {
 			return symbols[name];
 		}
@@ -70,6 +78,13 @@ class Symbol_Table : Symbol_Value {
 
 	Symbol_Value register_sym(Symbol_Value s) {
 		return register_sym(s.name, s);
+	}
+
+	override string toString() const {
+	    if (reference is null) {
+	    	return name ~ " (table) ";
+	    }
+	    return name ~ " (table) " ~ to!string(typeid(reference));
 	}
 }
 
@@ -82,5 +97,12 @@ class Symbol : Symbol_Value {
 
 	this(ast.Node reference, string name) {
 	    super(reference, name);
+	}
+
+	override string toString() const {
+	    if (reference is null) {
+	    	return name;
+	    }
+	    return name ~ " -> " ~ to!string(typeid(reference));
 	}
 }

@@ -23,12 +23,22 @@ class Type_Define_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 	Type_Inferrer inferrer;
 
 	void define_structure(string name, Structure_Type_Node s) {
+        err_logger.Verbose("defining structure " ~ name);
+        foreach (entry; curr_sym_table.symbols.byKeyValue()) {
+            writeln(entry.key, " is ", entry.value);
+        }
+
         assert(name in curr_sym_table.symbols);
 
-        curr_sym_table = cast(Symbol_Table) curr_sym_table.symbols[name];
-        
-		Type[] field_types;
+        auto structure_sym_tab = cast(Symbol_Table) curr_sym_table.symbols[name];
+        if (!structure_sym_tab) {
+            writeln("not going to infer structure type node apparently");
+            return;
+        }
+        curr_sym_table = structure_sym_tab;
 
+		Type[] field_types;
+        
 		foreach (entry; s.fields.byKeyValue()) {
 			// what if we fail to infer the type here because 
 			// it has not been defined? 
