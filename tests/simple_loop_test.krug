@@ -7,16 +7,7 @@ func main() {
 	let foo f64 = 3;
 	while foo > foo_abc {
 		foo = foo - 1;
-		hello_there();
-	}
-	if foo == foo_abc {
-		and_another();
-	}
-	{
-		do_stuff();
-		{
-			do_more();
-		}
+		hello();
 	}
 	done();
 }
