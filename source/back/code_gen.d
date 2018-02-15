@@ -54,12 +54,37 @@ struct Code_Generator {
         emit(encode(OP.RET));
     }
 
+    uint get_ea(ast.Expression_Node e) {
+        if (auto sym = e.instanceof!(ast.Symbol_Node)) {
+            return addr_table[sym.value.lexeme];
+        }
+
+        if (e.instanceof!(ast.Path_Expression_Node)) {
+            return get_ea((cast(ast.Path_Expression_Node)e).values[0]);
+        }
+
+        err_logger.Fatal("Couldn't get addr for expression " ~ to!string(e));
+        assert(0);
+    }
+
+    // left = right
+    void gen_store(ast.Binary_Expression_Node binary) {
+        uint addr = get_ea(binary.left);
+        gen_expr(binary.right);
+        emit(encode(OP.STRI, addr));
+    }
+
     // TODO: for generating expressions
     // we need type information so we know whethejr
     // to emit byte, short, integer, long, etc.
     // as well as how is signed-ness going to be handled?
 
     void gen_binary_expr(ast.Binary_Expression_Node binary) {
+        if (binary.operand.lexeme == "=") {
+            gen_store(binary);
+            return;
+        }
+
         gen_expr(binary.left);
         gen_expr(binary.right);
 
@@ -75,6 +100,15 @@ struct Code_Generator {
         case "||":
             emit(encode(OP.OR));
             break;
+        case ">":
+            emit(encode(OP.GTRI));
+            break;
+        case "-":
+            emit(encode(OP.SUBI));
+            break;
+        case "+":
+            emit(encode(OP.ADDI));
+            break;
         default:
             err_logger.Fatal("unhandled operator in gen_binary_expr " ~ operator);
             break;
@@ -83,9 +117,14 @@ struct Code_Generator {
 
     // (sym x) (binary (. y ?))
     void gen_path_expr(ast.Path_Expression_Node path) {
-        foreach (expr; path.values) {
-            err_logger.Warn(to!string(expr));
+        auto fst = path.values[0];
+        if (auto sym = fst.instanceof!(ast.Symbol_Node)) {
+            const auto name = sym.value.lexeme;
+            assert(name in addr_table);
+            emit(encode(OP.LDI, addr_table[name]));
         }
+
+        // TODO: handle me!
     }
 
     void gen_expr(ast.Expression_Node expr) {
@@ -144,6 +183,39 @@ struct Code_Generator {
         emit(encode(OP.GOTO, loop_start));
     }
 
+    void gen_while_loop(ast.While_Statement_Node while_loop) {
+        uint loop_start = program_index;
+        gen_block(while_loop.block);
+        gen_expr(while_loop.condition);
+        // if the condition is true, jump
+        // back to the loop start.
+        emit(encode(OP.JE, loop_start));
+    }
+
+    // TODO: this should be per block
+    // or we can mangle the names.
+    uint local_addr = 0;
+    uint[string] addr_table;
+
+    void gen_var_stat(ast.Variable_Statement_Node var) {
+        // what do we do if the value doesnt exist? for now
+        // assume its zero.
+
+        if (var.value is null) {
+            // handle me later.
+            return;
+        }
+
+        gen_expr(var.value);
+
+        // todo if it's a constant we can store it
+        // but instead we have to evaluate it on the stack
+        emit(encode(OP.ALLOCI));
+
+        addr_table[var.twine.lexeme] = local_addr;
+        local_addr += int.sizeof;
+    }
+
     void gen_stat(ast.Statement_Node stat) {
         if (auto if_stat = stat.instanceof!(ast.If_Statement_Node)) {
             gen_if_stat(if_stat);
@@ -151,6 +223,12 @@ struct Code_Generator {
             gen_call_node(call_node);
         } else if (auto loop_stat = stat.instanceof!(ast.Loop_Statement_Node)) {
             gen_loop_stat(loop_stat);
+        } else if (auto while_loop = stat.instanceof!(ast.While_Statement_Node)) {
+            gen_while_loop(while_loop);
+        } else if (auto var = stat.instanceof!(ast.Variable_Statement_Node)) {
+            gen_var_stat(var);
+        } else if (auto expr = stat.instanceof!(ast.Expression_Node)) {
+            gen_expr(expr);
         } else {
             err_logger.Warn("unhandled statement node " ~ to!string(stat));
         }

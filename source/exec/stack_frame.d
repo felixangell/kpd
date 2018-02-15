@@ -1,6 +1,7 @@
 module exec.stack_frame;
 
 import std.conv;
+import std.bitmanip;
 
 import exec.exec_engine;
 import exec.virtual_thread;
@@ -21,13 +22,18 @@ class Stack_Frame {
         return parent_thread.stack.stack_ptr == 0;
     }
 
-    uint store_local(T)(T value) {
-        locals[local_index].append!(T)(value, Endian.bigEndian);
-        local_index += value.size_of;
-        return local_index;
+    void store_local(T)(T value, uint addr) {
+        write!(T)(locals[], value, addr);
+    }
+
+    uint alloc_local(T)(T value) {
+        auto store_addr = local_index;
+        write!(T)(locals[], value, local_index);
+        local_index += T.sizeof;
+        return store_addr;
     }
 
     T get_local(T)(uint addr) {
-        return locals[addr].peek!(T, Endian.bigEndian);
+        return peek!T(locals[addr .. addr + T.sizeof]);
     }
 }

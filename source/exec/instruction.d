@@ -11,9 +11,13 @@ static enum OP : ushort {
     PSHI,
     PSHL,
 
+    // store the value on the stack
+    // in the locals
+    ALLOCI,
+
     // store the given operand on the
     // stack into the locals of the
-    // current stack frame
+    // current stack frame at the given addr
     STR,
     STRS,
     STRI,
@@ -41,6 +45,13 @@ static enum OP : ushort {
     CMPS,
     CMPI,
     CMPL,
+
+    // pops top two values a, b.
+    // a > b pushes 1 to stack, else 0
+    GTR,
+    GTRS,
+    GTRI,
+    GTRL,
 
     // pops and subtract the top two values
     // on the operand stack, pushes
