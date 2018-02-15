@@ -235,13 +235,13 @@ void main(string[] args) {
         return;
     }
 
-    StopWatch rtTimer;
-    rtTimer.start();
+    StopWatch rt_timer;
+    rt_timer.start();
 
     // run the vm on the generated code.
     auto exec = new Execution_Engine(entire_program, main_func_addr);
 
-    auto rtDuration = rtTimer.peek();
+    auto rt_dur = rt_timer.peek();
     err_logger.Info("Program execution took " ~ to!string(
-            rtDuration.total!"msecs") ~ "/ms or " ~ to!string(rtDuration.total!"usecs") ~ "/µs");
+            rt_dur.total!"msecs") ~ "/ms or " ~ to!string(rt_dur.total!"usecs") ~ "/µs");
 }
