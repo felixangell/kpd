@@ -1,13 +1,14 @@
 func hello() {}
+
 func done() {}
 
 func main() {
-	// 10,000 function calls
-	// takes.... 26 seconds lmao
-	// 384 => second on my machine roughly
-	let n = 32;
+	let hundred_ms = 34;
+	let n = hundred_ms * 10;
 
 	while n > 0 {
+		done();
+		hello();
 		done();
 		n = n - 1;
 	}

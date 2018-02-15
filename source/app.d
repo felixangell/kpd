@@ -102,17 +102,17 @@ void main(string[] args) {
     // argument stuff.
     // todo we should parse this ourselves.
     // FIXME document these properly.
-    getopt(args, "no-colours", "disables colourful output logging",
-            &colour.NO_COLOURS, "verbose|v", "enable verbose logging",
-            &err_logger.VERBOSE_LOGGING,
-            "opt|O", "optimization level",
-            &OPTIMIZATION_LEVEL, "release|re", "compile in release mode",
-            &RELEASE_MODE, "out", "output name", &OUT_NAME, "arch",
-            "force architecture, e.g. x86 or x86_64",
-            &ARCH, "run|r", "run program after compilation", &RUN_PROGRAM,
-            "explain|e", "explains the given error code, e.g. -e E0001", &ERROR_CODE,
-            "sw", "suppresses compiler warnings", &SUPPRESS_COMPILER_WARNINGS,
-            "dump_bc|b", "dumps the bytecode to stdout", &DUMP_BYTECODE);
+    getopt(args, 
+        "no-colours", "disables colourful output logging", &colour.NO_COLOURS, 
+        "verbose|v", "enable verbose logging", &err_logger.VERBOSE_LOGGING,
+        "opt|O", "optimization level", &OPTIMIZATION_LEVEL, 
+        "release|re", "compile in release mode", &RELEASE_MODE, 
+        "out", "output name", &OUT_NAME, 
+        "arch", "force architecture, e.g. x86 or x86_64", &ARCH, 
+        "run|r", "run program after compilation", &RUN_PROGRAM,
+        "explain|e", "explains the given error code, e.g. -e E0001", &ERROR_CODE,
+        "sw", "suppresses compiler warnings", &SUPPRESS_COMPILER_WARNINGS,
+        "dump_bc|b", "dumps the bytecode to stdout", &DUMP_BYTECODE);
 
     // argument validation
     {

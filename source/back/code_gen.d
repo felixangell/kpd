@@ -103,12 +103,21 @@ struct Code_Generator {
         case ">":
             emit(encode(OP.GTRI));
             break;
+
+        // simple arithmetic operations
         case "-":
             emit(encode(OP.SUBI));
             break;
         case "+":
             emit(encode(OP.ADDI));
             break;
+        case "*":
+            emit(encode(OP.MULI));
+            break;
+        case "/":
+            emit(encode(OP.DIVI));
+            break;
+
         default:
             err_logger.Fatal("unhandled operator in gen_binary_expr " ~ operator);
             break;

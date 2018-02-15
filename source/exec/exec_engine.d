@@ -149,6 +149,13 @@ class Execution_Engine {
             break;
         }
 
+        case OP.MULI: {
+            auto b = thread.stack.pop!int();
+            auto a = thread.stack.pop!int();
+            thread.stack.push!int(a * b);
+            break;
+        }
+
         // pushes the given value to the
         // operand stack.
         // PSH, PSHS, PSHI, PSHL,
