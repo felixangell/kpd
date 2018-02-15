@@ -161,7 +161,7 @@ static void Verbose(string[] strings...) {
     // eh
     string s;
     foreach (str; strings) {
-        s ~= s;
+        s ~= str;
     }
 	Log(Log_Level.Verbose, s);
 }
