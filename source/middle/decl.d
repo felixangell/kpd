@@ -20,9 +20,10 @@ class Declaration_Pass : Top_Level_Node_Visitor, Semantic_Pass {
     Symbol_Table curr_sym_table;
 
     Symbol_Table push_sym_table() {
+        SYM_TABLE_LEVEL++;
+
         if (curr_sym_table is null) {
             curr_sym_table = new Symbol_Table;
-            curr_sym_table.env = new Type_Environment;
             return curr_sym_table;
         }
 
@@ -44,13 +45,15 @@ class Declaration_Pass : Top_Level_Node_Visitor, Semantic_Pass {
     }
 
     void leave_sym_table() {
+        SYM_TABLE_LEVEL--;
+
         if (curr_sym_table.parent !is null) {
             curr_sym_table = curr_sym_table.parent;   
         }
     }
 
     Symbol_Table analyze_structure_type_node(ast.Structure_Type_Node s) {
-        auto table = push_sym_table();
+        auto table = new Symbol_Table;
         foreach (idx, field; s.fields) {
             table.register_sym(new Symbol(field, field.name));
             // conflicts pls
@@ -59,7 +62,7 @@ class Declaration_Pass : Top_Level_Node_Visitor, Semantic_Pass {
     }
 
     Symbol_Table analyze_anon_union_type_node(ast.Union_Type_Node u) {
-        auto table = push_sym_table();
+        auto table = new Symbol_Table;
         foreach (idx, field; u.fields) {
             table.register_sym(new Symbol(field, field.name));
             // conflicts pls
@@ -68,16 +71,6 @@ class Declaration_Pass : Top_Level_Node_Visitor, Semantic_Pass {
     }
 
     override void analyze_named_type_node(ast.Named_Type_Node node) {
-        auto existing = curr_sym_table.register_sym(new Symbol(node, node.twine));
-        if (existing !is null) {
-            err_logger.Error([
-                "Named type '" ~ colour.Bold(node.twine.lexeme) ~ "' defined here:",
-                Blame_Token(node.twine),
-                "Conflicts with symbol defined here:",
-                Blame_Token(existing.tok),
-            ]);
-        }
-
         const auto name = node.twine.lexeme;
 
         // analyze the type node
@@ -94,8 +87,20 @@ class Declaration_Pass : Top_Level_Node_Visitor, Semantic_Pass {
             table.reference = node;
             curr_sym_table.register_sym(name, table);
         }
-
         // TODO: traits.
+        else {
+            // just a symbol we dont care about the type
+
+            auto existing = curr_sym_table.register_sym(new Symbol(node, node.twine));
+            if (existing !is null) {
+                err_logger.Error([
+                    "Named type '" ~ colour.Bold(node.twine.lexeme) ~ "' defined here:",
+                    Blame_Token(node.twine),
+                    "Conflicts with symbol defined here:",
+                    Blame_Token(existing.tok),
+                ]);
+            }
+        }
     }
 
     override void analyze_function_node(ast.Function_Node node) {

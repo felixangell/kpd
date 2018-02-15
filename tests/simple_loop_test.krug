@@ -1,0 +1,11 @@
+func hello() {}
+func done() {}
+
+func main() {
+	let foo f64 = 3;
+	while foo > 0 {
+		foo = foo - 1;
+		hello();
+	}
+	done();
+}

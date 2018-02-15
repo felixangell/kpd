@@ -22,9 +22,10 @@ func main() {
 	}
 
 	let person Person;
+	doesnt_exist = 32;
 
 	let y = 3232;
-	if person.age == 19 {
+	if person.aasdfge == 19 {
 		say_apple(55, 55, 55);
 	}
 }

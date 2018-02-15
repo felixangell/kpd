@@ -6,6 +6,7 @@ import std.string;
 import std.array;
 import std.outbuffer;
 
+import cflags;
 import krug_module;
 import colour;
 
@@ -95,6 +96,10 @@ static void Log(Log_Level lvl, string str) {
         return;
     }
 
+    if (SUPPRESS_COMPILER_WARNINGS && lvl == Log_Level.Warning) {
+        return;
+    }
+
 	auto out_stream = (lvl == Log_Level.Error || lvl == Log_Level.Fatal) ? stderr : stdout;
 
     auto col = colour.RESET;
@@ -152,7 +157,11 @@ static void Fatal(string str) {
 	assert(0); // TODO:
 }
 
-static void Verbose(string str = "") {
-    writeln("yo whatup", str);
-	Log(Log_Level.Verbose, str);
+static void Verbose(string[] strings...) {
+    // eh
+    string s;
+    foreach (str; strings) {
+        s ~= s;
+    }
+	Log(Log_Level.Verbose, s);
 }
