@@ -110,6 +110,10 @@ class Name_Resolve_Pass : Top_Level_Node_Visitor, Semantic_Pass {
         }
     }
 
+    void analyze_unary_unary(ast.Unary_Expression_Node unary) {
+        analyze_expr(unary.value);
+    }
+
     void analyze_expr(ast.Expression_Node expr) {
         if (auto binary = cast(ast.Binary_Expression_Node) expr) {
             analyze_binary_expr(binary);
@@ -117,6 +121,8 @@ class Name_Resolve_Pass : Top_Level_Node_Visitor, Semantic_Pass {
             analyze_path_expr(path);
         } else if (auto call = cast(ast.Call_Node) expr) {
             analyze_call(call);
+        } else if (auto unary = cast(ast.Unary_Expression_Node) expr) {
+            analyze_unary_unary(unary);
         } else {
             err_logger.Warn("name_resolve: unhandled node " ~ to!string(expr));
         }

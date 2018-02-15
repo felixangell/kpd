@@ -1,0 +1,17 @@
+func yes() {}
+func no() {}
+
+func main() {
+	let foo = 3;
+	if foo == 3 {
+		yes();
+	}
+
+	@foo = 15;
+
+	if foo == 3 {
+		yes();
+	} else {
+		no();
+	}
+}
