@@ -10,10 +10,10 @@ I'm using `ldc2`.
 	$ git clone http://github.com/felixangell/krug
 	$ cd krug
 	$ dub build
-	$ ./krug tests/some_test_here.krug 				# to compile only
-	$ ./krug tests/some_test_here.krug -r 			# to compile and run
-	$ ./krug tests/some_test_here.krug -r -v 		# compile and run with verbose output
-	$ ./krug -e E0001 								# explain error message 1
+	$ ./krug tests/some_test_here.krug 		# to compile only
+	$ ./krug tests/some_test_here.krug -r 		# to compile and run
+	$ ./krug tests/some_test_here.krug -r -v 	# compile and run with verbose output
+	$ ./krug -e E0001 				# explain error message 1
 
 ## future plans
 The idea of this language is to keep the features and syntax
