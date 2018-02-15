@@ -1,5 +1,9 @@
 #load fun_variables
 
+func foo() {
+	
+}
+
 func main() {
 	let foo f64 = 3;
 	foo = 5;

@@ -87,14 +87,12 @@ class Declaration_Pass : Top_Level_Node_Visitor, Semantic_Pass {
             table.name = name;
             table.reference = node;
             curr_sym_table.register_sym(name, table);
-            leave_sym_table();
         }
         else if (auto anon_union = cast(Union_Type_Node) tn) {
             auto table = analyze_anon_union_type_node(anon_union);
             table.name = name;
             table.reference = node;
             curr_sym_table.register_sym(name, table);
-            leave_sym_table();
         }
 
         // TODO: traits.
