@@ -1,26 +1,67 @@
 module sema.name_resolve;
 
 import std.conv;
+import std.stdio;
 
 import ast;
 import sema.visitor;
 import sema.analyzer : Semantic_Pass;
 import sema.range;
 import sema.symbol;
+import diag.engine;
 import sema.type;
 import krug_module;
 import err_logger;
 
 class Name_Resolve_Pass : Top_Level_Node_Visitor, Semantic_Pass {
-	Scope current;
     Symbol_Table curr_sym_table;
+    Module mod;
+
+    Symbol_Value find_symbol(Symbol_Table table, string name) {
+        auto sym = find_symbol_in_stab(table, name);
+        if (sym) {
+            return sym;
+        }
+
+        // we looked everywhere, so let's try a module!
+        if (name in mod.edges) {
+            auto other_mod = mod.edges[name];
+
+            // TODO search in specific submodule if we can
+
+            // For now there is no submodule to specifically
+            // look at so we have to copy ALL the symbols from
+            // each submodule into one large table which we
+            // can search in
+            Symbol_Table merge = new Symbol_Table();
+            foreach (table; other_mod.sym_tables) {
+                foreach (entry; table.symbols.byKeyValue()) {
+                    merge.symbols[entry.key] = entry.value;
+                }
+            }
+            return cast(Symbol_Value) merge;
+        }
+
+        return null;
+    }
+
+    Symbol_Value find_symbol_in_stab(Symbol_Table t, string name) {
+        for (Symbol_Table s = t; s !is null; s = s.parent) {
+            if (name in s.symbols) {
+                return s.symbols[name];
+            }
+        }
+        return null;
+    }
 
 	override void analyze_named_type_node(ast.Named_Type_Node node) {
 
 	}
 
     override void analyze_let_node(ast.Variable_Statement_Node var) {
-        
+        if (var.value !is null) {
+            analyze_expr(var.value);
+        }
     }
 
     override void analyze_function_node(ast.Function_Node node) {
@@ -31,9 +72,63 @@ class Name_Resolve_Pass : Top_Level_Node_Visitor, Semantic_Pass {
         }
     }
 
+    void analyze_path_expr(ast.Path_Expression_Node path) {
+        Symbol_Table last = curr_sym_table;
+        foreach (i, e; path.values) {
+            auto sym = cast(ast.Symbol_Node) e;
+            if (!sym) {
+                // what do we do here?
+                continue;
+            }
+
+            Symbol_Value found_sym;
+            if (i == 0) {
+                // this will search MODULES too
+                // we only want this if we're at the
+                // start of the path.
+                found_sym = find_symbol(last, sym.value.lexeme);
+            } else {
+                found_sym = find_symbol_in_stab(last, sym.value.lexeme);
+            }
+
+            if (found_sym is null) {
+                Diagnostic_Engine.throw_error(compiler_error.UNRESOLVED_SYMBOL, sym.value);
+                return;
+            }
+
+            if (auto stab = cast(Symbol_Table) found_sym) {
+                last = stab;
+            } else if (i != path.values.length - 1) {
+                // it's not a symbol table so there is no more
+                // places for us to search and we still have
+                // iterations left i.e. thinks to resolve.
+                // throw an unresolved error
+                Diagnostic_Engine.throw_error(compiler_error.UNRESOLVED_SYMBOL, sym.value);
+                return;
+            }
+        }
+    }
+
+    void analyze_expr(ast.Expression_Node expr) {
+        if (auto binary = cast(ast.Binary_Expression_Node) expr) {
+            analyze_binary_expr(binary);
+        } else if (auto path = cast(ast.Path_Expression_Node) expr) {
+            analyze_path_expr(path);
+        } else {
+            err_logger.Warn("name_resolve: unhandled node" ~ to!string(expr));
+        }
+    }
+
+    void analyze_binary_expr(ast.Binary_Expression_Node binary) {
+        analyze_expr(binary.left);
+        analyze_expr(binary.right);
+    }
+
     void visit_stat(ast.Statement_Node stat) {
         if (auto variable = cast(ast.Variable_Statement_Node) stat) {
             analyze_let_node(variable);
+        } else if (auto expr = cast(ast.Expression_Node) stat) {
+            analyze_expr(expr);
         } else {
             err_logger.Warn("resolve: unhandled statement " ~ to!string(stat));            
         }
@@ -55,6 +150,7 @@ class Name_Resolve_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 
 	override void execute(ref Module mod, string sub_mod_name) {       
         assert(mod !is null);
+        this.mod = mod;
 
         if (sub_mod_name !in mod.as_trees) {
         	err_logger.Error("couldn't find the AST for " ~ sub_mod_name ~ " in module " ~ mod.name ~ " ...");

@@ -8,8 +8,14 @@ func main() {
 	let foo f64 = 3;
 	foo = 5;
 
+	goo = 333;
+
+	foo = goo;
+
 	let pi_copy = fun_variables.PI;
 	let etc = fun_variables.global_boo.name;
 
-	doesnt_exist = foo;
+	foo = fun_variables.PI;
+
+	let doesnt_exist = foo;
 }
