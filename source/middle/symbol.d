@@ -1,8 +1,6 @@
 module sema.symbol;
 
 import std.conv;
-import std.string;
-import std.array;
 
 import err_logger;
 import ast;
@@ -39,8 +37,6 @@ class Symbol_Value {
 	}
 }
 
-uint SYM_TABLE_LEVEL = 0;
-
 class Symbol_Table : Symbol_Value {
 	Symbol_Table parent, child;
 	Symbol_Value[string] symbols;
@@ -65,10 +61,7 @@ class Symbol_Table : Symbol_Value {
 	// symbol already exists it will be
 	// returned from the symbol table in the scope.
 	Symbol_Value register_sym(string name, Symbol_Value s) {
-		// FIXME debug shit
-	    string pad = replicate(" ", SYM_TABLE_LEVEL);
-
-		err_logger.Verbose(pad ~ "Registering symbol " ~ name ~ " // " ~ to!string(s));
+		err_logger.Verbose("Registering symbol " ~ name ~ " // " ~ to!string(s));
 		if (name in symbols) {
 			return symbols[name];
 		}

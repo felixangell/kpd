@@ -3,6 +3,7 @@ module sema.name_resolve;
 import std.conv;
 import std.stdio;
 
+import err_logger;
 import ast;
 import sema.visitor;
 import sema.analyzer : Semantic_Pass;
@@ -11,7 +12,7 @@ import sema.symbol;
 import diag.engine;
 import sema.type;
 import krug_module;
-import err_logger;
+import compiler_error;
 
 class Name_Resolve_Pass : Top_Level_Node_Visitor, Semantic_Pass {
     Symbol_Table curr_sym_table;

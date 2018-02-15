@@ -7,6 +7,7 @@ import err_logger;
 import colour;
 import ast;
 import sema.analyzer : Semantic_Pass;
+import sema.infer : Type_Environment;
 import sema.range;
 import sema.symbol;
 import sema.visitor;
@@ -20,8 +21,6 @@ class Declaration_Pass : Top_Level_Node_Visitor, Semantic_Pass {
     Symbol_Table curr_sym_table;
 
     Symbol_Table push_sym_table() {
-        SYM_TABLE_LEVEL++;
-
         if (curr_sym_table is null) {
             curr_sym_table = new Symbol_Table;
             return curr_sym_table;
@@ -45,8 +44,6 @@ class Declaration_Pass : Top_Level_Node_Visitor, Semantic_Pass {
     }
 
     void leave_sym_table() {
-        SYM_TABLE_LEVEL--;
-
         if (curr_sym_table.parent !is null) {
             curr_sym_table = curr_sym_table.parent;   
         }
@@ -56,7 +53,13 @@ class Declaration_Pass : Top_Level_Node_Visitor, Semantic_Pass {
         auto table = new Symbol_Table;
         foreach (idx, field; s.fields) {
             table.register_sym(new Symbol(field, field.name));
-            // conflicts pls
+            // NOTE: we do not have to check for conflicts here
+            // because these are checked for when parsing. we could
+            // be true to the linear-ness of the compiler and store
+            // the conflicts as a collision in the hashmap or something
+            // but instead I've decided to check earlier.
+            // same applies for union types, and any other type
+            // with a field member type thing.
         }
         return table;
     }
@@ -65,7 +68,6 @@ class Declaration_Pass : Top_Level_Node_Visitor, Semantic_Pass {
         auto table = new Symbol_Table;
         foreach (idx, field; u.fields) {
             table.register_sym(new Symbol(field, field.name));
-            // conflicts pls
         }
         return table;
     }
