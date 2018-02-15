@@ -12,11 +12,13 @@ import exec.instruction;
 
 // credit to Adam D. Ruppe
 // http://forum.dlang.org/thread/gyfofjdfzjzmkbsygqsf@forum.dlang.org
-T instanceof(T)(Object o) if(is(T == class)) {
+T instanceof(T)(Object o) if (is(T == class))
+{
     return cast(T) o;
 }
 
-struct Code_Generator {
+struct Code_Generator
+{
     Dependency_Graph graph;
 
     uint program_index = 0;
@@ -24,21 +26,25 @@ struct Code_Generator {
 
     uint[string] func_addr_reg;
 
-    this(ref Dependency_Graph graph) {
+    this(ref Dependency_Graph graph)
+    {
         this.graph = graph;
     }
 
-    uint emit(Instruction instr) {
+    uint emit(Instruction instr)
+    {
         auto idx = program_index++;
         program ~= instr;
         return idx;
     }
 
-    void rewrite(uint index, Instruction instr) {
+    void rewrite(uint index, Instruction instr)
+    {
         program[index] = instr;
     }
 
-    void gen_func(ast.Function_Node func) {
+    void gen_func(ast.Function_Node func)
+    {
         immutable string func_name = func.name.lexeme;
 
         uint func_addr = program_index;
@@ -47,8 +53,9 @@ struct Code_Generator {
 
         emit(encode(OP.ENTR));
 
-        if (func.func_body !is null) {
-            gen_block(func.func_body);            
+        if (func.func_body !is null)
+        {
+            gen_block(func.func_body);
         }
 
         emit(encode(OP.RET));
@@ -59,13 +66,15 @@ struct Code_Generator {
     // to emit byte, short, integer, long, etc.
     // as well as how is signed-ness going to be handled?
 
-    void gen_binary_expr(ast.Binary_Expression_Node binary) {
+    void gen_binary_expr(ast.Binary_Expression_Node binary)
+    {
         gen_expr(binary.left);
         gen_expr(binary.right);
 
         // handle the operation
         auto operator = binary.operand.lexeme;
-        switch (operator) {
+        switch (operator)
+        {
         case "==":
             emit(encode(OP.CMPI));
             break;
@@ -82,29 +91,37 @@ struct Code_Generator {
     }
 
     // (sym x) (binary (. y ?))
-    void gen_path_expr(ast.Path_Expression_Node path) {
-        foreach (expr; path.values) {
+    void gen_path_expr(ast.Path_Expression_Node path)
+    {
+        foreach (expr; path.values)
+        {
             err_logger.Warn(to!string(expr));
         }
     }
 
-    void gen_expr(ast.Expression_Node expr) {
-        if (auto binary = cast(ast.Binary_Expression_Node) expr) {
+    void gen_expr(ast.Expression_Node expr)
+    {
+        if (auto binary = cast(ast.Binary_Expression_Node) expr)
+        {
             gen_binary_expr(binary);
         }
-        else if (auto integer = cast(ast.Integer_Constant_Node) expr) {
+        else if (auto integer = cast(ast.Integer_Constant_Node) expr)
+        {
             // TODO handle types here.
             emit(encode(OP.PSHI, integer.value.to!int));
         }
-        else if (auto path = cast(ast.Path_Expression_Node) expr) {
+        else if (auto path = cast(ast.Path_Expression_Node) expr)
+        {
             gen_path_expr(path);
         }
-        else {
-            err_logger.Fatal("unhandled expr " ~ to!string(expr));            
+        else
+        {
+            err_logger.Fatal("unhandled expr " ~ to!string(expr));
         }
     }
 
-    void gen_if_stat(ast.If_Statement_Node if_stat) {
+    void gen_if_stat(ast.If_Statement_Node if_stat)
+    {
         gen_expr(if_stat.condition);
 
         // the if must be a boolean expression
@@ -122,16 +139,19 @@ struct Code_Generator {
         rewrite(jne_instr_addr, encode(OP.JNE, if_end_addr));
     }
 
-    void gen_call_node(ast.Call_Node call_node) {
+    void gen_call_node(ast.Call_Node call_node)
+    {
         // todo some kind of magical load thing?
         // for now we hack this in so module load stuff
         // doesn't work 
-        if (auto path = call_node.left.instanceof!(ast.Path_Expression_Node)) {
+        if (auto path = call_node.left.instanceof!(ast.Path_Expression_Node))
+        {
             auto fst = cast(ast.Symbol_Node) path.values[0];
 
             // HACK
             const string name = to!string(fst.value.lexeme);
-            if (name !in func_addr_reg) {
+            if (name !in func_addr_reg)
+            {
                 err_logger.Fatal("No such function " ~ name ~ " registered");
             }
 
@@ -141,53 +161,77 @@ struct Code_Generator {
         }
     }
 
-    void gen_loop_stat(ast.Loop_Statement_Node loop) {
+    void gen_loop_stat(ast.Loop_Statement_Node loop)
+    {
         uint loop_start = program_index;
         gen_block(loop.block);
         emit(encode(OP.GOTO, loop_start));
     }
 
-    void gen_stat(ast.Statement_Node stat) {
-        if (auto if_stat = stat.instanceof!(ast.If_Statement_Node)) {
+    void gen_stat(ast.Statement_Node stat)
+    {
+        if (auto if_stat = stat.instanceof!(ast.If_Statement_Node))
+        {
             gen_if_stat(if_stat);
-        } else if (auto call_node = stat.instanceof!(ast.Call_Node)) {
+        }
+        else if (auto call_node = stat.instanceof!(ast.Call_Node))
+        {
             gen_call_node(call_node);
-        } else if (auto loop_stat = stat.instanceof!(ast.Loop_Statement_Node)) {
+        }
+        else if (auto loop_stat = stat.instanceof!(ast.Loop_Statement_Node))
+        {
             gen_loop_stat(loop_stat);
-        } else {
+        }
+        else
+        {
             err_logger.Warn("unhandled statement node " ~ to!string(stat));
         }
     }
 
-    uint gen_block(ast.Block_Node block) {
+    uint gen_block(ast.Block_Node block)
+    {
         uint block_start_addr = program_index;
-        foreach (ref stat; block.statements) {
+        foreach (ref stat; block.statements)
+        {
             gen_stat(stat);
         }
         return block_start_addr;
     }
 
-    void gen_named_type(ast.Node node) {}
+    void gen_named_type(ast.Node node)
+    {
+    }
 
-    void gen_node(ast.Node node) {
-    	if (auto named_type = node.instanceof!(ast.Named_Type_Node)) {
-    		gen_named_type(named_type);
-        } else if (auto func = node.instanceof!(ast.Function_Node)) {
+    void gen_node(ast.Node node)
+    {
+        if (auto named_type = node.instanceof!(ast.Named_Type_Node))
+        {
+            gen_named_type(named_type);
+        }
+        else if (auto func = node.instanceof!(ast.Function_Node))
+        {
             gen_func(func);
-        } else if (auto stat = node.instanceof!(ast.Statement_Node)) {
+        }
+        else if (auto stat = node.instanceof!(ast.Statement_Node))
+        {
             gen_stat(stat);
-        } else {
+        }
+        else
+        {
             err_logger.Warn("unhandled node ! " ~ to!string(node));
         }
     }
 
-    void process(ref Module mod, string sub_mod_name) {
+    void process(ref Module mod, string sub_mod_name)
+    {
         err_logger.Verbose("- " ~ mod.name ~ "::" ~ sub_mod_name);
 
         auto ast = mod.as_trees[sub_mod_name];
-        foreach (node; ast) {
-            if (node !is null) {
-            	gen_node(node);
+        foreach (node; ast)
+        {
+            if (node !is null)
+            {
+                gen_node(node);
             }
         }
     }

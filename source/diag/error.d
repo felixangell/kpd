@@ -7,10 +7,11 @@ import std.typetuple;
 
 import diag.engine;
 
-struct Compiler_Error {
-	ushort id;
-	string detail;
-	string[] errors;
+struct Compiler_Error
+{
+    ushort id;
+    string detail;
+    string[] errors;
 }
 
 immutable bool DUMP_ERROR_MIXINS = false;
@@ -19,25 +20,28 @@ Compiler_Error[ushort] ERROR_REGISTER;
 
 enum is_string(string s) = true;
 
-string emit(strings...)() if (allSatisfy!(is_string, strings)) {
+string emit(strings...)() if (allSatisfy!(is_string, strings))
+{
     string errors;
-    foreach (idx, f; strings) {
-    	if (idx > 0) {
-    		errors ~= ',';
-    	}
+    foreach (idx, f; strings)
+    {
+        if (idx > 0)
+        {
+            errors ~= ',';
+        }
         errors ~= '"' ~ f ~ '"';
     }
     return errors;
 }
 
-template make_err(string name, string id, string detail, strings...) {
-	const char[] make_err = 
-		"enum " ~ name ~ " = Compiler_Error(" ~ id ~ ",`" ~ detail ~ "`,[" ~ emit!(strings) ~ "]);"
+template make_err(string name, string id, string detail, strings...)
+{
+    const char[] make_err = "enum " ~ name ~ " = Compiler_Error(" ~ id ~ ",`" ~ detail ~ "`,[" ~ emit!(
+            strings) ~ "]);" // this is weird, we generate a static block for each error
+     ~ "static this() { ERROR_REGISTER[" ~ id ~ "] = " ~ name ~ "; }";
 
-		// this is weird, we generate a static block for each error
-		~ "static this() { ERROR_REGISTER[" ~ id ~ "] = " ~ name ~ "; }";
-    
-    static if (DUMP_ERROR_MIXINS) {
+    static if (DUMP_ERROR_MIXINS)
+    {
         pragma(msg, "result ", make_err);
     }
 }
@@ -58,13 +62,13 @@ different names:
    let x = 3; 
    let b = 4; 
    let z = x + b;
-`, 
-   "Symbol '%s' defined here:", "Conflicts with symbol '%s' defined here:"));
+`,
+        "Symbol '%s' defined here:", "Conflicts with symbol '%s' defined here:"));
 
-mixin(make_err!("DEPENDENCY_CYCLE", "0004u",
-	"TODO", "TODO!"));
+mixin(make_err!("DEPENDENCY_CYCLE", "0004u", "TODO", "TODO!"));
 
-mixin(make_err!("UNRESOLVED_SYMBOL", "0001u", `A symbol (variable, function, module, etc.) could not be found
+mixin(make_err!("UNRESOLVED_SYMBOL", "0001u",
+        `A symbol (variable, function, module, etc.) could not be found
 there are a few possible causes for this error:
 
 ## The symbol has no definition in the program: 		
@@ -136,8 +140,8 @@ The solution to this case is to fix the spelling error:
     let foo = bar;
 `, "Unresolved symbol '%s':"));
 
-mixin(make_err!("OUT_OF_BOUNDS_INDEX", "0002u", 
-`This occurs when attempting to access a symbol by an out of bounds index. 		
+mixin(make_err!("OUT_OF_BOUNDS_INDEX", "0002u",
+        `This occurs when attempting to access a symbol by an out of bounds index. 		
 
 The error can be thrown with an array or a tuple. For example, given 		
 the tuple (int, int, rune), there are three values in the tuple. 		
@@ -154,7 +158,8 @@ an out of bounds error, as there is no value at the index 5:
  		
 To resolve this issue, simply make sure you aren't accessing at 		
 an invalid index for an array or tuple."
-`, "Attempted out of bounds index on symbol '%s':"));
+`,
+        "Attempted out of bounds index on symbol '%s':"));
 
-mixin(make_err!("TYPE_MISMATCH", "0003u", `This occurs when two types mismatch.`
-, "Type '%s':", "Mismatch with type '%s':"));
+mixin(make_err!("TYPE_MISMATCH", "0003u", `This occurs when two types mismatch.`,
+        "Type '%s':", "Mismatch with type '%s':"));

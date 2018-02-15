@@ -18,23 +18,29 @@ import err_logger;
 
 alias Dependency_Graph = Module[string];
 
-void dump(ref Dependency_Graph graph) {
+void dump(ref Dependency_Graph graph)
+{
     writeln("Program dependency graph: ");
     writeln("Dependency name\t\t\t Dependencies: ");
-    foreach (mod; graph) {
+    foreach (mod; graph)
+    {
         write(" - " ~ mod.name);
 
-        if (mod.edges.length > 0) {
+        if (mod.edges.length > 0)
+        {
             int idx = 0;
-            foreach (dep; mod.edges) {
+            foreach (dep; mod.edges)
+            {
                 // TODO: print out a nice table rather
                 // at the moment the tabs are trial/errored and
                 // will definitely not work in all cases.
                 // maybe word wrap the dependencies column nicely because
                 // modules will have more than a few dependencies
                 // which is all we account for here.
-                if (idx == 0) write("\t\t\t\t\t ");
-                if (idx++ > 0) write(", ");
+                if (idx == 0)
+                    write("\t\t\t\t\t ");
+                if (idx++ > 0)
+                    write(", ");
                 write(dep.name);
             }
         }
@@ -42,24 +48,29 @@ void dump(ref Dependency_Graph graph) {
     }
 }
 
-void add_edge(ref Dependency_Graph graph, string from, Module to) {
+void add_edge(ref Dependency_Graph graph, string from, Module to)
+{
     assert(from in graph);
 
-    if (to.name !in graph) {
+    if (to.name !in graph)
+    {
         graph.register_module(to);
     }
 
     Module* mod = &graph[from];
-    if (to.name !in mod.edges) {
+    if (to.name !in mod.edges)
+    {
         mod.edges[to.name] = to;
     }
 }
 
-void register_module(ref Dependency_Graph graph, Module mod) {
-	graph[mod.name] = mod;
+void register_module(ref Dependency_Graph graph, Module mod)
+{
+    graph[mod.name] = mod;
 }
 
-struct Krug_Project {
+struct Krug_Project
+{
     // the directory that the project is based in
     string path;
 
@@ -69,24 +80,29 @@ struct Krug_Project {
     Module[string] modules;
     Dependency_Graph graph;
 
-    this(string path) {
+    this(string path)
+    {
         this.path = path;
     }
 
-    Module load_module(string name) {
-        if (name in modules) {
+    Module load_module(string name)
+    {
+        if (name in modules)
+        {
             err_logger.Verbose("Module '" ~ name ~ "' already loaded - skipping.");
             return modules[name];
         }
         err_logger.Verbose("Loading module '" ~ name ~ "'.");
 
         auto mod = new Module(this.path ~ std.path.dirSeparator ~ name ~ std.path.dirSeparator);
-        modules[name] = mod;   
+        modules[name] = mod;
 
         graph.register_module(mod);
 
-        foreach (ref file; mod.fileCache) {
-            if (!file.endsWith(".krug")) {
+        foreach (ref file; mod.fileCache)
+        {
+            if (!file.endsWith(".krug"))
+            {
                 continue;
             }
 
@@ -97,7 +113,8 @@ struct Krug_Project {
             mod.token_streams[submodule_name] = tokens;
 
             auto deps = collect_deps(tokens);
-            foreach (ref dep; deps) {
+            foreach (ref dep; deps)
+            {
                 string module_name = dep[0].lexeme;
                 Module loaded_module = load_module(module_name);
                 graph.add_edge(name, loaded_module);
@@ -107,9 +124,9 @@ struct Krug_Project {
         return mod;
     }
 
-    bool module_exists(string name) {
-        const string mod_path =
-            this.path ~ std.path.dirSeparator ~ name ~ std.path.dirSeparator;
+    bool module_exists(string name)
+    {
+        const string mod_path = this.path ~ std.path.dirSeparator ~ name ~ std.path.dirSeparator;
         return std.file.exists(mod_path) && std.file.isDir(mod_path);
     }
 }
@@ -119,8 +136,9 @@ struct Krug_Project {
 // is acyclic but this needs to be resolved
 // otherwise if we are given a cyclic program
 // then the compiler will likely crash with a nasty error.
-Krug_Project build_krug_project(ref Source_File main_source_file) {
-	err_logger.Verbose("Building program tree `" ~ main_source_file.path ~ "`");
+Krug_Project build_krug_project(ref Source_File main_source_file)
+{
+    err_logger.Verbose("Building program tree `" ~ main_source_file.path ~ "`");
 
     auto tokens = new Lexer(main_source_file).tokenize();
     Load_Directive[] dirs = collect_deps(tokens);
@@ -134,12 +152,14 @@ Krug_Project build_krug_project(ref Source_File main_source_file) {
     // TODO: this is kind of messy
     main_mod.token_streams["main"] = tokens;
 
-    foreach (dir; dirs) {
+    foreach (dir; dirs)
+    {
         Token[] sub_modules = dir[1];
 
         string module_name = dir[0].lexeme;
 
-        if (!project.module_exists(module_name)) {
+        if (!project.module_exists(module_name))
+        {
             // TODO: better error message.
             err_logger.Error(dir[0], "No such module '" ~ module_name ~ "'.");
             continue;
@@ -152,12 +172,13 @@ Krug_Project build_krug_project(ref Source_File main_source_file) {
     return project;
 }
 
-string strip_file(string path) {
-	// get the parent folder of the file
-	// to do this we look at where the 
-	// last index of a file sep char is (/)
-	// and then substring from 0 to that index.
-	auto idx = lastIndexOf(path, std.path.dirSeparator);
-	assert(idx != -1 && "oh shit");
-	return path[0..idx];
+string strip_file(string path)
+{
+    // get the parent folder of the file
+    // to do this we look at where the 
+    // last index of a file sep char is (/)
+    // and then substring from 0 to that index.
+    auto idx = lastIndexOf(path, std.path.dirSeparator);
+    assert(idx != -1 && "oh shit");
+    return path[0 .. idx];
 }

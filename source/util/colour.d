@@ -11,20 +11,25 @@ static string RESET = "\u001b[0m";
 
 bool NO_COLOURS = false;
 
-static string Warn(string str) {
+static string Warn(string str)
+{
     return Colourize(YELLOW, str);
 }
 
-static string Bold(string str) {
+static string Bold(string str)
+{
     return Colourize(BOLD, str);
 }
 
-static string Err(string str) {
+static string Err(string str)
+{
     return Colourize(RED, str);
 }
 
-static string Colourize(string col, string str) {
-    if (NO_COLOURS) {
+static string Colourize(string col, string str)
+{
+    if (NO_COLOURS)
+    {
         return str;
     }
     return col ~ str ~ RESET;

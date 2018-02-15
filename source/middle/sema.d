@@ -14,30 +14,31 @@ import sema.name_resolve;
 
 import dependency_scanner;
 
-interface Semantic_Pass {
+interface Semantic_Pass
+{
     void execute(ref Module mod, string sub_mod_name);
 }
 
 // the passes to run on
 // the semantic modules in order
-Semantic_Pass[] passes = [
-    new Declaration_Pass,
-    new Name_Resolve_Pass,
-    new Type_Define_Pass,
-    // new Type_Infer_Pass,
+Semantic_Pass[] passes = [new Declaration_Pass, new Name_Resolve_Pass, new Type_Define_Pass, // new Type_Infer_Pass,
     // new Resolve_Pass,
-];
+    ];
 
-struct Semantic_Analysis {
+struct Semantic_Analysis
+{
     Dependency_Graph graph;
 
-    this(ref Dependency_Graph graph) {
+    this(ref Dependency_Graph graph)
+    {
         this.graph = graph;
     }
 
-    void process(ref Module mod, string sub_mod_name) {
+    void process(ref Module mod, string sub_mod_name)
+    {
         err_logger.Verbose("- " ~ mod.name ~ "::" ~ sub_mod_name);
-        foreach (pass; passes) {
+        foreach (pass; passes)
+        {
             err_logger.Verbose("  * " ~ to!string(pass));
             pass.execute(mod, sub_mod_name);
         }
