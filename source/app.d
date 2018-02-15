@@ -1,11 +1,13 @@
 import std.stdio;
 import std.datetime;
+import std.format;
 import std.conv;
 import std.array;
 import std.algorithm.sorting;
 import std.parallelism;
 import std.getopt;
 import std.datetime.stopwatch : StopWatch;
+import std.string;
 
 import cflags;
 import colour;
@@ -70,6 +72,29 @@ void explain_err(string err_code) {
     }
 }
 
+void dump_prog(Instruction[] program) {
+    foreach (idx, instr; program) {
+
+        // address convert to hex
+        char[16] addr_buff;
+        auto addr = to!string(sformat(addr_buff[], "%08x:", idx));
+
+        // print out the instruction
+        // raw data
+        string raw;
+        char[16] byte_buff;
+        foreach (bi, b; instr.data) {
+            if (bi > 0) raw ~= " ";
+            raw ~= sformat(byte_buff[], "%02x", b);
+        }
+
+        // print out the readable version
+        string instr_id = to!string(instr.id).toLower();
+
+        writefln("%s\t%-20s\t%-20s", addr, raw, instr_id);
+    }
+}
+
 void main(string[] args) {
     StopWatch compilerTimer;
     compilerTimer.start();
@@ -86,7 +111,8 @@ void main(string[] args) {
             "force architecture, e.g. x86 or x86_64",
             &ARCH, "run|r", "run program after compilation", &RUN_PROGRAM,
             "explain|e", "explains the given error code, e.g. -e E0001", &ERROR_CODE,
-            "sw", "suppresses compiler warnings", &SUPPRESS_COMPILER_WARNINGS,);
+            "sw", "suppresses compiler warnings", &SUPPRESS_COMPILER_WARNINGS,
+            "dump_bc|b", "dumps the bytecode to stdout", &DUMP_BYTECODE);
 
     // argument validation
     {
@@ -226,9 +252,8 @@ void main(string[] args) {
     err_logger.Info("Compiler took " ~ to!string(
             duration.total!"msecs") ~ "/ms or " ~ to!string(duration.total!"usecs") ~ "/µs");
 
-    uint idx = 0;
-    foreach (instr; entire_program) {
-        err_logger.Verbose(to!string(idx++) ~ ": " ~ to!string(instr));
+    if (DUMP_BYTECODE) {
+        dump_prog(entire_program);
     }
 
     if (!RUN_PROGRAM) {

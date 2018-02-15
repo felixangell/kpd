@@ -19,3 +19,5 @@ string ERROR_CODE = null;
 bool SUPPRESS_COMPILER_WARNINGS = false;
 
 bool DEV_MODE = false;
+
+bool DUMP_BYTECODE = false;
