@@ -155,6 +155,14 @@ class Declaration_Pass : Top_Level_Node_Visitor, Semantic_Pass {
         foreach (stat; block.statements) {
             if (auto var = cast(Variable_Statement_Node) stat) {
                 analyze_let_node(var);
+            } else if (auto while_loop = cast(ast.While_Statement_Node) stat) {
+                visit_block(while_loop.block);
+            } else if (auto block_node = cast(ast.Block_Node) stat) {
+                visit_block(block_node);
+            } else if (auto if_stat = cast(ast.If_Statement_Node) stat) {
+                visit_block(if_stat.block);
+            } else {
+                err_logger.Warn("decl: Unhandled statement " ~ to!string(stat));
             }
         }
     }

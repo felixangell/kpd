@@ -115,8 +115,10 @@ class Name_Resolve_Pass : Top_Level_Node_Visitor, Semantic_Pass {
             analyze_binary_expr(binary);
         } else if (auto path = cast(ast.Path_Expression_Node) expr) {
             analyze_path_expr(path);
+        } else if (auto call = cast(ast.Call_Node) expr) {
+            analyze_call(call);                
         } else {
-            err_logger.Warn("name_resolve: unhandled node" ~ to!string(expr));
+            err_logger.Warn("name_resolve: unhandled node " ~ to!string(expr));
         }
     }
 
@@ -125,13 +127,35 @@ class Name_Resolve_Pass : Top_Level_Node_Visitor, Semantic_Pass {
         analyze_expr(binary.right);
     }
 
+    void analyze_while_stat(ast.While_Statement_Node while_loop) {
+        analyze_expr(while_loop.condition);
+        visit_block(while_loop.block);
+    }
+
+    void analyze_if_stat(ast.If_Statement_Node if_stat) {
+        analyze_expr(if_stat.condition);
+        visit_block(if_stat.block);
+    }
+
+    void analyze_call(ast.Call_Node call) {
+        analyze_expr(call.left);
+    }
+
     void visit_stat(ast.Statement_Node stat) {
         if (auto variable = cast(ast.Variable_Statement_Node) stat) {
             analyze_let_node(variable);
         } else if (auto expr = cast(ast.Expression_Node) stat) {
             analyze_expr(expr);
+        } else if (auto while_loop = cast(ast.While_Statement_Node) stat) {
+            analyze_while_stat(while_loop);                
+        } else if (auto if_stat = cast(ast.If_Statement_Node) stat) {
+            analyze_if_stat(if_stat);                
+        } else if (auto call = cast(ast.Call_Node) stat) {
+            analyze_call(call);
+        } else if (auto block = cast(ast.Block_Node) stat) {
+            visit_block(block);
         } else {
-            err_logger.Warn("resolve: unhandled statement " ~ to!string(stat));            
+            err_logger.Warn("name_resolve: unhandled statement " ~ to!string(stat));            
         }
     }
 

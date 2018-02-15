@@ -5,4 +5,4 @@ type Blah struct {
 	name string,
 };
 
-let global_boo Blah;
+let global_boob Blah;

@@ -193,6 +193,12 @@ void main(string[] args) {
         }
     }
 
+    const auto err_count = err_logger.get_err_count();
+    if (err_count > 0) {
+        err_logger.Error("Terminating compilation: " ~ to!string(err_count) ~ " errors encountered.");
+        return;
+    }
+
     // TOOD: do this properly.
     Instruction[] entire_program;
     uint main_func_addr = 0;

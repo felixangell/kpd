@@ -1,11 +1,22 @@
+let foo_abc = 0;
+
 func hello() {}
 func done() {}
 
 func main() {
 	let foo f64 = 3;
-	while foo > 0 {
+	while foo > foo_abc {
 		foo = foo - 1;
-		hello();
+		hello_there();
+	}
+	if foo == foo_abc {
+		and_another();
+	}
+	{
+		do_stuff();
+		{
+			do_more();
+		}
 	}
 	done();
 }

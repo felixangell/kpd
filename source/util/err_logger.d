@@ -91,7 +91,17 @@ static string Blame_Token(ref Token tok) {
     return buff.toString();
 }
 
+private uint num_logger_errors = 0;
+
+int get_err_count() {
+    return num_logger_errors;
+}
+
 static void Log(Log_Level lvl, string str) {
+    if (lvl == Log_Level.Error) {
+        num_logger_errors++;
+    }
+
     if (lvl == Log_Level.Verbose && !VERBOSE_LOGGING) {
         return;
     }
