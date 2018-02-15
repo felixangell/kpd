@@ -12,13 +12,11 @@ import krug_module;
 import compilation_phase;
 import grammar;
 
-static bool is_end_of_line(dchar c)
-{
+static bool is_end_of_line(dchar c) {
     return c == '\r' || c == '\n' || c == '\u2028' || c == '\u2029';
 }
 
-class Lexer : Compilation_Phase
-{
+class Lexer : Compilation_Phase {
     Source_File* curr_file;
 
     string input;
@@ -26,27 +24,22 @@ class Lexer : Compilation_Phase
 
     uint row = 1, col = 1;
 
-    this(ref Source_File file)
-    {
+    this(ref Source_File file) {
         this.input = file.contents;
         this.curr_file = &file;
     }
 
-    string get_name()
-    {
+    string get_name() {
         return "Lexical Analysis";
     }
 
     // TODO:
-    string recognize_esc_seq()
-    {
+    string recognize_esc_seq() {
         string result;
-        if (peek() == '\\')
-        {
+        if (peek() == '\\') {
             result ~= consume();
             dchar esc_prefix = peek();
-            switch (esc_prefix)
-            {
+            switch (esc_prefix) {
             case '"':
             case '\'':
             case '\\':
@@ -72,18 +65,14 @@ class Lexer : Compilation_Phase
         return result;
     }
 
-    Token recognize_str()
-    {
+    Token recognize_str() {
         string lexeme = to!string(expect('"'));
-        while (has_next())
-        {
-            if (peek() == '\\')
-            {
+        while (has_next()) {
+            if (peek() == '\\') {
                 lexeme ~= recognize_esc_seq();
             }
 
-            if (peek() == '"')
-            {
+            if (peek() == '"') {
                 break;
             }
             lexeme ~= consume();
@@ -92,37 +81,29 @@ class Lexer : Compilation_Phase
         return new Token(lexeme, Token_Type.String);
     }
 
-    Token recognize_raw_str()
-    {
+    Token recognize_raw_str() {
         // TODO:
         return new Token("", Token_Type.String);
     }
 
-    Token recognize_char()
-    {
+    Token recognize_char() {
         string buffer = to!string(expect('\''));
-        if (peek() == '\\')
-        {
+        if (peek() == '\\') {
             buffer ~= recognize_esc_seq();
-        }
-        else
-        {
+        } else {
             buffer ~= consume();
         }
         buffer ~= expect('\'');
         return new Token(buffer, Token_Type.Rune);
     }
 
-    Token recognize_num()
-    {
+    Token recognize_num() {
         string sign;
-        if (peek() == '-' || peek() == '+')
-        {
+        if (peek() == '-' || peek() == '+') {
             sign ~= consume();
         }
 
-        switch (peek(1))
-        {
+        switch (peek(1)) {
         case 'x':
         case 'X':
             string prefix = sign ~ to!string(consume()) ~ to!string(consume());
@@ -140,8 +121,7 @@ class Lexer : Compilation_Phase
             string prefix = sign ~ to!string(consume()) ~ to!string(consume());
             return new Token(prefix ~ consume_while(is_decimal), Token_Type.Integer_Literal);
         default:
-            if (isAlpha(peek(1)))
-            {
+            if (isAlpha(peek(1))) {
                 writeln("TODO: o fuck\n");
             }
         }
@@ -149,16 +129,13 @@ class Lexer : Compilation_Phase
         Token tok = new Token(consume_while(is_decimal), Token_Type.Integer_Literal);
         tok.lexeme = sign ~ tok.lexeme;
 
-        if (peek() == '.' && (peek(1) == 'e' || peek(1) == 'E') || is_decimal(peek(1)))
-        {
+        if (peek() == '.' && (peek(1) == 'e' || peek(1) == 'E') || is_decimal(peek(1))) {
             consume();
             string precision = "." ~ consume_while(is_decimal);
 
-            if (peek() == 'E' || peek() == 'e')
-            {
+            if (peek() == 'E' || peek() == 'e') {
                 precision ~= to!string(consume());
-                if (peek() == '+' || peek() == '-')
-                {
+                if (peek() == '+' || peek() == '-') {
                     precision ~= to!string(consume());
                 }
                 precision ~= consume_while(is_decimal);
@@ -171,30 +148,24 @@ class Lexer : Compilation_Phase
         return tok;
     }
 
-    void eat_comment()
-    {
+    void eat_comment() {
         consume_while(function(dchar c) => !is_end_of_line(c));
     }
 
     // eats a multi line comments, this also
     // handles nested multi line comments too
-    void eat_multi_comment()
-    {
+    void eat_multi_comment() {
         // for tracking the depth of the comment
         int num_comments = 0;
         int[] last_open_comment_indices;
 
-        do
-        {
-            if (peek() == '/' && peek(1) == '*')
-            {
+        do {
+            if (peek() == '/' && peek(1) == '*') {
                 last_open_comment_indices ~= position;
                 consume();
                 consume();
                 num_comments++;
-            }
-            else if (peek() == '*' && peek(1) == '/')
-            {
+            } else if (peek() == '*' && peek(1) == '/') {
                 last_open_comment_indices.popBack();
                 consume();
                 consume();
@@ -205,11 +176,9 @@ class Lexer : Compilation_Phase
         while (has_next() && num_comments > 0);
 
         // unclosed comments probably
-        if (num_comments > 0 || last_open_comment_indices.length > 0)
-        {
+        if (num_comments > 0 || last_open_comment_indices.length > 0) {
             string error_msg;
-            while (!last_open_comment_indices.length > 0)
-            {
+            while (!last_open_comment_indices.length > 0) {
                 int index = last_open_comment_indices.back;
                 last_open_comment_indices.popBack();
                 error_msg ~= "comment unclosed: at " ~ to!string(index) ~ ".\n";
@@ -218,34 +187,28 @@ class Lexer : Compilation_Phase
         }
     }
 
-    Token recognize_identifier(bool keyword_check)
-    {
+    Token recognize_identifier(bool keyword_check) {
         string value = consume_while(is_identifier);
         auto type = Token_Type.Identifier;
-        if (keyword_check && (value in KEYWORDS))
-        {
+        if (keyword_check && (value in KEYWORDS)) {
             type = Token_Type.Keyword;
         }
         return new Token(value, type);
     }
 
-    Token recognize_sym()
-    {
+    Token recognize_sym() {
         string val = to!string(consume());
-        if ((val ~ to!string(peek())) in SYMBOLS)
-        {
+        if ((val ~ to!string(peek())) in SYMBOLS) {
             val ~= consume();
         }
         return new Token(val, Token_Type.Symbol);
     }
 
-    Token[] tokenize()
-    {
+    Token[] tokenize() {
         Token[] tok_stream;
 
         ulong last_line = 0, pad = 0;
-        while (has_next())
-        {
+        while (has_next()) {
             last_line = row;
 
             // eat all the junk stuff, 
@@ -255,18 +218,14 @@ class Lexer : Compilation_Phase
             junk = junk.replace("\r", "");
             junk = junk.replace("\n", "");
 
-            if (row == last_line)
-            {
+            if (row == last_line) {
                 pad = pad + junk.length;
-            }
-            else
-            {
+            } else {
                 pad = 0;
             }
 
             dchar curr = peek();
-            if (curr == '\0')
-            {
+            if (curr == '\0') {
                 break;
             }
 
@@ -276,69 +235,44 @@ class Lexer : Compilation_Phase
             // check if we have a special-string, in
             // this case a c-style string which is denoted
             // as c"foo bar baz".
-            if (curr == 'c' && peek(1) == '"')
-            {
+            if (curr == 'c' && peek(1) == '"') {
                 dchar prefix = consume();
-            }
-            // identifier, cannot start with underscore
-            else if (isAlpha(curr))
-            {
+            } // identifier, cannot start with underscore
+            else if (isAlpha(curr)) {
                 recognized_token = recognize_identifier(true);
-            }
-            // discard?
-            else if (curr == '_')
-            {
+            } // discard?
+            else if (curr == '_') {
                 recognized_token = new Token(to!string(consume()), Token_Type.Identifier);
-            }
-            // keyword as identifier, e.g. $type, $struct
-            else if (curr == '$')
-            {
+            } // keyword as identifier, e.g. $type, $struct
+            else if (curr == '$') {
                 consume();
                 recognized_token = recognize_identifier(false);
-            }
-            // single line comment
-            else if (curr == '/' && peek(1) == '/')
-            {
+            } // single line comment
+            else if (curr == '/' && peek(1) == '/') {
                 eat_comment();
-            }
-            // multi line comment
-            else if (curr == '/' && peek(1) == '*')
-            {
+            } // multi line comment
+            else if (curr == '/' && peek(1) == '*') {
                 eat_multi_comment();
-            }
-            // raw string literal
-            else if (curr == '`')
-            {
+            } // raw string literal
+            else if (curr == '`') {
                 recognized_token = recognize_raw_str();
-            }
-            else if (isNumber(peek()))
-            {
+            } else if (isNumber(peek())) {
                 recognized_token = recognize_num();
-            }
-            // (-|+)digit or just digit
-            else if ((curr == '+' || curr == '-') && isNumber(peek(1)))
-            {
+            } // (-|+)digit or just digit
+            else if ((curr == '+' || curr == '-') && isNumber(peek(1))) {
                 recognized_token = recognize_num();
-            }
-            else if (to!string(curr) in SYMBOLS || (to!string(curr) ~ to!string(peek(1))) in SYMBOLS)
-            {
+            } else if (to!string(curr) in SYMBOLS ||
+                    (to!string(curr) ~ to!string(peek(1))) in SYMBOLS) {
                 recognized_token = recognize_sym();
-            }
-            else if (curr == '"')
-            {
+            } else if (curr == '"') {
                 recognized_token = recognize_str();
-            }
-            else if (curr == '\'')
-            {
+            } else if (curr == '\'') {
                 recognized_token = recognize_char();
-            }
-            else
-            {
+            } else {
                 writeln("what is " ~ to!string(peek()));
             }
 
-            if (recognized_token !is null)
-            {
+            if (recognized_token !is null) {
                 start_loc.col -= pad;
                 Location end = capture_location();
                 end.col -= pad;
@@ -357,8 +291,7 @@ class Lexer : Compilation_Phase
                     // IMPORTANT:
                     // we have to do the error check here because otherwise we wont
                     // have any of the tokens positions set so it will cause an error!
-                    if (curr == '$' && recognized_token.lexeme !in KEYWORDS)
-                    {
+                    if (curr == '$' && recognized_token.lexeme !in KEYWORDS) {
                         err_logger.Error(recognized_token,
                                 "Attempting to de-keyword a non-keyword, found:");
                     }
@@ -368,36 +301,28 @@ class Lexer : Compilation_Phase
         return tok_stream;
     }
 
-    bool has_next()
-    {
+    bool has_next() {
         return position < input.length;
     }
 
-    dchar peek(int offs = 0)
-    {
-        if (!has_next())
-        {
+    dchar peek(int offs = 0) {
+        if (!has_next()) {
             return '\0';
         }
-        if (position + offs >= input.length)
-        {
+        if (position + offs >= input.length) {
             return '\0';
         }
         return input[position + offs];
     }
 
-    Location capture_location()
-    {
+    Location capture_location() {
         return new Location(position, row, col);
     }
 
-    string consume_while(bool function(dchar) pred)
-    {
+    string consume_while(bool function(dchar) pred) {
         string result; // TODO is there a string builder thing?
-        while (has_next())
-        {
-            if (!pred(peek()))
-            {
+        while (has_next()) {
+            if (!pred(peek())) {
                 break;
             }
             result ~= consume();
@@ -405,11 +330,9 @@ class Lexer : Compilation_Phase
         return result;
     }
 
-    dchar consume()
-    {
+    dchar consume() {
         dchar curr = peek();
-        if (curr == '\n')
-        {
+        if (curr == '\n') {
             row++;
             col = 1;
         }
@@ -418,30 +341,24 @@ class Lexer : Compilation_Phase
         return curr;
     }
 
-    dchar expect(dchar c)
-    {
-        if (has_next() && peek() == c)
-        {
+    dchar expect(dchar c) {
+        if (has_next() && peek() == c) {
             return consume();
         }
 
-        if (!has_next())
-        {
+        if (!has_next()) {
             assert(0 && "eof");
         }
 
         assert(0 && "expected!");
     }
 
-    dchar expect(bool delegate(dchar) pred, string err)
-    {
-        if (has_next() && pred(peek()))
-        {
+    dchar expect(bool delegate(dchar) pred, string err) {
+        if (has_next() && pred(peek())) {
             return consume();
         }
 
-        if (!has_next())
-        {
+        if (!has_next()) {
             assert(0 && "eof");
         }
 

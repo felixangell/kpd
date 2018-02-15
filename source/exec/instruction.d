@@ -3,8 +3,7 @@ module exec.instruction;
 import std.bitmanip;
 import std.conv;
 
-static enum OP : ushort
-{
+static enum OP : ushort {
     // pushes the given value to the
     // operand stack.
     PSH,
@@ -107,40 +106,34 @@ static enum OP : ushort
     GOTO
 }
 
-struct Instruction
-{
+struct Instruction {
     OP id;
 
     ubyte[] data;
 
-    this(ubyte[] data)
-    {
+    this(ubyte[] data) {
         // the id of the instruction is copied from
         // the first two bytes of the data we pass thru.
         this.id = cast(OP)(data.peek!(ushort, Endian.bigEndian));
         this.data = data;
     }
 
-    T peek(T)(uint offs = 0)
-    {
+    T peek(T)(uint offs = 0) {
         // offset by the id
         return data[(offs + id.sizeof) .. $].peek!(T);
     }
 
-    void put(T)(T val)
-    {
+    void put(T)(T val) {
         data.append!(T)(val);
     }
 }
 
-static Instruction encode(OP, T...)(OP id, T values)
-{
+static Instruction encode(OP, T...)(OP id, T values) {
     import std.array;
 
     auto buff = appender!(ubyte[])();
     buff.append!ushort(cast(ushort)(id));
-    foreach (val; values)
-    {
+    foreach (val; values) {
         buff.append!T(val);
     }
     return Instruction(buff.data);

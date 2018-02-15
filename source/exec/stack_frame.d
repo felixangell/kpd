@@ -5,8 +5,7 @@ import std.conv;
 import exec.exec_engine;
 import exec.virtual_thread;
 
-class Stack_Frame
-{
+class Stack_Frame {
     Virtual_Thread parent_thread;
     Stack_Frame parent;
 
@@ -14,25 +13,21 @@ class Stack_Frame
     uint local_index = 0;
     uint return_addr = 0;
 
-    this(Virtual_Thread parent_thread)
-    {
+    this(Virtual_Thread parent_thread) {
         this.parent_thread = parent_thread;
     }
 
-    bool is_empty()
-    {
+    bool is_empty() {
         return parent_thread.stack.stack_ptr == 0;
     }
 
-    uint store_local(T)(T value)
-    {
+    uint store_local(T)(T value) {
         locals[local_index].append!(T)(value, Endian.bigEndian);
         local_index += value.size_of;
         return local_index;
     }
 
-    T get_local(T)(uint addr)
-    {
+    T get_local(T)(uint addr) {
         return locals[addr].peek!(T, Endian.bigEndian);
     }
 }

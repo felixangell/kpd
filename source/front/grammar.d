@@ -15,19 +15,15 @@ static HashSet!string KEYWORDS;
 static HashMap!(string, uint) OPERATOR_PRECEDENCE;
 
 // ???
-template populate_hash_set(T)
-{
-    void insert(HashSet, T...)(ref HashSet set, T values)
-    {
-        foreach (val; values)
-        {
+template populate_hash_set(T) {
+    void insert(HashSet, T...)(ref HashSet set, T values) {
+        foreach (val; values) {
             set.insert(val);
         }
     }
 }
 
-static this()
-{
+static this() {
     populate_hash_set!(string).insert(KEYWORDS, "fn", "let", "type", "if", "else",
             "loop", "while", "match", "for", "return", "break", "next", "as", "mut", "default",
             "eval", "len_of", "size_of", "type_of", "struct", "trait", "union", "enum",
@@ -88,59 +84,48 @@ static this()
             "/", ",", ";", ".", "[", "]", "{", "}", "(", ")", "<", ">", "&",);
 }
 
-static int get_op_prec(string s)
-{
-    if (s in OPERATOR_PRECEDENCE)
-    {
+static int get_op_prec(string s) {
+    if (s in OPERATOR_PRECEDENCE) {
         return OPERATOR_PRECEDENCE[s];
     }
     // TODO:?
     return -1;
 }
 
-static bool is_binary_op(string s)
-{
+static bool is_binary_op(string s) {
     return BINARY_OPERATORS.contains(s) || is_rel_op(s) || is_add_op(s) || is_mul_op(s);
 }
 
-static bool is_rel_op(string s)
-{
+static bool is_rel_op(string s) {
     return RELATIONAL_OPERATORS.contains(s);
 }
 
-static bool is_add_op(string s)
-{
+static bool is_add_op(string s) {
     return ADD_OPERATORS.contains(s);
 }
 
-static bool is_mul_op(string s)
-{
+static bool is_mul_op(string s) {
     return MUL_OPERATORS.contains(s);
 }
 
-static bool is_unary_op(string s)
-{
+static bool is_unary_op(string s) {
     return UNARY_OPERATORS.contains(s);
 }
 
 auto is_identifier = (dchar c) => isAlpha(c) || isNumber(c) || c == '_';
 auto is_decimal = (dchar c) => (c >= '0' && c <= '9') || c == '_';
-auto is_hexadecimal = (dchar c) => isNumber(c) || (c >= 'a' && c <= 'f')
-    || (c >= 'A' && c <= 'F') || c == '_';
+auto is_hexadecimal = (dchar c) => isNumber(c) || (c >= 'a' && c <= 'f') ||
+    (c >= 'A' && c <= 'F') || c == '_';
 auto is_octal = (dchar c) => (c >= '0' && c <= '7') || c == '_';
 auto is_binary = (dchar c) => c == '0' || c == '1' || c == '_';
 
-static bool str_is_identifier(string s)
-{
-    if (s.startsWith("_") || isNumber(s[0]))
-    {
+static bool str_is_identifier(string s) {
+    if (s.startsWith("_") || isNumber(s[0])) {
         return false;
     }
 
-    foreach (dchar character; s)
-    {
-        if (!is_identifier(character))
-        {
+    foreach (dchar character; s) {
+        if (!is_identifier(character)) {
             return false;
         }
     }

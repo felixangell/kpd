@@ -11,19 +11,16 @@ import sema.infer : Type_Environment;
 import sema.type;
 import sema.symbol;
 
-class Scope
-{
+class Scope {
     uint id;
     Scope outer;
     Type_Environment env;
 
-    this()
-    {
+    this() {
         this(null);
     }
 
-    this(Scope outer)
-    {
+    this(Scope outer) {
         this.outer = outer;
         this.id = outer is null ? 0 : (outer.id + 1);
         env = outer is null ? new Type_Environment() : new Type_Environment(outer.env);

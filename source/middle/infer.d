@@ -23,17 +23,14 @@ import colour;
 // new child scopes otherwise we will have to search N
 // layers outwards to get something as simple as a boolean
 // and N could be a big number!
-class Type_Environment
-{
+class Type_Environment {
     Type_Environment parent;
 
-    this(Type_Environment parent)
-    {
+    this(Type_Environment parent) {
         this.parent = parent;
     }
 
-    this()
-    {
+    this() {
         // an optimisation.. we store all of the 
         // common primitives in every new Type_Environment
         // (we could also copy) so that we dont have
@@ -48,12 +45,9 @@ class Type_Environment
 
     Type[string] data;
 
-    Type lookup_type(string name)
-    {
-        for (Type_Environment e = this; e !is null; e = e.parent)
-        {
-            if (name in e.data)
-            {
+    Type lookup_type(string name) {
+        for (Type_Environment e = this; e !is null; e = e.parent) {
+            if (name in e.data) {
                 return e.data[name];
             }
         }
@@ -65,53 +59,40 @@ class Type_Environment
     // true -> bool
     // false -> bool
     // or add -> f(int, int) : int
-    void register_type(string key, Type t)
-    {
+    void register_type(string key, Type t) {
         assert(key !in data);
         data[key] = t;
     }
 }
 
 // t member of types?
-bool occurs_in(Type t, Type[] types)
-{
-    foreach (type; types)
-    {
-        if (occurs_in_type(t, type))
-        {
+bool occurs_in(Type t, Type[] types) {
+    foreach (type; types) {
+        if (occurs_in_type(t, type)) {
             return true;
         }
     }
     return false;
 }
 
-Type fresh(Type t)
-{
-    Type fresh_type(Type type)
-    {
+Type fresh(Type t) {
+    Type fresh_type(Type type) {
         auto pt = prune(type);
-        if (auto var = cast(Type_Variable) pt)
-        {
+        if (auto var = cast(Type_Variable) pt) {
             return var;
-        }
-        else if (auto op = cast(Type_Operator) pt)
-        {
+        } else if (auto op = cast(Type_Operator) pt) {
             Type[] types;
             types.length = op.types.length;
 
-            foreach (i, typ; op.types)
-            {
+            foreach (i, typ; op.types) {
                 types[i] = fresh_type(typ);
             }
             return new Type_Operator(op.get_name(), types);
-        }
-        else if (auto fn = cast(Function) pt)
-        {
+        } else if (auto fn = cast(Function) pt) {
             Type[] types;
             types.length = fn.types.length;
 
-            foreach (i, typ; fn.types)
-            {
+            foreach (i, typ; fn.types) {
                 types[i] = fresh_type(typ);
             }
 
@@ -125,98 +106,75 @@ Type fresh(Type t)
     return fresh_type(t);
 }
 
-void unify(Type a, Type b)
-{
+void unify(Type a, Type b) {
     auto pa = prune(a);
     auto pb = prune(b);
 
-    if (auto var = cast(Type_Variable) pa)
-    {
-        if (var != pb)
-        {
+    if (auto var = cast(Type_Variable) pa) {
+        if (var != pb) {
             var.instance = pb;
         }
-    }
-    else if (auto opa = cast(Type_Operator) pa)
-    {
-        if (auto var = cast(Type_Variable) pb)
-        {
+    } else if (auto opa = cast(Type_Operator) pa) {
+        if (auto var = cast(Type_Variable) pb) {
             unify(var, opa);
-        }
-        else if (auto opb = cast(Type_Operator) pb)
-        {
-            if (cmp(opa.name, opb.name) || opa.types.length != opb.types.length)
-            {
+        } else if (auto opb = cast(Type_Operator) pb) {
+            if (cmp(opa.name, opb.name) || opa.types.length != opb.types.length) {
                 err_logger.Error(["Type mismatch '" ~ to!string(a) ~ "' defined here:",
                         // Blame_Token(node.twine),
                         "Conflicts with symbol defined here: ", to!string(b)]);
             }
 
-            foreach (idx, t; opa.types)
-            {
+            foreach (idx, t; opa.types) {
                 unify(t, opb.types[idx]);
             }
         }
     }
 }
 
-Type prune(Type t)
-{
-    if (auto var = cast(Type_Variable) t)
-    {
-        if (var.instance !is null)
-        {
+Type prune(Type t) {
+    if (auto var = cast(Type_Variable) t) {
+        if (var.instance !is null) {
             return var.instance;
         }
     }
     return t;
 }
 
-bool occurs_in_type(Type a, Type b)
-{
+bool occurs_in_type(Type a, Type b) {
     auto pb = prune(b);
-    if (pb == a)
-    {
+    if (pb == a) {
         return true;
     }
 
-    if (auto op = cast(Type_Operator) pb)
-    {
+    if (auto op = cast(Type_Operator) pb) {
         return occurs_in(a, op.types);
     }
     return false;
 }
 
-Type_Node resolve(Type_Node old, Type resolved)
-{
+Type_Node resolve(Type_Node old, Type resolved) {
     return new Resolved_Type(old, resolved);
 }
 
-struct Type_Inferrer
-{
+struct Type_Inferrer {
     Type_Environment e;
 
-    Type get_type(string name)
-    {
-        if (name in e.data)
-        {
+    Type get_type(string name) {
+        if (name in e.data) {
             return fresh(e.data[name]);
         }
 
         assert(0);
     }
 
-    Type analyze_primitive(ast.Primitive_Type_Node node)
-    {
+    Type analyze_primitive(ast.Primitive_Type_Node node) {
         auto type_name = node.type_name.lexeme;
         // handle if this primitive doesn't exist.
         return prim_type(type_name);
     }
 
-    Type analyze_variable(Variable_Statement_Node node)
-    {
-        if (node.type !is null)
-        {
+    Type analyze_variable(Variable_Statement_Node node) {
+        if (node.type !is null) {
             // resolve the type we're given.
             return analyze(node.type, e);
         }
@@ -228,64 +186,42 @@ struct Type_Inferrer
         return resolved;
     }
 
-    Type analyze(ast.Node node, Type_Environment e)
-    {
+    Type analyze(ast.Node node, Type_Environment e) {
         this.e = e;
 
-        if (auto prim = cast(Primitive_Type_Node) node)
-        {
+        if (auto prim = cast(Primitive_Type_Node) node) {
             return analyze_primitive(prim);
-        }
-        else if (auto var = cast(Variable_Statement_Node) node)
-        {
+        } else if (auto var = cast(Variable_Statement_Node) node) {
             return analyze_variable(var);
-        }
-
-        else if (auto binary = cast(Binary_Expression_Node) node)
-        {
+        } else if (auto binary = cast(Binary_Expression_Node) node) {
             auto left = analyze(binary.left, e);
             auto right = analyze(binary.right, e);
             unify(left, right);
             return left;
-        }
-
-        // this is mostly like
+        } // this is mostly like
         // module.sub_mod.Type
         // Type
         // etc.
         // TODO: support module access		
-        else if (auto path_type = cast(ast.Type_Path_Node) node)
-        {
+        else if (auto path_type = cast(ast.Type_Path_Node) node) {
             auto type = path_type.values[0];
             Type t = e.lookup_type(type.lexeme);
-            if (t is null)
-            {
+            if (t is null) {
                 err_logger.Error(["Failed to resolve type '" ~ colour.Bold(type.lexeme) ~ "':",
                         Blame_Token(type)]);
             }
             return t;
-        }
-
-        // constants
-        else if (cast(Integer_Constant_Node) node)
-        {
+        } // constants
+        else if (cast(Integer_Constant_Node) node) {
             return prim_type("int");
-        }
-        else if (cast(Float_Constant_Node) node)
-        {
+        } else if (cast(Float_Constant_Node) node) {
             // the widest type for floating point
             return prim_type("f64"); // "double"
-        }
-        else if (cast(Boolean_Constant_Node) node)
-        {
+        } else if (cast(Boolean_Constant_Node) node) {
             return prim_type("bool");
-        }
-        else if (cast(String_Constant_Node) node)
-        {
+        } else if (cast(String_Constant_Node) node) {
             return prim_type("string");
-        }
-        else if (cast(Rune_Constant_Node) node)
-        {
+        } else if (cast(Rune_Constant_Node) node) {
             return prim_type("rune");
         }
 

@@ -7,8 +7,7 @@ import std.typetuple;
 
 import diag.engine;
 
-struct Compiler_Error
-{
+struct Compiler_Error {
     ushort id;
     string detail;
     string[] errors;
@@ -20,13 +19,10 @@ Compiler_Error[ushort] ERROR_REGISTER;
 
 enum is_string(string s) = true;
 
-string emit(strings...)() if (allSatisfy!(is_string, strings))
-{
+string emit(strings...)() if (allSatisfy!(is_string, strings)) {
     string errors;
-    foreach (idx, f; strings)
-    {
-        if (idx > 0)
-        {
+    foreach (idx, f; strings) {
+        if (idx > 0) {
             errors ~= ',';
         }
         errors ~= '"' ~ f ~ '"';
@@ -34,14 +30,12 @@ string emit(strings...)() if (allSatisfy!(is_string, strings))
     return errors;
 }
 
-template make_err(string name, string id, string detail, strings...)
-{
+template make_err(string name, string id, string detail, strings...) {
     const char[] make_err = "enum " ~ name ~ " = Compiler_Error(" ~ id ~ ",`" ~ detail ~ "`,[" ~ emit!(
             strings) ~ "]);" // this is weird, we generate a static block for each error
      ~ "static this() { ERROR_REGISTER[" ~ id ~ "] = " ~ name ~ "; }";
 
-    static if (DUMP_ERROR_MIXINS)
-    {
+    static if (DUMP_ERROR_MIXINS) {
         pragma(msg, "result ", make_err);
     }
 }

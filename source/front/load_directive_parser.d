@@ -10,27 +10,22 @@ import krug_module;
 // a very simple specialized parser that parses
 // the given token streams for load directives 
 // only!
-struct Load_Directive_Parser
-{
+struct Load_Directive_Parser {
     Token[] toks;
     uint pos;
 
-    this(ref Token[] toks)
-    {
+    this(ref Token[] toks) {
         this.toks = toks;
         this.pos = 0;
     }
 
-    Token consume()
-    {
+    Token consume() {
         return toks[pos++];
     }
 
-    Token expect(string lexeme)
-    {
+    Token expect(string lexeme) {
         Token t = peek();
-        if (t.lexeme.equal(lexeme))
-        {
+        if (t.lexeme.equal(lexeme)) {
             return consume();
         }
 
@@ -38,11 +33,9 @@ struct Load_Directive_Parser
         return null;
     }
 
-    Token expect(Token_Type type)
-    {
+    Token expect(Token_Type type) {
         Token t = consume();
-        if (t.type == type)
-        {
+        if (t.type == type) {
             return t;
         }
 
@@ -51,13 +44,11 @@ struct Load_Directive_Parser
         assert(0);
     }
 
-    bool has_next()
-    {
+    bool has_next() {
         return pos < toks.length;
     }
 
-    Token peek(int offs = 0)
-    {
+    Token peek(int offs = 0) {
         return toks[pos + offs];
     }
 }
@@ -65,21 +56,18 @@ struct Load_Directive_Parser
 alias Load_Directive = Tuple!(Token, Token[]);
 
 // parses the given token stream
-Load_Directive[] collect_deps(ref Token[] toks)
-{
+Load_Directive[] collect_deps(ref Token[] toks) {
     Load_Directive[] deps;
 
     // this is very simple we pass through all of the tokens
     // parsing only very specific directives:
     Load_Directive_Parser parser = Load_Directive_Parser(toks);
-    while (parser.has_next())
-    {
+    while (parser.has_next()) {
 
         // we basically skip all tokens till 
         // we come across something with a #
         Token curr = parser.consume();
-        if (!curr.cmp("#"))
-        {
+        if (!curr.cmp("#")) {
             continue;
         }
 
@@ -87,8 +75,7 @@ Load_Directive[] collect_deps(ref Token[] toks)
         // because curr has already consumed it
 
         Token directive_name = parser.expect(Token_Type.Identifier);
-        if (!directive_name.cmp("load"))
-        {
+        if (!directive_name.cmp("load")) {
             continue;
         }
 
@@ -102,31 +89,25 @@ Load_Directive[] collect_deps(ref Token[] toks)
         // TODO: clean this up!
 
         // we're accessing a sub-module
-        if (parser.has_next() && parser.peek().cmp("::"))
-        {
+        if (parser.has_next() && parser.peek().cmp("::")) {
             parser.consume();
 
             // parse a submodule list
-            if (parser.has_next() && parser.peek().cmp("{"))
-            {
+            if (parser.has_next() && parser.peek().cmp("{")) {
                 parser.consume();
 
-                while (parser.has_next() && !parser.peek().cmp("}"))
-                {
+                while (parser.has_next() && !parser.peek().cmp("}")) {
                     sub_mods ~= parser.expect(Token_Type.Identifier);
 
                     // TODO: allow trailing commas?
                     //  TODO: enforce comma seperation here
                     // this is basically optional.
-                    if (parser.peek().cmp(","))
-                    {
+                    if (parser.peek().cmp(",")) {
                         parser.consume();
                     }
                 }
                 parser.expect("}");
-            }
-            else
-            {
+            } else {
                 sub_mods ~= parser.expect(Token_Type.Identifier);
             }
         }
