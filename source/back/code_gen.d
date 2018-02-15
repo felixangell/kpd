@@ -43,7 +43,7 @@ struct Code_Generator {
 
         uint func_addr = program_index;
         func_addr_reg[func_name] = func_addr;
-        writeln("func '" ~ to!string(func_name) ~ "' at addr: " ~ to!string(func_addr));
+        err_logger.Verbose("func '", to!string(func_name), "' at addr: ", to!string(func_addr));
 
         emit(encode(OP.ENTR));
 
@@ -136,7 +136,7 @@ struct Code_Generator {
             }
 
             uint addr = func_addr_reg[name];
-            writeln("emitting func call to ", name, " @addr: ", addr);
+            err_logger.Verbose("emitting func call to ", name, " @addr: ", to!string(addr));
             emit(encode(OP.CALL, addr));
         }
     }
@@ -155,7 +155,7 @@ struct Code_Generator {
         } else if (auto loop_stat = stat.instanceof!(ast.Loop_Statement_Node)) {
             gen_loop_stat(loop_stat);
         } else {
-            writeln("unhandled statement node " ~ to!string(stat));
+            err_logger.Warn("unhandled statement node " ~ to!string(stat));
         }
     }
 
@@ -177,7 +177,7 @@ struct Code_Generator {
         } else if (auto stat = node.instanceof!(ast.Statement_Node)) {
             gen_stat(stat);
         } else {
-            writeln("unhandled node ! " ~ to!string(node));
+            err_logger.Warn("unhandled node ! " ~ to!string(node));
         }
     }
 

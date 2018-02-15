@@ -7,6 +7,7 @@ import std.parallelism;
 import std.getopt;
 import std.datetime.stopwatch : StopWatch;
 
+import cflags;
 import colour;
 import tarjans_scc;
 import dependency_scanner;
@@ -22,15 +23,6 @@ import exec.instruction;
 import exec.exec_engine;
 import sema.analyzer;
 import back.code_gen;
-
-uint OPTIMIZATION_LEVEL = 1;
-const VERSION = "0.0.1";
-const KRUG_EXT = ".krug";
-bool RELEASE_MODE = false;
-string ARCH = "x86_64";
-string OUT_NAME = "main";
-bool RUN_PROGRAM = false;
-string ERROR_CODE = null;
 
 static string os_name() {
     // this should cover most of the important-ish ones
@@ -98,6 +90,7 @@ void main(string[] args) {
         "arch", "force architecture, e.g. x86 or x86_64", &ARCH,
         "run|r", "run program after compilation", &RUN_PROGRAM,
         "explain|e", "explains the given error code, e.g. -e E0001", &ERROR_CODE,
+        "sw", "suppresses compiler warnings", &SUPPRESS_COMPILER_WARNINGS,
     );
 
     // argument validation
