@@ -1,0 +1,9 @@
+func no() {}
+func yes() {}
+
+func main() {
+	let temp = 69;
+	let foo = 3;
+	let boob = &foo;
+	@boob = 15;
+}

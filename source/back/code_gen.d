@@ -63,6 +63,11 @@ struct Code_Generator {
             return get_ea((cast(ast.Path_Expression_Node)e).values[0]);
         }
 
+        // hacky.?
+        if (auto unary = e.instanceof!(ast.Unary_Expression_Node)) {
+            return get_ea(unary.value);
+        }
+
         err_logger.Fatal("Couldn't get addr for expression " ~ to!string(e));
         assert(0);
     }
@@ -136,9 +141,27 @@ struct Code_Generator {
         // TODO: handle me!
     }
 
+    void gen_unary_expr(ast.Unary_Expression_Node unary) {
+        switch (unary.operand.lexeme) {
+        case "@":
+            auto addr = get_ea(unary.value);
+            emit(encode(OP.LEA, addr));
+            return;
+        case "&":
+            auto addr = get_ea(unary.value);
+            emit(encode(OP.PSHI, addr));
+            return;
+        default: break;
+        }
+
+        err_logger.Fatal("unhandled unary " ~ to!string(unary.operand));
+    }
+
     void gen_expr(ast.Expression_Node expr) {
         if (auto binary = cast(ast.Binary_Expression_Node) expr) {
             gen_binary_expr(binary);
+        } else if (auto unary = cast(ast.Unary_Expression_Node) expr) {
+            gen_unary_expr(unary);
         } else if (auto integer = cast(ast.Integer_Constant_Node) expr) {
             // TODO handle types here.
             emit(encode(OP.PSHI, integer.value.to!int));

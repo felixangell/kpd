@@ -1,12 +1,23 @@
-func yes() {}
 func no() {}
+func yes() {}
+
+func complex() {
+	let a = 5;
+	let b = &a;
+	let c = &b;
+
+	@@c = 69;
+	if a == 69 {
+		yes();
+	}
+}
 
 func main() {
 	let foo = 3;
 	if foo == 3 {
 		yes();
 	}
-
+	
 	@foo = 15;
 
 	if foo == 3 {

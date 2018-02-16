@@ -114,6 +114,8 @@ static enum OP : ushort {
     // calls 
     CALL,
 
+    LEA,
+
     GOTO
 }
 
