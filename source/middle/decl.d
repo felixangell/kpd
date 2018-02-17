@@ -89,8 +89,6 @@ class Declaration_Pass : Top_Level_Node_Visitor, Semantic_Pass {
                 Blame_Token(existing.tok));
         }
 
-        writeln("before entering ", node.name.lexeme, " block: ", &curr_sym_table);
-
         // some functions have no body!
         // these are prototype functions
         if (node.func_body is null) {

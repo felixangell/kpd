@@ -45,7 +45,7 @@ class Name_Resolve_Pass : Top_Level_Node_Visitor, Semantic_Pass {
     }
 
     Symbol_Value find_symbol_in_stab(Symbol_Table t, string name) {
-        for (Symbol_Table s = t; s !is null; s = s.parent) {
+        for (Symbol_Table s = t; s !is null; s = s.outer) {
             if (name in s.symbols) {
                 return s.symbols[name];
             }

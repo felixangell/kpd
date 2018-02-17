@@ -22,32 +22,15 @@ class Top_Level_Node_Visitor : AST_Visitor {
     abstract void visit_stat(ast.Statement_Node);
 
     Symbol_Table push_sym_table() {
-        if (curr_sym_table is null) {
-            curr_sym_table = new Symbol_Table;
-            return curr_sym_table;
-        }
-
-        if (curr_sym_table.child !is null) {
-            curr_sym_table = curr_sym_table.child;
-            return curr_sym_table;
-        }
-
-        auto new_table = new Symbol_Table;
-        new_table.id = curr_sym_table.id + 1;
-        new_table.env = new Type_Environment(curr_sym_table.env);
-
-        // do the swap.
-        curr_sym_table.child = new_table;
-        new_table.parent = curr_sym_table;
-        curr_sym_table = new_table;
-
-        return new_table;
+        auto s = new Symbol_Table(curr_sym_table);
+        curr_sym_table = s;
+        return s;
     }
 
-    void leave_sym_table() {
-        if (curr_sym_table.parent !is null) {
-            curr_sym_table = curr_sym_table.parent;
-        }
+    Symbol_Table leave_sym_table() {
+        auto old = curr_sym_table;
+        curr_sym_table = old.outer;
+        return old;
     }
 
     void visit_block(ast.Block_Node block, void delegate() stuff = null) {

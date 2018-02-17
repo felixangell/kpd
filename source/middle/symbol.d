@@ -38,7 +38,7 @@ class Symbol_Value {
 }
 
 class Symbol_Table : Symbol_Value {
-    Symbol_Table parent, child;
+    Symbol_Table outer;
     Symbol_Value[string] symbols;
 
     uint id;
@@ -52,9 +52,17 @@ class Symbol_Table : Symbol_Value {
         super(reference, name);
     }
 
-    this() {
+    this(Symbol_Table outer = null) {
         super();
-        env = new Type_Environment;
+
+        this.id = outer is null ? 0 : outer.id + 1;
+        this.outer = outer;
+
+        if (outer is null) {
+            env = new Type_Environment;            
+        } else {
+            env = new Type_Environment(outer.env);
+        }
     }
 
     // registers the given symbol, if the

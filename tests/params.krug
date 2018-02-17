@@ -1,4 +1,8 @@
-func add(a int, b int) {}
+let a = 69;
+
+func add(a int, b int) {
+	let a = 3;
+}
 
 func main() {
 	let a = 3;
