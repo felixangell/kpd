@@ -28,9 +28,7 @@ class Type_Environment {
 
     this(Type_Environment parent) {
         this.parent = parent;
-    }
 
-    this() {
         // an optimisation.. we store all of the 
         // common primitives in every new Type_Environment
         // (we could also copy) so that we dont have
@@ -41,6 +39,10 @@ class Type_Environment {
         // a boolean type!
         register_type("true", prim_type("bool"));
         register_type("false", prim_type("bool"));
+    }
+
+    this() {
+        this(null);
     }
 
     Type[string] data;
@@ -58,7 +60,7 @@ class Type_Environment {
     // for example we could register that
     // true -> bool
     // false -> bool
-    // or add -> f(int, int) : int
+    // or add -> [int, int] : int
     void register_type(string key, Type t) {
         assert(key !in data);
         data[key] = t;
@@ -179,7 +181,13 @@ struct Type_Inferrer {
     }
 
     Type get_symbol_type(string sym_name) {
-        
+        Type t = get_type(sym_name);
+        if (t !is null) {
+            return t;
+        }
+
+        err_logger.Error("unhandled symbol lookup ", sym_name);
+        return null;
     }
 
     // TODO this needs to be done properly...

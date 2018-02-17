@@ -95,6 +95,8 @@ void dump_prog(Instruction[] program) {
     }
 }
 
+bool DONT_COMPILE = false;
+
 void main(string[] args) {
     StopWatch compilerTimer;
     compilerTimer.start();
@@ -112,7 +114,8 @@ void main(string[] args) {
         "run|r", "run program after compilation", &RUN_PROGRAM,
         "explain|e", "explains the given error code, e.g. -e E0001", &ERROR_CODE,
         "sw", "suppresses compiler warnings", &SUPPRESS_COMPILER_WARNINGS,
-        "dump_bc|b", "dumps the bytecode to stdout", &DUMP_BYTECODE);
+        "dump_bc|b", "dumps the bytecode to stdout", &DUMP_BYTECODE,
+        "dont_compile|c", "don't compile any bytecode", &DONT_COMPILE);
 
     // argument validation
     {
@@ -221,6 +224,8 @@ void main(string[] args) {
                 err_count) ~ " errors encountered.");
         return;
     }
+
+    if (DONT_COMPILE) return;
 
     // TOOD: do this properly.
     Instruction[] entire_program;

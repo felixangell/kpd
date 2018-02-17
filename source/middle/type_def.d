@@ -69,8 +69,13 @@ class Type_Define_Pass : Top_Level_Node_Visitor, Semantic_Pass {
         }
     }
 
-    override void analyze_let_node(ast.Variable_Statement_Node) {
+    override void analyze_let_node(ast.Variable_Statement_Node var) {
+        auto var_type = inferrer.analyze(var, curr_sym_table.env);
+        curr_sym_table.env.register_type(var.twine.lexeme, var_type);
 
+        foreach (entry; curr_sym_table.env.data.byKeyValue()) {
+            err_logger.Verbose(entry.key ~ " is " ~ to!string(entry.value));
+        }
     }
 
     override void analyze_function_node(ast.Function_Node node) {
@@ -103,13 +108,9 @@ class Type_Define_Pass : Top_Level_Node_Visitor, Semantic_Pass {
         });
     }
 
-    void visit_variable_stat(ast.Variable_Statement_Node var) {
-
-    }
-
     override void visit_stat(ast.Statement_Node stat) {
         if (auto var = cast(Variable_Statement_Node) stat) {
-            visit_variable_stat(var);
+            analyze_let_node(var);
         } else if (auto if_stat = cast(If_Statement_Node) stat) {
             visit_block(if_stat.block);
         } else if (auto while_loop = cast(While_Statement_Node) stat) {

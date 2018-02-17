@@ -14,10 +14,10 @@ class Type_Infer_Pass : Top_Level_Node_Visitor, Semantic_Pass {
     Type_Inferrer inferrer;
 
     override void analyze_named_type_node(ast.Named_Type_Node node) {
+        
     }
 
     override void analyze_let_node(ast.Variable_Statement_Node var) {
-        var.realType = inferrer.analyze(var, curr_sym_table.env);
     }
 
     override void analyze_function_node(ast.Function_Node node) {

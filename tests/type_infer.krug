@@ -3,9 +3,7 @@ func add(a int, b int) int {
 }
 
 func main() {
-	let foo = 3;
-	let bar = foo;
-	bar = bar * foo;
-
-	let z = add(foo, bar);
+	let f = -3;
+	let g = 4;
+	let c = f + g;
 }
