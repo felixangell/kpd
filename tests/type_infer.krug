@@ -1,0 +1,11 @@
+func add(a int, b int) int {
+	return 69;
+}
+
+func main() {
+	let foo = 3;
+	let bar = foo;
+	bar = bar * foo;
+
+	let z = add(foo, bar);
+}

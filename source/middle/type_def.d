@@ -74,21 +74,33 @@ class Type_Define_Pass : Top_Level_Node_Visitor, Semantic_Pass {
     }
 
     override void analyze_function_node(ast.Function_Node node) {
-        err_logger.Verbose("we need to type_def function! ");
+        err_logger.Verbose("Analyzing function node ", node.name.lexeme);
+
+        Type[] types;
+        foreach (p; node.params) {
+            types ~= inferrer.analyze(p.type, curr_sym_table.env);
+        }
+
+        // assume void return type because 
+        // return_type can be null.
+        Type ret = prim_type("void");
+        if (node.return_type !is null) {
+            inferrer.analyze(node.return_type, curr_sym_table.env);
+        }
+
+        curr_sym_table.env.register_type(node.name.lexeme, new Function(ret, types));
 
         // some functions have no body!
         // these are prototype functions
-        if (node.func_body !is null) {
-            visit_block(node.func_body);
+        if (node.func_body is null) {
+            return;
         }
 
-        foreach (entry; curr_sym_table.env.data.byKeyValue()) {
-            err_logger.Verbose(entry.key ~ " is " ~ to!string(entry.value));
-        }
-
-        if (node.func_body !is null) {
-            leave_sym_table();
-        }
+        visit_block(node.func_body, delegate() {
+            foreach (entry; curr_sym_table.env.data.byKeyValue()) {
+                err_logger.Verbose(entry.key ~ " is " ~ to!string(entry.value));
+            }
+        });
     }
 
     void visit_variable_stat(ast.Variable_Statement_Node var) {

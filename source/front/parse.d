@@ -1125,10 +1125,10 @@ class Parser : Compilation_Phase {
                 }
                 auto param = parse_func_param();
                 if (param.twine.lexeme in func.params) {
-                    err_logger.Error(["Parameter '" ~ colour.Bold(
-                            param.twine.lexeme) ~ "' defined here:", Blame_Token(param.twine),
-                            "Conflicts with symbol defined here: ",
-                            Blame_Token(func.params[param.twine.lexeme].twine),]);
+                    err_logger.Error("Parameter '" ~ colour.Bold(
+                        param.twine.lexeme) ~ "' defined here:", Blame_Token(param.twine),
+                        "Conflicts with symbol defined here: ",
+                        Blame_Token(func.params[param.twine.lexeme].twine));
                 } else {
                     func.params[param.twine.lexeme] = param;
                 }

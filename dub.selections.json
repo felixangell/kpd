@@ -1,6 +1,7 @@
 {
 	"fileVersion": 1,
 	"versions": {
+		"backtrace-d": "0.1.2",
 		"emsi_containers": "0.6.0"
 	}
 }

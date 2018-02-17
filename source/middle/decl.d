@@ -74,9 +74,9 @@ class Declaration_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 
             auto existing = curr_sym_table.register_sym(new Symbol(node, node.twine));
             if (existing !is null) {
-                err_logger.Error(["Named type '" ~ colour.Bold(
-                        node.twine.lexeme) ~ "' defined here:", Blame_Token(node.twine),
-                        "Conflicts with symbol defined here:", Blame_Token(existing.tok),]);
+                err_logger.Error("Named type '" ~ colour.Bold(
+                    node.twine.lexeme) ~ "' defined here:", Blame_Token(node.twine),
+                    "Conflicts with symbol defined here:", Blame_Token(existing.tok));
             }
         }
     }
@@ -84,9 +84,9 @@ class Declaration_Pass : Top_Level_Node_Visitor, Semantic_Pass {
     override void analyze_function_node(ast.Function_Node node) {
         auto existing = curr_sym_table.register_sym(new Symbol(node, node.name));
         if (existing !is null) {
-            err_logger.Error(["Function '" ~ colour.Bold(node.name.lexeme) ~ "' defined here:",
-                    Blame_Token(node.name), "Conflicts with symbol defined here:",
-                    Blame_Token(existing.tok),]);
+            err_logger.Error("Function '" ~ colour.Bold(node.name.lexeme) ~ "' defined here:",
+                Blame_Token(node.name), "Conflicts with symbol defined here:",
+                Blame_Token(existing.tok));
         }
 
         // some functions have no body!

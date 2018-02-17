@@ -119,9 +119,9 @@ void unify(Type a, Type b) {
             unify(var, opa);
         } else if (auto opb = cast(Type_Operator) pb) {
             if (cmp(opa.name, opb.name) || opa.types.length != opb.types.length) {
-                err_logger.Error(["Type mismatch '" ~ to!string(a) ~ "' defined here:",
-                        // Blame_Token(node.twine),
-                        "Conflicts with symbol defined here: ", to!string(b)]);
+                err_logger.Error("Type mismatch '" ~ to!string(a) ~ "' defined here:\n",
+                    // Blame_Token(node.twine),
+                    "Conflicts with symbol defined here:\n", to!string(b));
             }
 
             foreach (idx, t; opa.types) {
@@ -164,6 +164,11 @@ struct Type_Inferrer {
             return fresh(e.data[name]);
         }
 
+        err_logger.Verbose("Couldn't find type ", name, " in environment:");
+        foreach (entry; e.data.byKeyValue()) {
+            err_logger.Verbose(entry.key, " is ", to!string(entry.value));
+        }
+
         assert(0);
     }
 
@@ -171,6 +176,32 @@ struct Type_Inferrer {
         auto type_name = node.type_name.lexeme;
         // handle if this primitive doesn't exist.
         return prim_type(type_name);
+    }
+
+    Type get_symbol_type(string sym_name) {
+        
+    }
+
+    // TODO this needs to be done properly...
+    Type analyze_path(Path_Expression_Node path) {
+        auto fst = path.values[0];
+        return analyze(fst, e);
+    }
+
+    Type analyze_call(Call_Node call) {
+        Type func = analyze(call.left, e);
+        assert(func !is null);
+
+        if (auto f = cast(Function) func) {
+            // TODO check length of arguments
+
+            foreach (i, arg; f.types) {
+                unify(analyze(call.args[i], e), arg);
+            }
+
+            return f.ret;
+        }
+        assert(0);
     }
 
     Type analyze_variable(Variable_Statement_Node node) {
@@ -198,7 +229,13 @@ struct Type_Inferrer {
             auto right = analyze(binary.right, e);
             unify(left, right);
             return left;
-        } // this is mostly like
+        } 
+
+        else if (auto sym = cast(Symbol_Node) node) {
+            return get_symbol_type(sym.value.lexeme);
+        }
+
+        // this is mostly like
         // module.sub_mod.Type
         // Type
         // etc.
@@ -207,11 +244,21 @@ struct Type_Inferrer {
             auto type = path_type.values[0];
             Type t = e.lookup_type(type.lexeme);
             if (t is null) {
-                err_logger.Error(["Failed to resolve type '" ~ colour.Bold(type.lexeme) ~ "':",
-                        Blame_Token(type)]);
+                err_logger.Error("Failed to resolve type '" ~ colour.Bold(type.lexeme) ~ "':",
+                    Blame_Token(type));
             }
             return t;
-        } // constants
+        }
+
+        else if (auto path = cast(ast.Path_Expression_Node) node) {
+            return analyze_path(path);
+        }
+
+        else if (auto call = cast(ast.Call_Node) node) {
+            return analyze_call(call);
+        }
+
+        // constants
         else if (cast(Integer_Constant_Node) node) {
             return prim_type("int");
         } else if (cast(Float_Constant_Node) node) {

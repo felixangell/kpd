@@ -142,40 +142,34 @@ static void Log(Log_Level lvl, string str) {
     out_stream.writeln(str);
 }
 
-static void Error(Token context, string message) {
-    Error(message);
-    writeln(Blame_Token(context));
-}
-
-static void Error(string[] str...) {
-    Error(str[0]);
-    for (int i = 1; i < str.length; i++) {
-        stderr.writeln(str[i]);
-    }
-}
-
-static void Error(string str) {
-    Log(Log_Level.Error, str);
-}
-
-static void Warn(string str) {
-    Log(Log_Level.Warning, str);
-}
-
-static void Info(string str) {
-    Log(Log_Level.Info, str);
-}
-
-static void Fatal(string str) {
-    Log(Log_Level.Fatal, str);
-    assert(0); // TODO:
-}
-
-static void Verbose(string[] strings...) {
-    // eh
+static string join(string[] strings...) {
     string s;
     foreach (str; strings) {
         s ~= str;
     }
-    Log(Log_Level.Verbose, s);
+    return s;
+}
+
+static void Error(Token t, string msg) {
+    Error(msg, "\n", Blame_Token(t));
+}
+
+static void Error(string[] strings...) {
+    Log(Log_Level.Error, join(strings));
+}
+
+static void Warn(string[] strings...) {
+    Log(Log_Level.Warning, join(strings));
+}
+
+static void Info(string[] strings...) {
+    Log(Log_Level.Info, join(strings));
+}
+
+static void Fatal(string[] strings...) {
+    Log(Log_Level.Fatal, join(strings));
+}
+
+static void Verbose(string[] strings...) {
+    Log(Log_Level.Verbose, join(strings));
 }
