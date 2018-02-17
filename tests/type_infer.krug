@@ -2,7 +2,12 @@ func add(a int, b int) int {
 	return 69;
 }
 
+let y int = 3;
+
 func main() {
+	let z f64 = 555;
+	let a = z + 3.4;
+
 	let f = -3;
 	let g = 4;
 	let c = f + g;
