@@ -3,13 +3,11 @@ module sema.analyzer;
 import std.conv;
 
 import ast;
-import sema.range;
 import err_logger;
 import krug_module;
 import sema.decl;
 import sema.type_def;
 import sema.type_infer;
-import sema.resolve;
 import sema.name_resolve;
 
 import dependency_scanner;
@@ -24,8 +22,7 @@ Semantic_Pass[] passes = [
     new Declaration_Pass, 
     new Name_Resolve_Pass, 
     new Type_Define_Pass, 
-    // new Type_Infer_Pass,
-    // new Resolve_Pass,
+    new Type_Infer_Pass,
 ];
 
 struct Semantic_Analysis {

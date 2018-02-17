@@ -11,7 +11,6 @@ import err_logger;
 import colour;
 import sema.type : Type;
 import sema.symbol;
-import sema.range;
 import krug_module;
 
 // binding of an expression to a token
@@ -201,7 +200,6 @@ class Function_Node : Node {
 class Block_Node : Statement_Node {
     Statement_Node[] statements;
     Function_Node parent;
-    Scope range;
     Symbol_Table sym_table;
 
     this() {

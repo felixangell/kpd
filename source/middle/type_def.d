@@ -6,7 +6,6 @@ import std.conv;
 import ast;
 import sema.visitor;
 import sema.analyzer : Semantic_Pass;
-import sema.range;
 import sema.symbol;
 import sema.type;
 import sema.infer;
@@ -96,7 +95,7 @@ class Type_Define_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 
     }
 
-    void visit_stat(ast.Statement_Node stat) {
+    override void visit_stat(ast.Statement_Node stat) {
         if (auto var = cast(Variable_Statement_Node) stat) {
             visit_variable_stat(var);
         } else if (auto if_stat = cast(If_Statement_Node) stat) {
@@ -105,29 +104,11 @@ class Type_Define_Pass : Top_Level_Node_Visitor, Semantic_Pass {
             visit_block(while_loop.block);
         } else if (auto loop = cast(Loop_Statement_Node) stat) {
             visit_block(loop.block);
-        } else if (auto block = cast(Block_Node) stat) {
-            visit_block(block);
         } else if (cast(Call_Node) stat) {
             // NOOP
         } else {
             err_logger.Warn("type_def: unhandled statement " ~ to!string(stat));
         }
-    }
-
-    void visit_block(ast.Block_Node block) {
-        assert(block.sym_table !is null);
-        curr_sym_table = block.sym_table;
-        foreach (stat; block.statements) {
-            visit_stat(stat);
-        }
-    }
-
-    void leave_sym_table() {
-        if (curr_sym_table.parent is null) {
-            return;
-        }
-
-        curr_sym_table = curr_sym_table.parent;
     }
 
     override void execute(ref Module mod, string sub_mod_name) {

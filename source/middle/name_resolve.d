@@ -7,7 +7,6 @@ import err_logger;
 import ast;
 import sema.visitor;
 import sema.analyzer : Semantic_Pass;
-import sema.range;
 import sema.symbol;
 import diag.engine;
 import sema.type;
@@ -153,7 +152,7 @@ class Name_Resolve_Pass : Top_Level_Node_Visitor, Semantic_Pass {
         analyze_expr(call.left);
     }
 
-    void visit_stat(ast.Statement_Node stat) {
+    override void visit_stat(ast.Statement_Node stat) {
         if (auto variable = cast(ast.Variable_Statement_Node) stat) {
             analyze_let_node(variable);
         } else if (auto expr = cast(ast.Expression_Node) stat) {
@@ -169,20 +168,6 @@ class Name_Resolve_Pass : Top_Level_Node_Visitor, Semantic_Pass {
         } else {
             err_logger.Warn("name_resolve: unhandled statement " ~ to!string(stat));
         }
-    }
-
-    void visit_block(ast.Block_Node block) {
-        assert(block.sym_table !is null);
-        curr_sym_table = block.sym_table;
-
-        foreach (stat; block.statements) {
-            if (stat is null) {
-                err_logger.Fatal("what? " ~ to!string(block));
-            }
-            visit_stat(stat);
-        }
-
-        curr_sym_table = curr_sym_table.parent;
     }
 
     override void execute(ref Module mod, string sub_mod_name) {

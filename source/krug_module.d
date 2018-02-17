@@ -9,7 +9,6 @@ import std.string;
 
 import containers.hashset;
 import ast;
-import sema.range;
 import sema.symbol;
 
 import err_logger;
@@ -98,9 +97,6 @@ class Module {
 
     // other modules that this module includes
     Module[string] edges;
-
-    // TODO remove this scope stuff
-    Scope[string] scopes;
 
     // the root symbol table for the submodule
     Symbol_Table[string] sym_tables;

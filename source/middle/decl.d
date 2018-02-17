@@ -8,7 +8,6 @@ import colour;
 import ast;
 import sema.analyzer : Semantic_Pass;
 import sema.infer : Type_Environment;
-import sema.range;
 import sema.symbol;
 import sema.visitor;
 import krug_module;
@@ -18,37 +17,6 @@ import krug_module;
 /// build a virtualized scope, each declaration is local to its
 /// scope
 class Declaration_Pass : Top_Level_Node_Visitor, Semantic_Pass {
-    Symbol_Table curr_sym_table;
-
-    Symbol_Table push_sym_table() {
-        if (curr_sym_table is null) {
-            curr_sym_table = new Symbol_Table;
-            return curr_sym_table;
-        }
-
-        if (curr_sym_table.child !is null) {
-            curr_sym_table = curr_sym_table.child;
-            return curr_sym_table;
-        }
-
-        auto new_table = new Symbol_Table;
-        new_table.id = curr_sym_table.id + 1;
-        new_table.env = new Type_Environment(curr_sym_table.env);
-
-        // do the swap.
-        curr_sym_table.child = new_table;
-        new_table.parent = curr_sym_table;
-        curr_sym_table = new_table;
-
-        return new_table;
-    }
-
-    void leave_sym_table() {
-        if (curr_sym_table.parent !is null) {
-            curr_sym_table = curr_sym_table.parent;
-        }
-    }
-
     Symbol_Table analyze_structure_type_node(ast.Structure_Type_Node s) {
         auto table = new Symbol_Table;
         foreach (idx, field; s.fields) {
@@ -70,6 +38,18 @@ class Declaration_Pass : Top_Level_Node_Visitor, Semantic_Pass {
             table.register_sym(new Symbol(field, field.name));
         }
         return table;
+    }
+
+    override void visit_stat(ast.Statement_Node stat) {
+        if (auto var = cast(Variable_Statement_Node) stat) {
+            analyze_let_node(var);
+        } else if (auto while_loop = cast(ast.While_Statement_Node) stat) {
+            visit_block(while_loop.block);
+        } else if (auto if_stat = cast(ast.If_Statement_Node) stat) {
+            visit_block(if_stat.block);
+        } else {
+            err_logger.Warn("decl: Unhandled statement " ~ to!string(stat));
+        }
     }
 
     override void analyze_named_type_node(ast.Named_Type_Node node) {
@@ -136,27 +116,6 @@ class Declaration_Pass : Top_Level_Node_Visitor, Semantic_Pass {
         // which would cause a seg fault!
         if (node.func_body !is null) {
             leave_sym_table();
-        }
-    }
-
-    void visit_block(ast.Block_Node block) {
-        if (block.sym_table is null) {
-            block.sym_table = push_sym_table();
-        }
-        curr_sym_table = block.sym_table;
-
-        foreach (stat; block.statements) {
-            if (auto var = cast(Variable_Statement_Node) stat) {
-                analyze_let_node(var);
-            } else if (auto while_loop = cast(ast.While_Statement_Node) stat) {
-                visit_block(while_loop.block);
-            } else if (auto block_node = cast(ast.Block_Node) stat) {
-                visit_block(block_node);
-            } else if (auto if_stat = cast(ast.If_Statement_Node) stat) {
-                visit_block(if_stat.block);
-            } else {
-                err_logger.Warn("decl: Unhandled statement " ~ to!string(stat));
-            }
         }
     }
 
