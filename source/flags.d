@@ -1,6 +1,6 @@
 module cflags;
 
-uint OPTIMIZATION_LEVEL = 1;
+uint OPTIMIZATION_LEVEL = 0;
 
 const VERSION = "0.0.1";
 

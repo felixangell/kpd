@@ -122,8 +122,8 @@ void main(string[] args) {
         // TODO: sanitize all of them, though we dont need
         // to do this just now because we may end up parsing
         // the flags ourselves.
-        if (OPTIMIZATION_LEVEL < 1 || OPTIMIZATION_LEVEL > 3) {
-            err_logger.Error("optimization level must be between 1 and 3.");
+        if (OPTIMIZATION_LEVEL < 0 || OPTIMIZATION_LEVEL > 3) {
+            err_logger.Error("optimization level must be between 0 and 3.");
         }
     }
 
