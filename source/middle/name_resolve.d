@@ -46,8 +46,13 @@ class Name_Resolve_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 
     Symbol_Value find_symbol_in_stab(Symbol_Table t, string name) {
         for (Symbol_Table s = t; s !is null; s = s.outer) {
+            err_logger.Verbose("LOOKING FOR ", name, " in:");
+            s.dump_values();
+
             if (name in s.symbols) {
-                return s.symbols[name];
+                auto val = s.symbols[name];
+                err_logger.Verbose("LOCATED SYMBOL ", name, " . ", to!string(val));
+                return val;
             }
         }
         return null;
@@ -98,11 +103,18 @@ class Name_Resolve_Pass : Top_Level_Node_Visitor, Semantic_Pass {
             if (auto stab = cast(Symbol_Table) found_sym) {
                 last = stab;
             } else if (i != path.values.length - 1) {
+                Token next_tok = null;
+                if (auto next_sym = cast(Symbol_Node) path.values[i + 1]) {
+                    next_tok = next_sym.value;
+                } else {
+                    next_tok = sym.value;
+                }
+
                 // it's not a symbol table so there is no more
                 // places for us to search and we still have
                 // iterations left i.e. thinks to resolve.
                 // throw an unresolved error
-                Diagnostic_Engine.throw_error(compiler_error.UNRESOLVED_SYMBOL, sym.value);
+                Diagnostic_Engine.throw_error(compiler_error.UNRESOLVED_SYMBOL, next_tok);
                 return;
             }
         }

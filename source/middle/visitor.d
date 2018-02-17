@@ -29,6 +29,7 @@ class Top_Level_Node_Visitor : AST_Visitor {
 
     Symbol_Table leave_sym_table() {
         auto old = curr_sym_table;
+        err_logger.Verbose(" - POPPED SYMBOL TABLE ", to!string(old.id));
         curr_sym_table = old.outer;
         return old;
     }
@@ -41,6 +42,12 @@ class Top_Level_Node_Visitor : AST_Visitor {
             err_logger.Verbose("Setting up a symbol table in block");
             block.sym_table = push_sym_table();
         }
+
+        err_logger.Verbose(" - RESTORING SYMBOL TABLE ", to!string(block.sym_table.id));
+        foreach (entry; block.sym_table.symbols.byKeyValue()) {
+            err_logger.Verbose("   -> ", entry.key);
+        }
+        err_logger.Verbose(".");
 
         curr_sym_table = block.sym_table;
 

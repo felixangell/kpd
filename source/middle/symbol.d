@@ -65,6 +65,14 @@ class Symbol_Table : Symbol_Value {
         }
     }
 
+    void dump_values() {
+        err_logger.Verbose("symbol_table_" ~ to!string(id) ~ ":");
+        foreach (v; symbols.byKeyValue()) {
+            err_logger.Verbose("  > ", v.key);
+        }
+        err_logger.Verbose(".");
+    }
+
     // registers the given symbol, if the
     // symbol already exists it will be
     // returned from the symbol table in the scope.
