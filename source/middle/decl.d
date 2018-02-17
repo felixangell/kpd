@@ -91,16 +91,18 @@ class Declaration_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 
         // some functions have no body!
         // these are prototype functions
-        if (node.func_body !is null) {
-            visit_block(node.func_body);
+        if (node.func_body is null) {
+            return;
         }
 
-        foreach (param_entry; node.params.byKeyValue()) {
-            auto param = param_entry.value;
-            // we don't have to check for conflicts here because
-            // this HAS to be done during the parsing stage!
-            curr_sym_table.register_sym(new Symbol(param, param.twine.lexeme));
-        }
+        visit_block(node.func_body, delegate () {
+            foreach (param_entry; node.params.byKeyValue()) {
+                auto param = param_entry.value;
+                // we don't have to check for conflicts here because
+                // this HAS to be done during the parsing stage!
+                curr_sym_table.register_sym(new Symbol(param, param.twine.lexeme));
+            }
+        });
 
         // TODO check that the function receiver
         // is a valid symbol
@@ -108,15 +110,6 @@ class Declaration_Pass : Top_Level_Node_Visitor, Semantic_Pass {
         // TODO store a ptr to this method
         // in the Structure it's a member of.
         // if func recvr exists.
-
-        // only pop the scope if the function has
-        // a definition. otherwise we wont have
-        // a scope pushed and we'll be popping the parent
-        // scope which is likely the only scope we have
-        // which would cause a seg fault!
-        if (node.func_body !is null) {
-            leave_sym_table();
-        }
     }
 
     override void analyze_let_node(ast.Variable_Statement_Node node) {

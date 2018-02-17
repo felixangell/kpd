@@ -3,6 +3,7 @@ module sema.visitor;
 import ast;
 import err_logger;
 import sema.symbol;
+import sema.infer : Type_Environment;
 
 import std.conv;
 
@@ -49,11 +50,12 @@ class Top_Level_Node_Visitor : AST_Visitor {
         }
     }
 
-    void visit_block(ast.Block_Node block) {
+    void visit_block(ast.Block_Node block, void delegate() stuff = null) {
         // this should ONLY happen on the first pass...
         // maybe have a check to throw an error if 
         // this occurs after the decl pass.
         if (block.sym_table is null) {
+            err_logger.Verbose("Setting up a symbol table in block");
             block.sym_table = push_sym_table();
         }
 
@@ -64,6 +66,7 @@ class Top_Level_Node_Visitor : AST_Visitor {
                 err_logger.Warn("null statement in block? " ~ to!string(block));
                 continue;
             }
+
             // handle nested blocks
             if (auto b = cast(Block_Node) stat) {
                 visit_block(b);
@@ -71,6 +74,12 @@ class Top_Level_Node_Visitor : AST_Visitor {
                 visit_stat(stat);                
             }
         }
+
+        if (stuff !is null) {
+            stuff();
+        }
+
+        leave_sym_table();
     }
 
     override void process_node(ast.Node node) {

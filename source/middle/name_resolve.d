@@ -14,7 +14,6 @@ import krug_module;
 import compiler_error;
 
 class Name_Resolve_Pass : Top_Level_Node_Visitor, Semantic_Pass {
-    Symbol_Table curr_sym_table;
     Module mod;
 
     Symbol_Value find_symbol(Symbol_Table table, string name) {
@@ -163,8 +162,6 @@ class Name_Resolve_Pass : Top_Level_Node_Visitor, Semantic_Pass {
             analyze_if_stat(if_stat);
         } else if (auto call = cast(ast.Call_Node) stat) {
             analyze_call(call);
-        } else if (auto block = cast(ast.Block_Node) stat) {
-            visit_block(block);
         } else {
             err_logger.Warn("name_resolve: unhandled statement " ~ to!string(stat));
         }
