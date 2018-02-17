@@ -89,6 +89,8 @@ class Declaration_Pass : Top_Level_Node_Visitor, Semantic_Pass {
                 Blame_Token(existing.tok));
         }
 
+        writeln("before entering ", node.name.lexeme, " block: ", &curr_sym_table);
+
         // some functions have no body!
         // these are prototype functions
         if (node.func_body is null) {
@@ -115,7 +117,9 @@ class Declaration_Pass : Top_Level_Node_Visitor, Semantic_Pass {
     override void analyze_let_node(ast.Variable_Statement_Node node) {
         auto existing = curr_sym_table.register_sym(new Symbol(node, node.twine));
         if (existing !is null) {
-            err_logger.Error("Variable '", colour.Bold(node.twine.lexeme), "' defined here:", Blame_Token(node.twine), "Conflicts with symbol defined here: ");
+            err_logger.Error("Variable '", colour.Bold(node.twine.lexeme), "' defined here:\n", 
+                Blame_Token(node.twine), 
+                "Conflicts with symbol defined here: \n");
         }
     }
 

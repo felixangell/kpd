@@ -1,0 +1,5 @@
+func add(a int, b int) {}
+
+func main() {
+	let a = 3;
+}
