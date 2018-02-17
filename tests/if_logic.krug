@@ -1,8 +1,5 @@
-func say_apple() { }
-
-func dont_say_apple() {
-	
-}
+func say_apple() { } 		// 0
+func dont_say_apple() {} 	// 2
 
 func main() {
 	if 1 == 0 && 0 == 1 {

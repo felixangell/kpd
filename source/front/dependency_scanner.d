@@ -87,7 +87,7 @@ struct Krug_Project {
 
         graph.register_module(mod);
 
-        foreach (ref file; mod.fileCache) {
+        foreach (ref file; mod.file_cache) {
             if (!file.endsWith(".krug")) {
                 continue;
             }

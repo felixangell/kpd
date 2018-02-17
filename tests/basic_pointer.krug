@@ -6,4 +6,7 @@ func main() {
 	let foo = 3;
 	let boob = &foo;
 	@boob = 15;
+	if foo == 15 {
+		yes();
+	}
 }

@@ -85,22 +85,24 @@ alias Token_Stream = Token[];
 // module is like a SOA for sub modules
 class Module {
     string path, name;
-    HashSet!string fileCache;
+    HashSet!string file_cache;
 
     // this looks messy but modules are
     // structured as SOA
 
+    // frontend generated data structure
+    // things which are analzed.
     Source_File[string] source_files;
-
     Token_Stream[string] token_streams;
-
     AST[string] as_trees;
 
-    Scope[string] scopes;
-
+    // other modules that this module includes
     Module[string] edges;
 
-    // the root symbol table
+    // TODO remove this scope stuff
+    Scope[string] scopes;
+
+    // the root symbol table for the submodule
     Symbol_Table[string] sym_tables;
 
     // for tarjans scc
@@ -114,7 +116,7 @@ class Module {
     this(string path) {
         this.path = path;
         this.name = std.path.baseName(path);
-        this.fileCache = list_dir(path);
+        this.file_cache = list_dir(path);
     }
 
     size_t dep_count() {
@@ -130,7 +132,7 @@ class Module {
 
         // check that the sub-module exists, it's
         // easier to append the krug extension on at this point
-        return fileCache.contains(name ~ ".krug");
+        return file_cache.contains(name ~ ".krug");
     }
 
     Source_File load_source_file(string name) {
