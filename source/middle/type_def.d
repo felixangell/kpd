@@ -75,6 +75,8 @@ class Type_Define_Pass : Top_Level_Node_Visitor, Semantic_Pass {
     }
 
     override void analyze_function_node(ast.Function_Node node) {
+        err_logger.Verbose("we need to type_def function! ");
+
         // some functions have no body!
         // these are prototype functions
         if (node.func_body !is null) {
@@ -97,6 +99,16 @@ class Type_Define_Pass : Top_Level_Node_Visitor, Semantic_Pass {
     void visit_stat(ast.Statement_Node stat) {
         if (auto var = cast(Variable_Statement_Node) stat) {
             visit_variable_stat(var);
+        } else if (auto if_stat = cast(If_Statement_Node) stat) {
+            visit_block(if_stat.block);
+        } else if (auto while_loop = cast(While_Statement_Node) stat) {
+            visit_block(while_loop.block);
+        } else if (auto loop = cast(Loop_Statement_Node) stat) {
+            visit_block(loop.block);
+        } else if (auto block = cast(Block_Node) stat) {
+            visit_block(block);
+        } else if (cast(Call_Node) stat) {
+            // NOOP
         } else {
             err_logger.Warn("type_def: unhandled statement " ~ to!string(stat));
         }
@@ -105,6 +117,9 @@ class Type_Define_Pass : Top_Level_Node_Visitor, Semantic_Pass {
     void visit_block(ast.Block_Node block) {
         assert(block.sym_table !is null);
         curr_sym_table = block.sym_table;
+        foreach (stat; block.statements) {
+            visit_stat(stat);
+        }
     }
 
     void leave_sym_table() {

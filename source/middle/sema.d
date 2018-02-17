@@ -24,8 +24,8 @@ Semantic_Pass[] passes = [
     new Declaration_Pass, 
     new Name_Resolve_Pass, 
     new Type_Define_Pass, 
-    new Type_Infer_Pass,
-    new Resolve_Pass,
+    // new Type_Infer_Pass,
+    // new Resolve_Pass,
 ];
 
 struct Semantic_Analysis {

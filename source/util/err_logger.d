@@ -147,7 +147,7 @@ static void Error(Token context, string message) {
     writeln(Blame_Token(context));
 }
 
-static void Error(string[] str) {
+static void Error(string[] str...) {
     Error(str[0]);
     for (int i = 1; i < str.length; i++) {
         stderr.writeln(str[i]);

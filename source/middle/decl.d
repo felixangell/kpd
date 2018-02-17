@@ -87,7 +87,8 @@ class Declaration_Pass : Top_Level_Node_Visitor, Semantic_Pass {
             table.name = name;
             table.reference = node;
             curr_sym_table.register_sym(name, table);
-        } // TODO: traits.
+        } 
+        // TODO: traits.
         else {
             // just a symbol we dont care about the type
 
@@ -162,9 +163,7 @@ class Declaration_Pass : Top_Level_Node_Visitor, Semantic_Pass {
     override void analyze_let_node(ast.Variable_Statement_Node node) {
         auto existing = curr_sym_table.register_sym(new Symbol(node, node.twine));
         if (existing !is null) {
-            err_logger.Error(["Variable '" ~ colour.Bold(node.twine.lexeme) ~ "' defined here:",
-                    Blame_Token(node.twine), "Conflicts with symbol defined here: ", // Blame_Token(existing),
-                    ]);
+            err_logger.Error("Variable '", colour.Bold(node.twine.lexeme), "' defined here:", Blame_Token(node.twine), "Conflicts with symbol defined here: ");
         }
     }
 
@@ -172,8 +171,7 @@ class Declaration_Pass : Top_Level_Node_Visitor, Semantic_Pass {
         assert(mod !is null);
 
         if (sub_mod_name !in mod.as_trees) {
-            err_logger.Error(
-                    "couldn't find the AST for " ~ sub_mod_name ~ " in module " ~ mod.name ~ " ...");
+            err_logger.Error("couldn't find the AST for " ~ sub_mod_name ~ " in module " ~ mod.name ~ " ...");
             return;
         }
 

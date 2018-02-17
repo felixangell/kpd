@@ -123,6 +123,12 @@ class Name_Resolve_Pass : Top_Level_Node_Visitor, Semantic_Pass {
             analyze_call(call);
         } else if (auto unary = cast(ast.Unary_Expression_Node) expr) {
             analyze_unary_unary(unary);
+        } else if (cast(ast.Integer_Constant_Node) expr) {
+            // NOOP
+        } else if (cast(ast.Float_Constant_Node) expr) {
+            // NOOP
+        } else if (cast(ast.String_Constant_Node) expr) {
+            // NOOP
         } else {
             err_logger.Warn("name_resolve: unhandled node " ~ to!string(expr));
         }
