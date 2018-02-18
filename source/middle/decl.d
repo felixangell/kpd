@@ -83,8 +83,8 @@ class Declaration_Pass : Top_Level_Node_Visitor, Semantic_Pass {
   override void analyze_function_node(ast.Function_Node node) {
     auto existing = curr_sym_table.register_sym(new Symbol(node, node.name));
     if (existing !is null) {
-      err_logger.Error("Function '" ~ colour.Bold(node.name.lexeme) ~ "' defined here:",
-          Blame_Token(node.name), "Conflicts with symbol defined here:",
+      err_logger.Error("Function '" ~ colour.Bold(node.name.lexeme) ~ "' defined here:\n",
+          Blame_Token(node.name), "Conflicts with symbol defined here:\n",
           Blame_Token(existing.tok));
     }
 

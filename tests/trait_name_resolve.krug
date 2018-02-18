@@ -1,0 +1,19 @@
+type Animal trait {
+	speak func() void,
+};
+
+type Cow struct {};
+
+func (c Cow) speak() {
+	
+}
+
+type Frog struct {};
+
+func (f Frog) speak() {
+	
+}
+
+func main() {
+		
+}
