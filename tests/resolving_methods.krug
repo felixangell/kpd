@@ -1,0 +1,9 @@
+type thing struct {};
+
+func (t thing) blah() {}
+
+func main() {
+	let t thing;
+	t.blah();
+	t.fooblah();
+}

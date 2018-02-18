@@ -21,5 +21,7 @@ func main() {
 	window.size.width = 1280;
 	window.size.height = 720;
 
+	doesnt_exist();
+	window.doesnt_exist();
 	window.change_title("my new title!");
 }
