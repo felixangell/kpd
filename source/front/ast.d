@@ -210,6 +210,7 @@ class Block_Node : Statement_Node {
 // EXPRESSION AST NODES
 
 class Expression_Node : Statement_Node {
+  Symbol_Value resolved_symbol = null;
 }
 
 class Call_Node : Expression_Node {
@@ -235,6 +236,10 @@ class Symbol_Node : Expression_Node {
 
 class Path_Expression_Node : Expression_Node {
   Expression_Node[] values;
+
+  // the table in which the path was
+  // resolved to.
+  Symbol_Table resolved_to = null;
 }
 
 class Slice_Expression_Node : Expression_Node {

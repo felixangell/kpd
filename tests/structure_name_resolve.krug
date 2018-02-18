@@ -1,6 +1,12 @@
+type Foo struct {
+	greeting string,
+	thingy uint,
+};
+
 type Person struct {
 	name string,
 	age uint,
+	blah Foo,
 };
 
 func main() {
@@ -10,4 +16,7 @@ func main() {
 
 	let felix_age = felix.age;
 	felix.name;
+
+	felix.blah.greeting;
+	felix.blah.thingy + felix.blah.thingy;
 }

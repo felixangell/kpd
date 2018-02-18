@@ -137,6 +137,8 @@ class Name_Resolve_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 
     if (auto var = cast(ast.Variable_Statement_Node) s.reference) {
       return resolve_type(var.type);
+    } else if (auto field = cast(ast.Structure_Field) s.reference) {
+      return resolve_type(field.type);
     }
 
     err_logger.Verbose(to!string(s.reference), " has not been handled in resolve_via!");
@@ -161,6 +163,8 @@ class Name_Resolve_Pass : Top_Level_Node_Visitor, Semantic_Pass {
       } else {
         found_sym = find_symbol_in_stab(last, sym.value.lexeme);
       }
+
+      e.resolved_symbol = found_sym;
 
       if (found_sym is null) {
         Diagnostic_Engine.throw_error(compiler_error.UNRESOLVED_SYMBOL, sym.value);
@@ -196,6 +200,11 @@ class Name_Resolve_Pass : Top_Level_Node_Visitor, Semantic_Pass {
         return;
       }
     }
+
+    // if we made it all the way here, our node has been resolved
+    // nicely. we're going to give the node a link to the symbol table
+    // it was resolved to
+    path.resolved_to = last;
   }
 
   void analyze_unary_unary(ast.Unary_Expression_Node unary) {
