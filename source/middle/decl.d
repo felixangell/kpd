@@ -80,8 +80,51 @@ class Declaration_Pass : Top_Level_Node_Visitor, Semantic_Pass {
     }
   }
 
+  string mangle_word(string word) {
+    return to!string(word.length) ~ "" ~ word;
+  }
+
+  // TODO: a documented/well defined mangling scheme
+  // that is capable of mangling the entire AST
+  // for now, however, this is all we need.
+  string mangle_type(ast.Type_Node t) {
+    if (auto type_path = cast(ast.Type_Path_Node) t) {
+      if (type_path.values.length == 1) {
+        return mangle_word(type_path.values[0].lexeme);
+      }
+      // handle proper type paths...
+    }
+
+    err_logger.Verbose("mangle_type: unhandled type node ", to!string(t));
+    assert(0);
+  }
+
   override void analyze_function_node(ast.Function_Node node) {
-    auto existing = curr_sym_table.register_sym(new Symbol(node, node.name));
+    // TODO:
+    // we have two options here:
+    // - change the sym_table structure so that
+    //   we can store methods
+    // - mangle the method and store it in the same sym table
+    //
+    // I feel like we should choose the first option because
+    // we dont have enough type information to mangle anything
+    // just yet, though mangling is a bit easier possibly to
+    // store, but if we can't suffice without the type info, etc.
+    // then it might be a bit more complicated and the first
+    // option is definitely the way to go.
+
+    string symbol_name = node.name.lexeme;
+    if (node.func_recv !is null) {
+      // we have a function recv, this is a method.
+      // instead of storing the symbol, we are going to mangle
+      // the function receiver type and then mangle the function
+      // name and store the symbol with the mangled name instead.
+      // e.g. func (i int) do_stuff() will be stored and mangled as 
+      // __3int_do_stuff
+      symbol_name = "__" ~ mangle_type(node.func_recv.type) ~ "_" ~ mangle_word(symbol_name);
+    }
+
+    auto existing = curr_sym_table.register_sym(new Symbol(node, symbol_name));
     if (existing !is null) {
       err_logger.Error("Function '" ~ colour.Bold(node.name.lexeme) ~ "' defined here:\n",
           Blame_Token(node.name), "Conflicts with symbol defined here:\n",
