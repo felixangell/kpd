@@ -549,7 +549,7 @@ class Parser : Compilation_Phase {
 
       while (has_next()) {
         // TODO FIXME, this should be parse_type_path apparently.
-        sigil.restrictions ~= parse_type();
+        sigil.restrictions ~= parse_type_path();
         if (!peek().cmp("+")) {
           break;
         }
@@ -1111,6 +1111,20 @@ class Parser : Compilation_Phase {
     }
 
     func.name = expect(Token_Type.Identifier);
+
+    // parse the generic sigils.
+    if (peek().cmp("!")) {
+      expect("!"); expect("(");
+
+      for (int idx = 0; has_next() && !peek().cmp(")"); idx++) {
+        if (idx > 0) {
+          expect(",");
+        }
+        func.generics ~= parse_generic_sigil();
+      }
+
+      expect(")");
+    }
 
     // TODO: we dont use the Function Type here... hmm?
 

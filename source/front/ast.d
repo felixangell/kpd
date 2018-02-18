@@ -195,6 +195,8 @@ class Function_Node : Node {
   Block_Node func_body;
   Variable_Statement_Node func_recv;
   Function_Parameter[string] params;
+
+  Generic_Sigil[] generics;
 }
 
 class Block_Node : Statement_Node {
@@ -464,7 +466,7 @@ public:
 
 struct Generic_Sigil {
   Token name;
-  Type_Node[] restrictions;
+  Type_Path_Node[] restrictions;
 }
 
 // i dont think order matters here,

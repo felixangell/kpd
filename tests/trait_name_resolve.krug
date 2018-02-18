@@ -1,3 +1,5 @@
+func writeln(msg string) {}
+
 type Animal trait {
 	speak func() void,
 };
@@ -5,15 +7,25 @@ type Animal trait {
 type Cow struct {};
 
 func (c Cow) speak() {
-	
+	writeln("hi im a cow");
 }
 
 type Frog struct {};
 
 func (f Frog) speak() {
-	
+	writeln("m name jeff");
+}
+
+func speak!(T: Animal)(animal T) {
+	// todo this does not resolve
+	// params are not introduced into the symbol table?
+	animal.speak();
 }
 
 func main() {
-		
+	let bobby Cow;
+	speak(cow);
+
+	let jeff Frog;
+	speak(frog);
 }
