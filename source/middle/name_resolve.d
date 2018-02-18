@@ -139,6 +139,8 @@ class Name_Resolve_Pass : Top_Level_Node_Visitor, Semantic_Pass {
       return resolve_type(var.type);
     } else if (auto field = cast(ast.Structure_Field) s.reference) {
       return resolve_type(field.type);
+    } else if (auto param = cast(ast.Function_Parameter) s.reference) {
+      return resolve_type(param.type);
     }
 
     err_logger.Verbose(to!string(s.reference), " has not been handled in resolve_via!");

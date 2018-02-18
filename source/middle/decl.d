@@ -93,6 +93,8 @@ class Declaration_Pass : Top_Level_Node_Visitor, Semantic_Pass {
         return mangle_word(type_path.values[0].lexeme);
       }
       // handle proper type paths...
+    } else if (auto ptr = cast(ast.Pointer_Type_Node) t) {
+      return mangle_word("ptr") ~ "_" ~ mangle_type(ptr.base_type);
     }
 
     err_logger.Verbose("mangle_type: unhandled type node ", to!string(t));
@@ -138,6 +140,12 @@ class Declaration_Pass : Top_Level_Node_Visitor, Semantic_Pass {
     }
 
     visit_block(node.func_body, delegate() {
+      // introduce recv (if applicable) into func body symbol table
+      if (node.func_recv !is null) {
+        curr_sym_table.register_sym(new Symbol(node.func_recv, node.func_recv.twine.lexeme));
+      }
+
+      // introduce parameters into function body symbol table
       foreach (param_entry; node.params.byKeyValue()) {
         auto param = param_entry.value;
         // we don't have to check for conflicts here because

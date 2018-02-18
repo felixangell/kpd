@@ -1,0 +1,25 @@
+type Dimension struct {
+	width uint,
+	height uint,
+};
+
+type Game_Window struct {
+	title string,
+	x uint,
+	y uint,
+	size Dimension,
+};
+
+func (gw *Game_Window) change_title(new_title string) {
+	gw.title = new_title;
+}
+
+func main() {
+	let window *Game_Window;
+	window.title = "Tetris";
+	window.x = window.y = 0;
+	window.size.width = 1280;
+	window.size.height = 720;
+
+	window.change_title("my new title!");
+}

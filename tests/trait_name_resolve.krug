@@ -1,4 +1,8 @@
-func writeln(msg string) {}
+func writeln(msg string) {
+	if msg == "hello" {
+		// no!
+	}
+}
 
 type Animal trait {
 	speak func() void,
