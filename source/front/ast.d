@@ -219,6 +219,11 @@ class Call_Node : Expression_Node {
   Expression_Node left;
   Expression_Node[] args;
 
+  // some_foo!int();
+  // some_other!(int, double, Foo)();
+  // some_blah!(int)();
+  ast.Type_Path_Node[] generic_params;
+
   this(Expression_Node left) {
     this.left = left;
   }

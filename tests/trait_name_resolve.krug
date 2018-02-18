@@ -24,8 +24,8 @@ func speak!(T: Animal)(animal T) {
 
 func main() {
 	let bobby Cow;
-	speak(cow);
+	speak!(Cow)(cow);
 
 	let jeff Frog;
-	speak(frog);
+	speak!Frog(frog);
 }

@@ -464,9 +464,33 @@ class Parser : Compilation_Phase {
   }
 
   ast.Call_Node parse_call(Expression_Node left) {
+    auto node = new Call_Node(left);
+
+    // parse generic parameters.
+    if (peek().cmp("!")) {
+      consume();
+
+      // multiple params
+      if (peek().cmp("(")) {
+        consume();
+
+        for (int i = 0; has_next() && !peek().cmp(")"); i++) {
+          if (i > 0) {
+            expect(",");
+          }
+
+          node.generic_params ~= parse_type_path();
+        }
+
+        expect(")");
+      } else {
+        // single param
+        node.generic_params ~= parse_type_path();
+      }
+    }
+
     expect("(");
 
-    auto node = new Call_Node(left);
     for (int i = 0; has_next() && !peek().cmp(")"); i++) {
       // these are for annotations, and are erased
       // these simply exist for reading the code.
@@ -633,6 +657,9 @@ class Parser : Compilation_Phase {
     switch (tok.lexeme) {
     case "[":
       result = parse_index_expr(left);
+      break;
+    case "!":
+      result = parse_call(left);
       break;
     case "(":
       result = parse_call(left);
