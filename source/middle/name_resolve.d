@@ -13,6 +13,8 @@ import sema.type;
 import krug_module;
 import compiler_error;
 
+immutable bool NAME_RESOLVE_DEBUG = false;
+
 class Name_Resolve_Pass : Top_Level_Node_Visitor, Semantic_Pass {
   Module mod;
 
@@ -46,12 +48,17 @@ class Name_Resolve_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 
   Symbol_Value find_symbol_in_stab(Symbol_Table t, string name) {
     for (Symbol_Table s = t; s !is null; s = s.outer) {
-      err_logger.Verbose("LOOKING FOR ", name, " in:");
-      s.dump_values();
+      
+      static if (NAME_RESOLVE_DEBUG) {
+        err_logger.Verbose("LOOKING FOR ", name, " in:");
+        s.dump_values();
+      }
 
       if (name in s.symbols) {
         auto val = s.symbols[name];
-        err_logger.Verbose("LOCATED SYMBOL ", name, " . ", to!string(val));
+        static if (NAME_RESOLVE_DEBUG) {
+          err_logger.Verbose("LOCATED SYMBOL ", name, " . ", to!string(val));
+        }
         return val;
       }
     }
@@ -74,6 +81,66 @@ class Name_Resolve_Pass : Top_Level_Node_Visitor, Semantic_Pass {
     if (node.func_body !is null) {
       visit_block(node.func_body);
     }
+  }
+
+  Symbol_Table resolve_type_path(ast.Type_Path_Node type_path) {
+    Symbol_Table last = curr_sym_table;
+    foreach (i, p; type_path.values) {
+      string sym_name = p.lexeme;
+
+      Symbol_Value found_sym;
+      if (i == 0) {
+        // this will search MODULES too
+        // we only want this if we're at the
+        // start of the path.
+        found_sym = find_symbol(last, sym_name);
+      } else {
+        found_sym = find_symbol_in_stab(last, sym_name);
+      }
+
+      if (found_sym is null) {
+        Diagnostic_Engine.throw_error(compiler_error.UNRESOLVED_SYMBOL, p);
+        return null;
+      }
+
+      if (auto stab = cast(Symbol_Table) found_sym) {
+        last = stab;
+      } else if (i != type_path.values.length - 1) {
+        Token next_tok = type_path.values[i + 1];
+        // it's not a symbol table so there is no more
+        // places for us to search and we still have
+        // iterations left i.e. thinks to resolve.
+        // throw an unresolved error
+        Diagnostic_Engine.throw_error(compiler_error.UNRESOLVED_SYMBOL, next_tok);
+        return null;
+      }
+    }
+    return last;
+  }
+
+  Symbol_Table resolve_type(ast.Type_Node t) {
+    if (auto type_path = cast(Type_Path_Node) t) {
+      return resolve_type_path(type_path);
+    } else if (auto ptr = cast(Pointer_Type_Node) t) {
+      return resolve_type(ptr.base_type);
+    }
+
+    err_logger.Verbose("unhandled type node ", to!string(t));
+    return null;
+  }
+
+  Symbol_Table resolve_via(Symbol_Value s) {
+    if (s.reference is null) {
+      err_logger.Verbose("Symbol '", to!string(s), "' has no reference to an AST node, can't resolve it to a symbol table!");
+      return null;
+    }
+
+    if (auto var = cast(ast.Variable_Statement_Node) s.reference) {
+      return resolve_type(var.type);
+    }
+
+    err_logger.Verbose(to!string(s.reference), " has not been handled in resolve_via!");
+    return null;
   }
 
   void analyze_path_expr(ast.Path_Expression_Node path) {
@@ -103,6 +170,17 @@ class Name_Resolve_Pass : Top_Level_Node_Visitor, Semantic_Pass {
       if (auto stab = cast(Symbol_Table) found_sym) {
         last = stab;
       } else if (i != path.values.length - 1) {
+        // let's try resolve it TO a symbol table, for example.
+        // let felix Person
+        // let blah = felix.age;
+        // felix wont be a STAB, but Person is
+        last = resolve_via(found_sym); 
+        if (last !is null) {
+          // we found a symbol table
+          // let's continue resolving
+          continue;
+        }
+
         Token next_tok = null;
         if (auto next_sym = cast(Symbol_Node) path.values[i + 1]) {
           next_tok = next_sym.value;

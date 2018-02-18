@@ -4,9 +4,10 @@ type Person struct {
 };
 
 func main() {
-	let felix Person;
+	let felix *Person;
 	felix.name = "felix";
 	felix.age = 19;
 
 	let felix_age = felix.age;
+	felix.name;
 }
