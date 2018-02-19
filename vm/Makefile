@@ -10,10 +10,10 @@ default: $(out)
 %.o: %.c
 	clang $(CCFLAGS) -c $< -o $@
 
-cc: $(obj)
-	clang $(LDFLAGS) $(obj) -o krugvm
-
-$(out): $(obj)
+lib: $(obj)
 	ar -cvq $(out) $(obj)
+	
+$(out): $(obj)
+	clang $(LDFLAGS) $(obj) -o krugvm
 
 .PHONY: cc default all
