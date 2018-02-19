@@ -2,6 +2,7 @@ src_files := $(wildcard source/*.d)
 exe := krug
 
 $(exe): $(src_files)
+	cd vm && make
 	dub build --force --arch=x86_64
 
 go: $(exe)

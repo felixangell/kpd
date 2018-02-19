@@ -41,6 +41,8 @@ static string os_name() {
   }
 }
 
+extern (C) bool execute_program(size_t entry_addr, size_t instruction_count, ubyte** program);
+
 // FIXME this only handles a few common cases.
 static string arch_type() {
   version (X86) {
@@ -220,8 +222,7 @@ void main(string[] args) {
   if (DONT_COMPILE)
     return;
 
-  // TOOD: do this properly.
-  Instruction[] entire_program;
+  ubyte[] entire_program;
   uint main_func_addr = 0;
 
   // TODO:
@@ -243,16 +244,19 @@ void main(string[] args) {
     foreach (entry; gen.func_addr_reg.byKeyValue()) {
       err_logger.Verbose(entry.key ~ " @ " ~ to!string(entry.value));
     }
-    entire_program ~= gen.program;
+
+    foreach (instr; gen.program) {
+      entire_program ~= instr.data;
+    }
   }
 
   auto duration = compilerTimer.peek();
   err_logger.Info("Compiler took " ~ to!string(
       duration.total!"msecs") ~ "/ms or " ~ to!string(duration.total!"usecs") ~ "/µs");
 
-  if (DUMP_BYTECODE) {
-    dump_prog(entire_program);
-  }
+  //if (DUMP_BYTECODE) {
+  //  dump_prog(entire_program);
+  //}
 
   if (!RUN_PROGRAM) {
     return;
@@ -262,7 +266,9 @@ void main(string[] args) {
   rt_timer.start();
 
   // run the vm on the generated code.
-  auto exec = new Execution_Engine(entire_program, main_func_addr);
+  // auto exec = new Execution_Engine(entire_program, main_func_addr);
+
+  execute_program(main_func_addr, entire_program.length, cast(ubyte**) &entire_program);
 
   auto rt_dur = rt_timer.peek();
   err_logger.Info("Program execution took " ~ to!string(
