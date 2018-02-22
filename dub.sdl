@@ -3,8 +3,7 @@ description "krug compiler"
 
 dependency "emsi_containers" version="~>0.6"
 
-libs "$PACKAGE_DIR/vm/krugvm"
-lflags "-L$PACKAGE_DIR/vm"
+lflags "$PACKAGE_DIR/vm/krugvm.a" "-lcollectc"
 
 authors "Felix"
 copyright "Copyright © 2017, Felix"

@@ -41,7 +41,7 @@ static string os_name() {
   }
 }
 
-extern (C) bool execute_program(size_t entry_addr, size_t instruction_count, ubyte** program);
+extern (C) bool execute_program(size_t entry_addr, size_t instruction_count, ubyte* program);
 
 // FIXME this only handles a few common cases.
 static string arch_type() {
@@ -266,7 +266,7 @@ void main(string[] args) {
   // run the vm on the generated code.
   // auto exec = new Execution_Engine(entire_program, main_func_addr);
 
-  execute_program(main_func_addr, entire_program.length, cast(ubyte**) &entire_program);
+  execute_program(main_func_addr, entire_program.length, &entire_program[0]);
 
   auto rt_dur = rt_timer.peek();
   err_logger.Info("Program execution took " ~ to!string(

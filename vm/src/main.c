@@ -111,10 +111,3 @@ execute_program(size_t entry_addr, size_t instruction_count, unsigned char* prog
 	}
 	return false;
 }
-
-int 
-main() {
-	printf("Hello, World!\n");
-	execute_program(0, ARRAY_SIZEOF(program), program);
-	return 0;
-}
