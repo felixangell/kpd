@@ -4,6 +4,17 @@
 #include "vthread.h"
 #include "stack_frame.h"
 
+void 
+destroy_thread(struct Virtual_Thread* thread) {
+	struct Stack_Frame* frame = thread->curr_frame;
+	while (frame != NULL) {
+		struct Stack_Frame* frame_to_destroy = frame;
+		frame = frame->parent;
+		free(frame_to_destroy);
+	}
+	free(thread);
+}
+
 struct Stack_Frame* 
 push_frame(struct Virtual_Thread* thread) {
 	struct Stack_Frame* frame = malloc(sizeof(*frame));

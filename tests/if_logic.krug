@@ -2,7 +2,7 @@ func say_apple() { } 		// 0
 func dont_say_apple() {} 	// 2
 
 func main() {
-	if 1 == 0 && 0 == 1 {
+	if 1234523 == 0 && 0 == 1 {
 		say_apple();
 	}
 	

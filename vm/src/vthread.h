@@ -15,11 +15,16 @@ struct Stack_Frame;
 
 struct Virtual_Thread {
 	uint8_t globals[DATA_SEGMENT_SIZE];
+
 	uint8_t stack[STACK_SIZE];
+	size_t stack_ptr;
 
 	struct Stack_Frame* curr_frame;
 	size_t program_counter;
 };
+
+void 
+destroy_thread(struct Virtual_Thread* thread);
 
 struct Stack_Frame* 
 push_frame(struct Virtual_Thread* thread);
