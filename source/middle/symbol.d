@@ -2,7 +2,7 @@ module sema.symbol;
 
 import std.conv;
 
-import err_logger;
+import logger;
 import ast;
 import sema.infer : Type_Environment;
 import sema.type;
@@ -66,18 +66,18 @@ class Symbol_Table : Symbol_Value {
   }
 
   void dump_values() {
-    err_logger.Verbose("symbol_table_" ~ to!string(id) ~ ":");
+    logger.Verbose("symbol_table_" ~ to!string(id) ~ ":");
     foreach (v; symbols.byKeyValue()) {
-      err_logger.Verbose("  > ", v.key);
+      logger.Verbose("  > ", v.key);
     }
-    err_logger.Verbose(".");
+    logger.Verbose(".");
   }
 
   // registers the given symbol, if the
   // symbol already exists it will be
   // returned from the symbol table in the scope.
   Symbol_Value register_sym(string name, Symbol_Value s) {
-    err_logger.Verbose("Registering symbol " ~ name ~ " // " ~ to!string(s));
+    logger.Verbose("Registering symbol " ~ name ~ " // " ~ to!string(s));
     if (name in symbols) {
       return symbols[name];
     }

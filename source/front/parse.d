@@ -10,7 +10,7 @@ import ast;
 import keyword;
 
 import containers.hashset;
-import err_logger;
+import logger;
 import colour;
 import sema.type : PRIMITIVE_TYPES;
 
@@ -74,7 +74,7 @@ class Parser : Compilation_Phase {
 
   Token expect(string str) {
     if (!peek().cmp(str)) {
-      err_logger.Error(peek(), "Expected '" ~ str ~ "', found: '");
+      logger.Error(peek(), "Expected '" ~ str ~ "', found: '");
       assert(0);
     }
     return consume();
@@ -83,7 +83,7 @@ class Parser : Compilation_Phase {
   Token expect(Token_Type type) {
     if (!peek().cmp(type)) {
       Token_Type other_type = peek().type;
-      err_logger.Error(peek(),
+      logger.Error(peek(),
           "Expected '" ~ to!string(type) ~ "', found token of type '" ~ to!string(peek().type) ~ "'");
       assert(0);
     }
@@ -145,7 +145,7 @@ class Parser : Compilation_Phase {
 
       auto type = parse_type();
       if (type is null) {
-        err_logger.Error(peek(), "expected type in structure field, found: ");
+        logger.Error(peek(), "expected type in structure field, found: ");
         recovery_skip("}");
         break;
       }
@@ -155,7 +155,7 @@ class Parser : Compilation_Phase {
         consume();
         value = parse_expr();
         if (value is null) {
-          err_logger.Error(peek(), "expected value after assignment operator in structure field: ");
+          logger.Error(peek(), "expected value after assignment operator in structure field: ");
           recovery_skip("}");
           break;
         }
@@ -190,12 +190,12 @@ class Parser : Compilation_Phase {
 
       auto name = expect(Token_Type.Identifier);
       if (name is null) {
-        err_logger.Error(peek(), "expected argument name, found:");
+        logger.Error(peek(), "expected argument name, found:");
       }
 
       auto type = parse_type();
       if (type is null) {
-        err_logger.Error(peek(), "expected argument type, found:");
+        logger.Error(peek(), "expected argument type, found:");
       }
 
       func_type.add_param(name, type, mutable);
@@ -203,7 +203,7 @@ class Parser : Compilation_Phase {
       if (peek().cmp(",")) {
         consume();
       } else if (!peek().cmp(")")) {
-        err_logger.Error(peek(), "expected comma after argument in function type: ");
+        logger.Error(peek(), "expected comma after argument in function type: ");
       }
     }
     expect(")");
@@ -230,7 +230,7 @@ class Parser : Compilation_Phase {
       auto name = expect(Token_Type.Identifier);
       auto func_type = parse_func_type();
       if (func_type is null) {
-        err_logger.Error(peek(), "Expected function in trait, found: ");
+        logger.Error(peek(), "Expected function in trait, found: ");
         recovery_skip("}");
         break;
       }
@@ -258,7 +258,7 @@ class Parser : Compilation_Phase {
 
       auto type = parse_type();
       if (type is null) {
-        err_logger.Error(peek(), "expected type in structure field, found: ");
+        logger.Error(peek(), "expected type in structure field, found: ");
         recovery_skip("}");
         break;
       }
@@ -289,7 +289,7 @@ class Parser : Compilation_Phase {
     expect("*");
     auto type = parse_type();
     if (type is null) {
-      err_logger.Error(peek(), "expected type after pointer, found:");
+      logger.Error(peek(), "expected type after pointer, found:");
       return null;
     }
     return new Pointer_Type_Node(type);
@@ -305,7 +305,7 @@ class Parser : Compilation_Phase {
     for (int i = 0; has_next() && !peek().cmp(")"); i++) {
       auto type = parse_type();
       if (type is null) {
-        err_logger.Error(peek(), "tuple expects type, found:");
+        logger.Error(peek(), "tuple expects type, found:");
         recovery_skip(")");
         break;
       }
@@ -327,7 +327,7 @@ class Parser : Compilation_Phase {
     expect("[");
     auto type = parse_type();
     if (type is null) {
-      err_logger.Error(peek(), "expected type in array type: ");
+      logger.Error(peek(), "expected type in array type: ");
       recovery_skip("]");
     }
     expect("]");
@@ -341,7 +341,7 @@ class Parser : Compilation_Phase {
     expect(["&", "["]);
     auto type = parse_type();
     if (type is null) {
-      err_logger.Error(peek(), "expected type in array type: ");
+      logger.Error(peek(), "expected type in array type: ");
       recovery_skip("]");
     }
     expect("]");
@@ -407,7 +407,7 @@ class Parser : Compilation_Phase {
     auto name = expect(Token_Type.Identifier);
     auto type = parse_type();
     if (type is null) {
-      err_logger.Error(peek(), "expected a type to bind name to, found: ");
+      logger.Error(peek(), "expected a type to bind name to, found: ");
       recovery_skip(";"); // FIXME ?
       return null;
     }
@@ -433,7 +433,7 @@ class Parser : Compilation_Phase {
     auto op = consume();
     auto right = parse_left(comp_allowed);
     if (right is null) {
-      err_logger.Error(peek(), "Expected expression after unary operand: \n");
+      logger.Error(peek(), "Expected expression after unary operand: \n");
       // how do we recover from this?!
     }
     return new Unary_Expression_Node(op, right);
@@ -446,7 +446,7 @@ class Parser : Compilation_Phase {
     expect("(");
     auto expr = parse_expr();
     if (expr is null) {
-      err_logger.Error(peek(), "Expected an expression inside of parenthesis expression, found:");
+      logger.Error(peek(), "Expected an expression inside of parenthesis expression, found:");
       recovery_skip(")");
     }
     expect(")");
@@ -457,7 +457,7 @@ class Parser : Compilation_Phase {
     expect(":");
     auto right = parse_expr();
     if (right is null) {
-      err_logger.Error(peek(), "slice expected end?!!!!!");
+      logger.Error(peek(), "slice expected end?!!!!!");
       return null;
     }
     return new Slice_Expression_Node(left, right);
@@ -503,7 +503,7 @@ class Parser : Compilation_Phase {
 
       auto expr = parse_expr();
       if (expr is null) {
-        err_logger.Error(peek(), "expected an expression in argument list, found: ");
+        logger.Error(peek(), "expected an expression in argument list, found: ");
         break;
       }
       node.args ~= expr;
@@ -530,7 +530,7 @@ class Parser : Compilation_Phase {
     case keyword.Type_Of:
       auto op = consume();
       if (!peek().cmp("(")) {
-        err_logger.Error(peek(), "expected paren expr, found: ");
+        logger.Error(peek(), "expected paren expr, found: ");
       }
       return new Unary_Expression_Node(op, parse_paren_expr());
     default:
@@ -587,7 +587,7 @@ class Parser : Compilation_Phase {
     expect("[");
     auto index = parse_expr();
     if (index is null) {
-      err_logger.Error(peek(), "expected indexing expression, found: ");
+      logger.Error(peek(), "expected indexing expression, found: ");
       recovery_skip("]");
     }
     expect("]");
@@ -610,7 +610,7 @@ class Parser : Compilation_Phase {
 
       auto expr = parse_expr();
       if (expr is null) {
-        err_logger.Error(peek(), "expected expression in path: ");
+        logger.Error(peek(), "expected expression in path: ");
       }
 
       // we have to re-write the binary expression so that
@@ -742,13 +742,13 @@ class Parser : Compilation_Phase {
 
     auto func_type = parse_func_type();
     if (func_type is null) {
-      err_logger.Error(peek(), "expected lambda, found: \n");
+      logger.Error(peek(), "expected lambda, found: \n");
       return null;
     }
 
     auto block = parse_block();
     if (block is null) {
-      err_logger.Error(peek(), "expected block after lambda: \n");
+      logger.Error(peek(), "expected block after lambda: \n");
     }
 
     return new Lambda_Node(func_type, block);
@@ -807,7 +807,7 @@ class Parser : Compilation_Phase {
     expect("=");
     node.rhand = parse_expr();
     if (node.rhand is null) {
-      err_logger.Error(peek(), "expected value after assignment operator:\n");
+      logger.Error(peek(), "expected value after assignment operator:\n");
       recovery_skip(";");
     }
 
@@ -834,7 +834,7 @@ class Parser : Compilation_Phase {
     expect("=");
     node.rhand = parse_expr();
     if (node.rhand is null) {
-      err_logger.Error(peek(), "expected value after assignment operator:\n");
+      logger.Error(peek(), "expected value after assignment operator:\n");
       recovery_skip(";");
     }
 
@@ -876,7 +876,7 @@ class Parser : Compilation_Phase {
     // or a semi-colon symbol, that means that we have some weird
     // input - throw an error!
     if (type is null && !(peek().cmp("=") || peek().cmp(";"))) {
-      err_logger.Error(peek(), "expected type in variable binding, found:");
+      logger.Error(peek(), "expected type in variable binding, found:");
       recovery_skip(";");
     }
 
@@ -887,7 +887,7 @@ class Parser : Compilation_Phase {
 
       var.value = parse_expr();
       if (var.value is null) {
-        err_logger.Error(peek(), "expected value after assignment operator, found:");
+        logger.Error(peek(), "expected value after assignment operator, found:");
         recovery_skip(";");
       }
     }
@@ -903,7 +903,7 @@ class Parser : Compilation_Phase {
 
     auto val = parse_expr();
     if (val is null && !peek().cmp(";")) {
-      err_logger.Error(peek(), "expected expression or terminating semi-colon, found:");
+      logger.Error(peek(), "expected expression or terminating semi-colon, found:");
       return null;
     }
     return new Return_Statement_Node(val);
@@ -933,7 +933,7 @@ class Parser : Compilation_Phase {
 
     auto value = parse_expr();
     if (value is null) {
-      err_logger.Error(peek(), "yield stat expects an expression, found:");
+      logger.Error(peek(), "yield stat expects an expression, found:");
     }
     return new Yield_Statement_Node(value);
   }
@@ -946,7 +946,7 @@ class Parser : Compilation_Phase {
 
     auto stat = parse_stat();
     if (stat is null) {
-      err_logger.Error(peek(), "expected statement after defer, found:");
+      logger.Error(peek(), "expected statement after defer, found:");
       return null;
     }
     return new Defer_Statement_Node(stat);
@@ -960,12 +960,12 @@ class Parser : Compilation_Phase {
 
     auto cond = parse_expr();
     if (cond is null) {
-      err_logger.Error(peek(), "expected condition in while loop, found:");
+      logger.Error(peek(), "expected condition in while loop, found:");
     }
 
     auto block = parse_block();
     if (block is null) {
-      err_logger.Error(peek(), "expected block after while, found:");
+      logger.Error(peek(), "expected block after while, found:");
     }
 
     return new While_Statement_Node(cond, block);
@@ -979,7 +979,7 @@ class Parser : Compilation_Phase {
 
     auto block = parse_block();
     if (block is null) {
-      err_logger.Error(peek(), "expected block after while, found:");
+      logger.Error(peek(), "expected block after while, found:");
     }
 
     return new Loop_Statement_Node(block);
@@ -993,12 +993,12 @@ class Parser : Compilation_Phase {
 
     auto cond = parse_expr();
     if (cond is null) {
-      err_logger.Error(peek(), "expected condition in if construct, found:");
+      logger.Error(peek(), "expected condition in if construct, found:");
     }
 
     auto block = parse_block();
     if (block is null) {
-      err_logger.Error(peek(), "expected block after if, found:");
+      logger.Error(peek(), "expected block after if, found:");
     }
 
     return new If_Statement_Node(cond, block);
@@ -1012,7 +1012,7 @@ class Parser : Compilation_Phase {
 
     auto block = parse_block();
     if (block is null) {
-      err_logger.Error(peek(), "expected block after else, found:");
+      logger.Error(peek(), "expected block after else, found:");
     }
 
     return new Else_Statement_Node(block);
@@ -1025,12 +1025,12 @@ class Parser : Compilation_Phase {
     expect(["else", "if"]);
     auto cond = parse_expr();
     if (cond is null) {
-      err_logger.Error(peek(), "expected condition for else-if-construct, found:");
+      logger.Error(peek(), "expected condition for else-if-construct, found:");
     }
 
     auto block = parse_block();
     if (block is null) {
-      err_logger.Error(peek(), "expected block for else-if-construct, found:");
+      logger.Error(peek(), "expected block for else-if-construct, found:");
     }
 
     return new Else_If_Statement_Node(cond, block);
@@ -1090,7 +1090,7 @@ class Parser : Compilation_Phase {
     for (int i = 0; has_next() && !peek().cmp("}"); i++) {
       Statement_Node stat = parse_stat();
       if (stat is null) {
-        err_logger.Error(peek(), "Expected statement, found: ");
+        logger.Error(peek(), "Expected statement, found: ");
         break;
       }
       block.statements ~= stat;
@@ -1128,7 +1128,7 @@ class Parser : Compilation_Phase {
       auto name = expect(Token_Type.Identifier);
       auto parent_type = parse_type();
       if (parent_type is null) {
-        err_logger.Error(peek(), "expected parent type of func receiver, found:");
+        logger.Error(peek(), "expected parent type of func receiver, found:");
         recovery_skip(")");
       }
 
@@ -1164,7 +1164,7 @@ class Parser : Compilation_Phase {
         }
         auto param = parse_func_param();
         if (param.twine.lexeme in func.params) {
-          err_logger.Error("Parameter '" ~ colour.Bold(param.twine.lexeme) ~ "' defined here:",
+          logger.Error("Parameter '" ~ colour.Bold(param.twine.lexeme) ~ "' defined here:",
               Blame_Token(param.twine), "Conflicts with symbol defined here: ",
               Blame_Token(func.params[param.twine.lexeme].twine));
         } else {
@@ -1198,7 +1198,7 @@ class Parser : Compilation_Phase {
     case keyword.Let:
       return parse_let();
     default:
-      err_logger.Verbose("unhandled top level node parse_node " ~ to!string(peek()));
+      logger.Verbose("unhandled top level node parse_node " ~ to!string(peek()));
       break;
     }
     return null;

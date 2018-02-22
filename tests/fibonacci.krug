@@ -5,12 +5,10 @@ func $__exit() {}
 
 func main() void {
 	let i = 0;
-	let j = 5000;
+	let j = 250_000;
 
-	loop {
-		if i > 5 {
-			return;
-		}
+	while i < j {
+		yes();
 		i = i + 1;
 	}
 

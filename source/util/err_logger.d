@@ -1,4 +1,4 @@
-module err_logger;
+module logger;
 
 import std.conv;
 import std.stdio;

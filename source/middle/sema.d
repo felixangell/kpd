@@ -3,7 +3,7 @@ module sema.analyzer;
 import std.conv;
 
 import ast;
-import err_logger;
+import logger;
 import krug_module;
 
 import sema.decl;
@@ -17,7 +17,9 @@ interface Semantic_Pass {
 
 // the passes to run on
 // the semantic modules in order
-Semantic_Pass[] passes = [new Declaration_Pass, new Name_Resolve_Pass,];
+Semantic_Pass[] passes = [
+  new Declaration_Pass, new Name_Resolve_Pass,
+];
 
 struct Semantic_Analysis {
   Dependency_Graph graph;
@@ -27,9 +29,9 @@ struct Semantic_Analysis {
   }
 
   void process(ref Module mod, string sub_mod_name) {
-    err_logger.Verbose("- " ~ mod.name ~ "::" ~ sub_mod_name);
+    logger.Verbose("- " ~ mod.name ~ "::" ~ sub_mod_name);
     foreach (pass; passes) {
-      err_logger.Verbose("  * " ~ to!string(pass));
+      logger.Verbose("  * " ~ to!string(pass));
       pass.execute(mod, sub_mod_name);
     }
   }

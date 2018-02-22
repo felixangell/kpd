@@ -14,7 +14,7 @@ import parse.load_directive_parser;
 import ast;
 
 import krug_module;
-import err_logger;
+import logger;
 
 alias Dependency_Graph = Module[string];
 
@@ -77,10 +77,10 @@ struct Krug_Project {
 
   Module load_module(string name) {
     if (name in modules) {
-      err_logger.Verbose("Module '" ~ name ~ "' already loaded - skipping.");
+      logger.Verbose("Module '" ~ name ~ "' already loaded - skipping.");
       return modules[name];
     }
-    err_logger.Verbose("Loading module '" ~ name ~ "'.");
+    logger.Verbose("Loading module '" ~ name ~ "'.");
 
     auto mod = new Module(this.path ~ std.path.dirSeparator ~ name ~ std.path.dirSeparator);
     modules[name] = mod;
@@ -121,7 +121,7 @@ struct Krug_Project {
 // otherwise if we are given a cyclic program
 // then the compiler will likely crash with a nasty error.
 Krug_Project build_krug_project(ref Source_File main_source_file) {
-  err_logger.Verbose("Building program tree `" ~ main_source_file.path ~ "`");
+  logger.Verbose("Building program tree `" ~ main_source_file.path ~ "`");
 
   auto tokens = new Lexer(main_source_file).tokenize();
   Load_Directive[] dirs = collect_deps(tokens);
@@ -142,7 +142,7 @@ Krug_Project build_krug_project(ref Source_File main_source_file) {
 
     if (!project.module_exists(module_name)) {
       // TODO: better error message.
-      err_logger.Error(dir[0], "No such module '" ~ module_name ~ "'.");
+      logger.Error(dir[0], "No such module '" ~ module_name ~ "'.");
       continue;
     }
 

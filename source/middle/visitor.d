@@ -1,7 +1,7 @@
 module sema.visitor;
 
 import ast;
-import err_logger;
+import logger;
 import sema.symbol;
 import sema.infer : Type_Environment;
 
@@ -17,7 +17,6 @@ class Top_Level_Node_Visitor : AST_Visitor {
   abstract void analyze_named_type_node(ast.Named_Type_Node);
   abstract void analyze_function_node(ast.Function_Node);
   abstract void analyze_let_node(ast.Variable_Statement_Node);
-
   abstract void visit_stat(ast.Statement_Node);
 
   Symbol_Table push_sym_table() {
@@ -28,7 +27,7 @@ class Top_Level_Node_Visitor : AST_Visitor {
 
   Symbol_Table leave_sym_table() {
     auto old = curr_sym_table;
-    err_logger.Verbose(" - POPPED SYMBOL TABLE ", to!string(old.id));
+    logger.Verbose(" - POPPED SYMBOL TABLE ", to!string(old.id));
     curr_sym_table = old.outer;
     return old;
   }
@@ -38,21 +37,21 @@ class Top_Level_Node_Visitor : AST_Visitor {
     // maybe have a check to throw an error if 
     // this occurs after the decl pass.
     if (block.sym_table is null) {
-      err_logger.Verbose("Setting up a symbol table in block");
+      logger.Verbose("Setting up a symbol table in block");
       block.sym_table = push_sym_table();
     }
 
-    err_logger.Verbose(" - RESTORING SYMBOL TABLE ", to!string(block.sym_table.id));
+    logger.Verbose(" - RESTORING SYMBOL TABLE ", to!string(block.sym_table.id));
     foreach (entry; block.sym_table.symbols.byKeyValue()) {
-      err_logger.Verbose("   -> ", entry.key);
+      logger.Verbose("   -> ", entry.key);
     }
-    err_logger.Verbose(".");
+    logger.Verbose(".");
 
     curr_sym_table = block.sym_table;
 
     foreach (stat; block.statements) {
       if (stat is null) {
-        err_logger.Warn("null statement in block? " ~ to!string(block));
+        logger.Warn("null statement in block? " ~ to!string(block));
         continue;
       }
 
@@ -79,7 +78,7 @@ class Top_Level_Node_Visitor : AST_Visitor {
     } else if (auto var_node = cast(ast.Variable_Statement_Node) node) {
       analyze_let_node(var_node);
     } else {
-      err_logger.Fatal("unhandled node in " ~ to!string(this) ~ " execution:\n" ~ to!string(node));
+      logger.Fatal("unhandled node in " ~ to!string(this) ~ " execution:\n" ~ to!string(node));
     }
   }
 }

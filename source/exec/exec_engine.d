@@ -2,7 +2,7 @@ module exec.exec_engine;
 
 import std.conv;
 
-import err_logger;
+import logger;
 
 import exec.virtual_thread;
 import exec.instruction;
@@ -32,7 +32,7 @@ class Execution_Engine {
     stack ~= main;
     thread = main;
 
-    err_logger.Verbose("Starting program at addr " ~ to!string(entryAddr));
+    logger.Verbose("Starting program at addr " ~ to!string(entryAddr));
 
     thread.program_counter = entryAddr;
     while (thread.program_counter < program.length) {
@@ -62,15 +62,15 @@ class Execution_Engine {
             // do a function call, so anything on the stack 
             // is an argument to the function
 
-            err_logger.Info("caching stack!");
+            logger.Info("caching stack!");
             while (!stack.is_empty()) {
-              err_logger.Info("caching stack, stack_ptr is " ~ to!string(stack.stack_ptr));
+              logger.Info("caching stack, stack_ptr is " ~ to!string(stack.stack_ptr));
               cache.push!ubyte(stack.pop!ubyte());
             }
           }
         }
 
-        err_logger.Info("Pushing new stack frame");
+        logger.Info("Pushing new stack frame");
         {
           thread.push_frame();
 
@@ -86,7 +86,7 @@ class Execution_Engine {
           // everything that was cached is the arguments
           // to this function
           while (!cache.is_empty()) {
-            err_logger.Info("restoring cache");
+            logger.Info("restoring cache");
             ubyte popped = cache.pop!ubyte();
             stack.push!ubyte(popped);
           }
@@ -116,14 +116,14 @@ class Execution_Engine {
           // if we dont have a return address which 
           // may mean the program starts executing again?
 
-          err_logger.Verbose("Jumping to addr" ~ to!string(prev_frame.return_addr));
+          logger.Verbose("Jumping to addr" ~ to!string(prev_frame.return_addr));
           thread.program_counter = prev_frame.return_addr;
         }
         break;
       }
     case OP.CALL: {
         auto addr = instr.peek!uint();
-        err_logger.Info("Calling function at addr" ~ to!string(addr));
+        logger.Info("Calling function at addr" ~ to!string(addr));
         call_ret_addr = thread.program_counter;
         thread.program_counter = addr;
         break;
@@ -273,14 +273,14 @@ class Execution_Engine {
         auto addr = instr.peek!uint();
         auto val = thread.current_frame.get_local!uint(addr);
         thread.stack.push(val);
-        err_logger.Verbose("Loaded " ~ to!string(val) ~ " from addr " ~ to!string(addr));
+        logger.Verbose("Loaded " ~ to!string(val) ~ " from addr " ~ to!string(addr));
         break;
       }
 
     case OP.ALLOCI: {
         auto val = thread.stack.pop!int();
         auto addr = thread.current_frame.alloc_local!int(val);
-        err_logger.Verbose("Alloc'd local " ~ to!string(val) ~ " at addr " ~ to!string(addr));
+        logger.Verbose("Alloc'd local " ~ to!string(val) ~ " at addr " ~ to!string(addr));
         break;
       }
 
@@ -288,12 +288,12 @@ class Execution_Engine {
         auto addr = instr.peek!uint();
         auto val = thread.stack.pop!int();
         thread.current_frame.store_local!int(val, addr);
-        err_logger.Verbose("Stored " ~ to!string(val) ~ " at addr " ~ to!string(addr));
+        logger.Verbose("Stored " ~ to!string(val) ~ " at addr " ~ to!string(addr));
         break;
       }
 
     default:
-      err_logger.Fatal("unhandled instr " ~ to!string(instr));
+      logger.Fatal("unhandled instr " ~ to!string(instr));
       break;
     }
   }

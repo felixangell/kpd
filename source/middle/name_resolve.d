@@ -3,7 +3,7 @@ module sema.name_resolve;
 import std.conv;
 import std.stdio;
 
-import err_logger;
+import logger;
 import ast;
 import sema.visitor;
 import sema.analyzer : Semantic_Pass;
@@ -50,14 +50,14 @@ class Name_Resolve_Pass : Top_Level_Node_Visitor, Semantic_Pass {
     for (Symbol_Table s = t; s !is null; s = s.outer) {
       
       static if (NAME_RESOLVE_DEBUG) {
-        err_logger.Verbose("LOOKING FOR ", name, " in:");
+        logger.Verbose("LOOKING FOR ", name, " in:");
         s.dump_values();
       }
 
       if (name in s.symbols) {
         auto val = s.symbols[name];
         static if (NAME_RESOLVE_DEBUG) {
-          err_logger.Verbose("LOCATED SYMBOL ", name, " . ", to!string(val));
+          logger.Verbose("LOCATED SYMBOL ", name, " . ", to!string(val));
         }
         return val;
       }
@@ -125,13 +125,13 @@ class Name_Resolve_Pass : Top_Level_Node_Visitor, Semantic_Pass {
       return resolve_type(ptr.base_type);
     }
 
-    err_logger.Verbose("unhandled type node ", to!string(t));
+    logger.Verbose("unhandled type node ", to!string(t));
     return null;
   }
 
   Symbol_Table resolve_via(Symbol_Value s) {
     if (s.reference is null) {
-      err_logger.Verbose("Symbol '", to!string(s), "' has no reference to an AST node, can't resolve it to a symbol table!");
+      logger.Verbose("Symbol '", to!string(s), "' has no reference to an AST node, can't resolve it to a symbol table!");
       return null;
     }
 
@@ -143,7 +143,7 @@ class Name_Resolve_Pass : Top_Level_Node_Visitor, Semantic_Pass {
       return resolve_type(param.type);
     }
 
-    err_logger.Verbose(to!string(s.reference), " has not been handled in resolve_via!");
+    logger.Verbose(to!string(s.reference), " has not been handled in resolve_via!");
     return null;
   }
 
@@ -229,7 +229,7 @@ class Name_Resolve_Pass : Top_Level_Node_Visitor, Semantic_Pass {
     } else if (cast(ast.String_Constant_Node) expr) {
       // NOOP
     } else {
-      err_logger.Warn("name_resolve: unhandled node " ~ to!string(expr));
+      logger.Warn("name_resolve: unhandled node " ~ to!string(expr));
     }
   }
 
@@ -264,7 +264,7 @@ class Name_Resolve_Pass : Top_Level_Node_Visitor, Semantic_Pass {
     } else if (auto call = cast(ast.Call_Node) stat) {
       analyze_call(call);
     } else {
-      err_logger.Warn("name_resolve: unhandled statement " ~ to!string(stat));
+      logger.Warn("name_resolve: unhandled statement " ~ to!string(stat));
     }
   }
 
@@ -273,7 +273,7 @@ class Name_Resolve_Pass : Top_Level_Node_Visitor, Semantic_Pass {
     this.mod = mod;
 
     if (sub_mod_name !in mod.as_trees) {
-      err_logger.Error("couldn't find the AST for " ~ sub_mod_name ~ " in module " ~
+      logger.Error("couldn't find the AST for " ~ sub_mod_name ~ " in module " ~
           mod.name ~ " ...");
       return;
     }

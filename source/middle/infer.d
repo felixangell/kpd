@@ -3,7 +3,7 @@ module sema.infer;
 import std.conv;
 import std.algorithm : cmp;
 
-import err_logger;
+import logger;
 import sema.type;
 import ast;
 import colour;
@@ -101,7 +101,7 @@ Type fresh(Type t) {
       return new Function(fresh_type(fn.ret), types);
     }
 
-    err_logger.Fatal("bad type!");
+    logger.Fatal("bad type!");
     assert(0);
   }
 
@@ -121,7 +121,7 @@ void unify(Type a, Type b) {
       unify(var, opa);
     } else if (auto opb = cast(Type_Operator) pb) {
       if (cmp(opa.name, opb.name) || opa.types.length != opb.types.length) {
-        err_logger.Error("Type mismatch '" ~ to!string(a) ~ "' defined here:\n",
+        logger.Error("Type mismatch '" ~ to!string(a) ~ "' defined here:\n",
             // Blame_Token(node.twine),
             "Conflicts with symbol defined here:\n", to!string(b));
       }
@@ -166,9 +166,9 @@ struct Type_Inferrer {
       return fresh(e.data[name]);
     }
 
-    err_logger.Verbose("Couldn't find type ", name, " in environment:");
+    logger.Verbose("Couldn't find type ", name, " in environment:");
     foreach (entry; e.data.byKeyValue()) {
-      err_logger.Verbose(entry.key, " is ", to!string(entry.value));
+      logger.Verbose(entry.key, " is ", to!string(entry.value));
     }
 
     assert(0);
@@ -186,7 +186,7 @@ struct Type_Inferrer {
       return t;
     }
 
-    err_logger.Error("unhandled symbol lookup ", sym_name);
+    logger.Error("unhandled symbol lookup ", sym_name);
     return null;
   }
 
@@ -248,7 +248,7 @@ struct Type_Inferrer {
       auto type = path_type.values[0];
       Type t = e.lookup_type(type.lexeme);
       if (t is null) {
-        err_logger.Error("Failed to resolve type '" ~ colour.Bold(type.lexeme) ~ "':",
+        logger.Error("Failed to resolve type '" ~ colour.Bold(type.lexeme) ~ "':",
             Blame_Token(type));
       }
       return t;
@@ -270,7 +270,7 @@ struct Type_Inferrer {
       return prim_type("rune");
     }
 
-    err_logger.Fatal("infer: unhandled node " ~ to!string(node));
+    logger.Fatal("infer: unhandled node " ~ to!string(node));
     assert(0);
   }
 }

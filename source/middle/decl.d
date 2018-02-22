@@ -3,7 +3,7 @@ module sema.decl;
 import std.stdio;
 import std.conv;
 
-import err_logger;
+import logger;
 import colour;
 import ast;
 import sema.analyzer : Semantic_Pass;
@@ -48,7 +48,7 @@ class Declaration_Pass : Top_Level_Node_Visitor, Semantic_Pass {
     } else if (auto if_stat = cast(ast.If_Statement_Node) stat) {
       visit_block(if_stat.block);
     } else {
-      err_logger.Warn("decl: Unhandled statement " ~ to!string(stat));
+      logger.Warn("decl: Unhandled statement " ~ to!string(stat));
     }
   }
 
@@ -73,7 +73,7 @@ class Declaration_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 
       auto existing = curr_sym_table.register_sym(new Symbol(node, node.twine));
       if (existing !is null) {
-        err_logger.Error("Named type '" ~ colour.Bold(node.twine.lexeme) ~ "' defined here:",
+        logger.Error("Named type '" ~ colour.Bold(node.twine.lexeme) ~ "' defined here:",
             Blame_Token(node.twine), "Conflicts with symbol defined here:",
             Blame_Token(existing.tok));
       }
@@ -97,7 +97,7 @@ class Declaration_Pass : Top_Level_Node_Visitor, Semantic_Pass {
       return mangle_word("ptr") ~ "_" ~ mangle_type(ptr.base_type);
     }
 
-    err_logger.Verbose("mangle_type: unhandled type node ", to!string(t));
+    logger.Verbose("mangle_type: unhandled type node ", to!string(t));
     assert(0);
   }
 
@@ -128,7 +128,7 @@ class Declaration_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 
     auto existing = curr_sym_table.register_sym(new Symbol(node, symbol_name));
     if (existing !is null) {
-      err_logger.Error("Function '" ~ colour.Bold(node.name.lexeme) ~ "' defined here:\n",
+      logger.Error("Function '" ~ colour.Bold(node.name.lexeme) ~ "' defined here:\n",
           Blame_Token(node.name), "Conflicts with symbol defined here:\n",
           Blame_Token(existing.tok));
     }
@@ -165,7 +165,7 @@ class Declaration_Pass : Top_Level_Node_Visitor, Semantic_Pass {
   override void analyze_let_node(ast.Variable_Statement_Node node) {
     auto existing = curr_sym_table.register_sym(new Symbol(node, node.twine));
     if (existing !is null) {
-      err_logger.Error("Variable '", colour.Bold(node.twine.lexeme), "' defined here:\n",
+      logger.Error("Variable '", colour.Bold(node.twine.lexeme), "' defined here:\n",
           Blame_Token(node.twine), "Conflicts with symbol defined here: \n");
     }
   }
@@ -174,7 +174,7 @@ class Declaration_Pass : Top_Level_Node_Visitor, Semantic_Pass {
     assert(mod !is null);
 
     if (sub_mod_name !in mod.as_trees) {
-      err_logger.Error("couldn't find the AST for " ~ sub_mod_name ~ " in module " ~
+      logger.Error("couldn't find the AST for " ~ sub_mod_name ~ " in module " ~
           mod.name ~ " ...");
       return;
     }

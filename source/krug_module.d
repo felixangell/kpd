@@ -11,7 +11,7 @@ import containers.hashset;
 import ast;
 import sema.symbol;
 
-import err_logger;
+import logger;
 import lex.lexer;
 
 enum Token_Type {

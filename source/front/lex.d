@@ -7,7 +7,7 @@ import std.uni;
 import std.conv;
 import std.range.primitives;
 
-import err_logger;
+import logger;
 import krug_module;
 import compilation_phase;
 import grammar;
@@ -291,7 +291,7 @@ class Lexer : Compilation_Phase {
           // we have to do the error check here because otherwise we wont
           // have any of the tokens positions set so it will cause an error!
           if (curr == '$' && recognized_token.lexeme !in KEYWORDS) {
-            err_logger.Error(recognized_token, "Attempting to de-keyword a non-keyword, found:");
+            logger.Error(recognized_token, "Attempting to de-keyword a non-keyword, found:");
           }
         }
       }

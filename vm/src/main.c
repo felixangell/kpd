@@ -125,7 +125,7 @@ peek_int16(struct Execution_Engine* engine) {
 	return value;
 }
 
-#define MAKE_WRITE_TO_TYPE(TYPE)                                     											\
+#define MAKE_WRITE_TO_TYPE(TYPE)                                     									\
 void write_from_##TYPE (uint8_t* data, size_t start, TYPE t) { 												\
 	size_t type_width = sizeof(t);																											\
 	for (size_t i = 0; i < type_width; i++) {																						\
@@ -136,8 +136,9 @@ void write_from_##TYPE (uint8_t* data, size_t start, TYPE t) { 												\
 #define MAKE_PUSH_TYPE(TYPE)                                     											\
 size_t stack_push_##TYPE (uint8_t* data, size_t* ptr, TYPE t) { 											\
 	size_t index = *ptr;																																\
-	write_from_##TYPE(data, *ptr, t);																											\
-	*ptr += sizeof(TYPE);																																	\
+	assert(*ptr < STACK_SIZE);																													\
+	write_from_##TYPE(data, *ptr, t);																										\
+	*ptr += sizeof(TYPE);																																\
 	return index;																																				\
 }
 

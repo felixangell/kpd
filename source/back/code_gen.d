@@ -4,7 +4,7 @@ import std.stdio;
 import std.conv;
 
 import ast;
-import err_logger;
+import logger;
 import krug_module;
 
 import dependency_scanner;
@@ -46,7 +46,7 @@ struct Code_Generator {
 
     uint func_addr = program_index;
     func_addr_reg[func_name] = func_addr;
-    err_logger.Verbose("func '", to!string(func_name), "' at addr: ", to!string(func_addr));
+    logger.Verbose("func '", to!string(func_name), "' at addr: ", to!string(func_addr));
 
     emit(encode(OP.ENTR));
 
@@ -79,7 +79,7 @@ struct Code_Generator {
       return get_ea(unary.value);
     }
 
-    err_logger.Fatal("Couldn't get addr for expression " ~ to!string(e));
+    logger.Fatal("Couldn't get addr for expression " ~ to!string(e));
     assert(0);
   }
 
@@ -138,7 +138,7 @@ struct Code_Generator {
       break;
 
     default:
-      err_logger.Fatal("unhandled operator in gen_binary_expr " ~ operator);
+      logger.Fatal("unhandled operator in gen_binary_expr " ~ operator);
       break;
     }
   }
@@ -169,7 +169,7 @@ struct Code_Generator {
       break;
     }
 
-    err_logger.Fatal("unhandled unary " ~ to!string(unary.operand));
+    logger.Fatal("unhandled unary " ~ to!string(unary.operand));
   }
 
   void gen_expr(ast.Expression_Node expr) {
@@ -185,7 +185,7 @@ struct Code_Generator {
     } else if (auto call = cast(ast.Call_Node) expr) {
       gen_call_node(call);
     } else {
-      err_logger.Fatal("unhandled expr " ~ to!string(expr));
+      logger.Fatal("unhandled expr " ~ to!string(expr));
     }
   }
 
@@ -222,7 +222,7 @@ struct Code_Generator {
       }
 
       if (name !in func_addr_reg) {
-        err_logger.Fatal("No such function " ~ name ~ " registered");
+        logger.Fatal("No such function " ~ name ~ " registered");
       }
 
       // push all the expressoins on the stack
@@ -231,7 +231,7 @@ struct Code_Generator {
       }
 
       uint addr = func_addr_reg[name];
-      err_logger.Verbose("emitting func call to ", name, " @addr: ", to!string(addr));
+      logger.Verbose("emitting func call to ", name, " @addr: ", to!string(addr));
       emit(encode(OP.CALL, addr));
     }
   }
@@ -300,7 +300,7 @@ struct Code_Generator {
     } else if (auto ret_statement = stat.instanceof!(ast.Return_Statement_Node)) {
       gen_ret_stat(ret_statement);
     } else {
-      err_logger.Warn("unhandled statement node " ~ to!string(stat));
+      logger.Warn("unhandled statement node " ~ to!string(stat));
     }
   }
 
@@ -326,12 +326,12 @@ struct Code_Generator {
     } else if (auto stat = node.instanceof!(ast.Statement_Node)) {
       gen_stat(stat);
     } else {
-      err_logger.Warn("unhandled node ! " ~ to!string(node));
+      logger.Warn("unhandled node ! " ~ to!string(node));
     }
   }
 
   void process(ref Module mod, string sub_mod_name) {
-    err_logger.Verbose("- " ~ mod.name ~ "::" ~ sub_mod_name);
+    logger.Verbose("- " ~ mod.name ~ "::" ~ sub_mod_name);
 
     auto ast = mod.as_trees[sub_mod_name];
     foreach (node; ast) {

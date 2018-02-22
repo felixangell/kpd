@@ -6,7 +6,7 @@ import std.conv;
 
 import std.algorithm.searching : countUntil;
 
-import err_logger;
+import logger;
 import krug_module : Token;
 import compiler_error;
 import colour;
@@ -21,7 +21,7 @@ struct Diagnostic_Engine {
     char[8] id_buff;
     auto err_code_str = to!string(sformat(id_buff[], "%04d", err.id));
 
-    err_logger.Error(colour.Err(
+    logger.Error(colour.Err(
         "[E" ~ err_code_str ~ "]:\n") ~ msg ~ "\n\n./krug --explain E" ~
         err_code_str ~ " to explain the error.");
   }
@@ -47,7 +47,7 @@ struct Diagnostic_Engine {
     }
 
     char[8] id_buff;
-    err_logger.Error(colour.Err("[E" ~ to!string(sformat(id_buff[], "%04d",
+    logger.Error(colour.Err("[E" ~ to!string(sformat(id_buff[], "%04d",
         err.id)) ~ "]:\n") ~ error_msg);
   }
 }

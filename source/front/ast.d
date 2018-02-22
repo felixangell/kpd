@@ -7,7 +7,7 @@ import std.bigint;
 import compiler_error;
 import diag.engine;
 
-import err_logger;
+import logger;
 import colour;
 import sema.type : Type;
 import sema.symbol;
