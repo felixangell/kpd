@@ -146,12 +146,17 @@ TYPE stack_pop_##TYPE (struct Virtual_Thread* thread) {					 											\
 	return result;																																			\
 }
 
-MAKE_PUSH_TYPE(uint16_t); 
+MAKE_PUSH_TYPE(uint8_t);
+MAKE_POP_TYPE(uint8_t);
+MAKE_PUSH_TYPE(uint16_t);
 MAKE_POP_TYPE(uint16_t);
 MAKE_PUSH_TYPE(uint32_t); 
 MAKE_POP_TYPE(uint32_t);
 MAKE_PUSH_TYPE(uint64_t); 
 MAKE_POP_TYPE(uint64_t);
+
+MAKE_PUSH_TYPE(int8_t);
+MAKE_POP_TYPE(int8_t);
 MAKE_PUSH_TYPE(int16_t); 	
 MAKE_POP_TYPE(int16_t);
 MAKE_PUSH_TYPE(int32_t); 	
@@ -161,17 +166,18 @@ MAKE_POP_TYPE(int64_t);
 
 static void
 interpret_instruction(struct Execution_Engine* engine, uint16_t op_code) {
+	static size_t last_call_return_addr = 0;
+
 	switch (op_code) {
 		case ENTR: {
-			// cache here.
-			{
-				// if curr frame != null
-				// cache frame stack
-			}
-
 			struct Stack_Frame* frame = push_frame(engine->thread);
-			// set return addr
-			// restore cache
+			frame->return_addr = last_call_return_addr;
+			break;
+		}
+		case CALL: {
+			uint32_t addr = peek_uint32(engine);
+			last_call_return_addr = engine->thread->program_counter;
+			engine->thread->program_counter = addr;
 			break;
 		}
 		case RET: {
@@ -179,8 +185,32 @@ interpret_instruction(struct Execution_Engine* engine, uint16_t op_code) {
 			pop_frame(engine->thread);
 
 			if (prev != NULL && engine->thread->curr_frame != NULL) {
-				// jump back to return addr.
 				engine->thread->program_counter = prev->return_addr;
+			}
+			break;
+		}
+		case CMPI: {
+			int32_t b = stack_pop_int32_t(engine->thread);
+			int32_t a = stack_pop_int32_t(engine->thread);
+			stack_push_int32_t(engine->thread, b + a);
+			break;
+		}
+		case AND: {
+			uint8_t b = stack_pop_uint8_t(engine->thread);
+			uint8_t a = stack_pop_uint8_t(engine->thread);
+			stack_push_uint8_t(engine->thread, a && b);
+			break;
+		}
+		case OR: {
+			uint8_t b = stack_pop_uint8_t(engine->thread);
+			uint8_t a = stack_pop_uint8_t(engine->thread);
+			stack_push_uint8_t(engine->thread, a || b);
+			break;
+		}
+		case JNE: {
+			uint32_t addr = peek_uint32(engine);
+			if (stack_pop_uint8_t(engine->thread) == 0) {
+				engine->thread->program_counter = addr;
 			}
 			break;
 		}
@@ -208,10 +238,22 @@ do_tests() {
 	struct Virtual_Thread* test_thread = make_thread(&test_engine);
 	{
 		printf("- Testing push/pop uint64_t ");
-		uint64_t val = 245892345423452345;
-		stack_push_uint64_t(test_thread, val);
-		uint64_t popped_val = stack_pop_uint64_t(test_thread);
-		assert(popped_val == val);		
+		uint64_t b = 245892;
+		uint64_t a = 245892345423;
+
+		stack_push_uint64_t(test_thread, a);
+		stack_push_uint64_t(test_thread, b);
+
+		assert(stack_pop_uint64_t(test_thread) == b);
+		assert(stack_pop_uint64_t(test_thread) == a);
+
+		stack_push_uint64_t(test_thread, a);
+		stack_push_uint64_t(test_thread, b);
+
+		uint64_t popped_b = stack_pop_uint64_t(test_thread);
+		uint64_t popped_a = stack_pop_uint64_t(test_thread);
+		assert(popped_b * popped_a == b * a);
+
 		printf(" [x]\n");
 	}
 
@@ -219,11 +261,19 @@ do_tests() {
 }
 
 bool 
-execute_program(size_t entry_addr, size_t program_size, unsigned char* program) {
+execute_program(size_t entry_addr, size_t program_size, uint8_t* program) {
 	struct Execution_Engine engine;
 	initialise_engine(&engine, program);
 
 	printf("Executing %zd byte program\n", program_size);
+
+	for (size_t i = 0; i < program_size; i++) {
+		if (i > 0 && i % 6 == 0) {
+			printf("\n");
+		}
+		printf("%02x ", program[i]);
+	}
+	printf("...\n");
 
 	do_tests();
 
