@@ -21,4 +21,7 @@ func main() {
 	if 1 == 1 && 2 == 0 {
 		dont_say_apple();
 	}
+
+	say_apple();
+	dont_say_apple();
 }

@@ -125,26 +125,57 @@ peek_int16(struct Execution_Engine* engine) {
 	return value;
 }
 
-#define MAKE_PUSH_TYPE(TYPE)                                     											\
-void stack_push_##TYPE (struct Virtual_Thread* thread, TYPE t){ 											\
+#define MAKE_WRITE_TO_TYPE(TYPE)                                     											\
+void write_from_##TYPE (uint8_t* data, size_t start, TYPE t) { 												\
 	size_t type_width = sizeof(t);																											\
 	for (size_t i = 0; i < type_width; i++) {																						\
-		thread->stack[thread->stack_ptr + i] = (t >> ((type_width - i - 1) * 8)) & 0xff;	\
+		data[start + i] = (t >> ((type_width - i - 1) * 8)) & 0xff;												\
 	}																																										\
-	thread->stack_ptr += type_width;																										\
+}
+
+#define MAKE_PUSH_TYPE(TYPE)                                     											\
+size_t stack_push_##TYPE (uint8_t* data, size_t* ptr, TYPE t) { 											\
+	size_t index = *ptr;																																\
+	write_from_##TYPE(data, *ptr, t);																											\
+	*ptr += sizeof(TYPE);																																	\
+	return index;																																				\
+}
+
+#define MAKE_BYTESTR_TO_TYPE(TYPE)	\
+TYPE bytestr_to_##TYPE (uint8_t* data, size_t start) {					 											\
+	size_t type_width = sizeof(TYPE);																										\
+	TYPE result = 0;																																		\
+	for (size_t i = 0; i < type_width; i++) {																						\
+		result = result << 8;																															\
+		result |= data[start - (type_width - i)] & 0xff;																	\
+	}																																										\
+	return result;																																			\
 }
 
 #define MAKE_POP_TYPE(TYPE)                                     											\
-TYPE stack_pop_##TYPE (struct Virtual_Thread* thread) {					 											\
-	size_t type_width = sizeof(TYPE);																											\
-	TYPE result = 0;																																		\
-	for (size_t i = 0; i < type_width; i++) {																							\
-		result = result << 8;																															\
-		result |= thread->stack[thread->stack_ptr - (type_width - i)] & 0xff;														\
-	}																																										\
-	thread->stack_ptr -= type_width;																										\
+TYPE stack_pop_##TYPE (uint8_t* data, size_t* ptr) {						 											\
+	TYPE result = bytestr_to_##TYPE(data, *ptr);																				\
+	*ptr -= sizeof(TYPE);																																\
 	return result;																																			\
 }
+
+MAKE_BYTESTR_TO_TYPE(uint8_t);
+MAKE_BYTESTR_TO_TYPE(uint16_t);
+MAKE_BYTESTR_TO_TYPE(uint32_t);
+MAKE_BYTESTR_TO_TYPE(uint64_t);
+MAKE_BYTESTR_TO_TYPE(int8_t);
+MAKE_BYTESTR_TO_TYPE(int16_t);
+MAKE_BYTESTR_TO_TYPE(int32_t);
+MAKE_BYTESTR_TO_TYPE(int64_t);
+
+MAKE_WRITE_TO_TYPE(uint8_t);
+MAKE_WRITE_TO_TYPE(uint16_t);
+MAKE_WRITE_TO_TYPE(uint32_t);
+MAKE_WRITE_TO_TYPE(uint64_t);
+MAKE_WRITE_TO_TYPE(int8_t);
+MAKE_WRITE_TO_TYPE(int16_t);
+MAKE_WRITE_TO_TYPE(int32_t);
+MAKE_WRITE_TO_TYPE(int64_t);
 
 MAKE_PUSH_TYPE(uint8_t);
 MAKE_POP_TYPE(uint8_t);
@@ -164,6 +195,16 @@ MAKE_POP_TYPE(int32_t);
 MAKE_PUSH_TYPE(int64_t); 	
 MAKE_POP_TYPE(int64_t);
 
+// push/pop helper macros for the engines thread.
+// this is kinda dangerous but it makes the code
+// a bit easier to read.
+#define thread_stack_push(TYPE, thread, args...) stack_push_##TYPE(thread->stack, &(thread->stack_ptr), args) 
+#define thread_stack_pop(TYPE, thread) stack_pop_##TYPE(thread->stack, &(thread->stack_ptr)) 
+
+// how many calls have been done in the lifetime
+// of the program.
+uint64_t num_calls = 0;
+
 static void
 interpret_instruction(struct Execution_Engine* engine, uint16_t op_code) {
 	static size_t last_call_return_addr = 0;
@@ -178,6 +219,7 @@ interpret_instruction(struct Execution_Engine* engine, uint16_t op_code) {
 			uint32_t addr = peek_uint32(engine);
 			last_call_return_addr = engine->thread->program_counter;
 			engine->thread->program_counter = addr;
+			num_calls++;
 			break;
 		}
 		case RET: {
@@ -190,34 +232,101 @@ interpret_instruction(struct Execution_Engine* engine, uint16_t op_code) {
 			break;
 		}
 		case CMPI: {
-			int32_t b = stack_pop_int32_t(engine->thread);
-			int32_t a = stack_pop_int32_t(engine->thread);
-			stack_push_int32_t(engine->thread, b + a);
+			int32_t b = thread_stack_pop(int32_t, engine->thread);
+			int32_t a = thread_stack_pop(int32_t, engine->thread);
+			thread_stack_push(int32_t, engine->thread, a == b);
+			break;
+		}
+		case GTRI: {
+			int32_t b = thread_stack_pop(int32_t, engine->thread);
+			int32_t a = thread_stack_pop(int32_t, engine->thread);
+			thread_stack_push(int32_t, engine->thread, a > b);
+			break;
+		}
+		case ADDI: {
+			int32_t b = thread_stack_pop(int32_t, engine->thread);
+			int32_t a = thread_stack_pop(int32_t, engine->thread);
+			thread_stack_push(int32_t, engine->thread, a + b);
+			break;
+		}
+		case MULI: {
+			int32_t b = thread_stack_pop(int32_t, engine->thread);
+			int32_t a = thread_stack_pop(int32_t, engine->thread);
+			thread_stack_push(int32_t, engine->thread, a * b);
+			break;
+		}
+		case SUBI: {
+			int32_t b = thread_stack_pop(int32_t, engine->thread);
+			int32_t a = thread_stack_pop(int32_t, engine->thread);
+			thread_stack_push(int32_t, engine->thread, a - b);
 			break;
 		}
 		case AND: {
-			uint8_t b = stack_pop_uint8_t(engine->thread);
-			uint8_t a = stack_pop_uint8_t(engine->thread);
-			stack_push_uint8_t(engine->thread, a && b);
+			uint8_t b = thread_stack_pop(uint8_t, engine->thread);
+			uint8_t a = thread_stack_pop(uint8_t, engine->thread);
+			thread_stack_push(uint8_t, engine->thread, a && b);
 			break;
 		}
 		case OR: {
-			uint8_t b = stack_pop_uint8_t(engine->thread);
-			uint8_t a = stack_pop_uint8_t(engine->thread);
-			stack_push_uint8_t(engine->thread, a || b);
+			uint8_t b = thread_stack_pop(uint8_t, engine->thread);
+			uint8_t a = thread_stack_pop(uint8_t, engine->thread);
+			thread_stack_push(uint8_t, engine->thread, a || b);
+			break;
+		}
+		case GOTO: {
+			uint32_t addr = peek_uint32(engine);
+			engine->thread->program_counter = addr;
+			break;
+		}
+		case LDI: {
+			uint32_t addr = peek_uint32(engine);
+			struct Stack_Frame* curr_frame = engine->thread->curr_frame;
+			
+			uint8_t raw[sizeof(int32_t)];
+			memcpy(raw, &curr_frame->locals[addr], sizeof(int32_t));
+			memmove(&engine->thread->stack[engine->thread->stack_ptr], raw, sizeof(int32_t));
+			engine->thread->stack_ptr += sizeof(int32_t);
+
+			break;
+		}
+		case ALLOCI: {
+			int32_t value = thread_stack_pop(int32_t, engine->thread);
+			uint8_t bytes[sizeof(int32_t)];
+			write_from_int32_t(&bytes[0], 0, value);
+			struct Stack_Frame* curr_frame = engine->thread->curr_frame;
+			memmove(&curr_frame->locals[curr_frame->local_ptr], bytes, sizeof(int32_t));
+			curr_frame->local_ptr += sizeof(int32_t);			
+			break;
+		}
+		case STRI: {
+			uint32_t addr = peek_uint32(engine);
+			int32_t value = thread_stack_pop(int32_t, engine->thread);
+
+			uint8_t bytes[sizeof(int32_t)];
+			write_from_int32_t(&bytes[0], 0, value);
+			struct Stack_Frame* curr_frame = engine->thread->curr_frame;
+			memmove(&curr_frame->locals[addr], bytes, sizeof(int32_t));
+
 			break;
 		}
 		case JNE: {
 			uint32_t addr = peek_uint32(engine);
-			if (stack_pop_uint8_t(engine->thread) == 0) {
+			if (stack_pop_uint8_t(engine->thread->stack, &engine->thread->stack_ptr) == 0) {
+				engine->thread->program_counter = addr;
+			}
+			break;
+		}
+		case JE: {
+			uint32_t addr = peek_uint32(engine);
+			if (stack_pop_uint8_t(engine->thread->stack, &engine->thread->stack_ptr)) {
 				engine->thread->program_counter = addr;
 			}
 			break;
 		}
 		case PSHI: {
 			uint32_t value = peek_uint32(engine);
-			printf("pushing %d\n", value);
-			stack_push_uint32_t(engine->thread, value);
+			stack_push_uint32_t(engine->thread->stack, &engine->thread->stack_ptr, value);
+			printf("Pushed %d\n", value);
 			break;
 		}
 		default: {
@@ -236,22 +345,23 @@ do_tests() {
 	initialise_engine(&test_engine, NULL);
 
 	struct Virtual_Thread* test_thread = make_thread(&test_engine);
+	push_frame(test_thread);
 	{
 		printf("- Testing push/pop uint64_t ");
 		uint64_t b = 245892;
 		uint64_t a = 245892345423;
 
-		stack_push_uint64_t(test_thread, a);
-		stack_push_uint64_t(test_thread, b);
+		thread_stack_push(uint64_t, test_thread, a);
+		thread_stack_push(uint64_t, test_thread, b);
 
-		assert(stack_pop_uint64_t(test_thread) == b);
-		assert(stack_pop_uint64_t(test_thread) == a);
+		assert(thread_stack_pop(uint64_t, test_thread) == b);
+		assert(thread_stack_pop(uint64_t, test_thread) == a);
 
-		stack_push_uint64_t(test_thread, a);
-		stack_push_uint64_t(test_thread, b);
+		thread_stack_push(uint64_t, test_thread, a);
+		thread_stack_push(uint64_t, test_thread, b);
 
-		uint64_t popped_b = stack_pop_uint64_t(test_thread);
-		uint64_t popped_a = stack_pop_uint64_t(test_thread);
+		uint64_t popped_b = thread_stack_pop(uint64_t, test_thread);
+		uint64_t popped_a = thread_stack_pop(uint64_t, test_thread);
 		assert(popped_b * popped_a == b * a);
 
 		printf(" [x]\n");
@@ -282,5 +392,7 @@ execute_program(size_t entry_addr, size_t program_size, uint8_t* program) {
 		uint16_t op_code = peek_uint16(&engine);
 		interpret_instruction(&engine, op_code);
 	}
+
+	printf("%lld procedures called!\n", num_calls);
 	return false;
 }
