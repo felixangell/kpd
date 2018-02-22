@@ -22,9 +22,9 @@ struct Virtual_Thread {
 };
 
 struct Stack_Frame* 
-push_frame();
+push_frame(struct Virtual_Thread* thread);
 
 struct Stack_Frame* 
-pop_frame();
+pop_frame(struct Virtual_Thread* thread);
 
 #endif 

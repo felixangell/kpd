@@ -5,9 +5,12 @@
 
 #define ARRAY_SIZEOF(x) (sizeof(x) / sizeof(x[0]))
 
+#include "stack_frame.h"
 #include "opcodes.h"
 #include "krugvm.h"
 #include "vthread.h"
+
+#include "opcode_names.h"
 
 struct Execution_Engine {
 	Array* frames;
@@ -107,11 +110,30 @@ static void
 interpret_instruction(struct Execution_Engine* engine, uint16_t op_code) {
 	switch (op_code) {
 		case ENTR: {
-			printf("enter baby!\n");
+			// cache here.
+			{
+				// if curr frame != null
+				// cache frame stack
+			}
+
+			struct Stack_Frame* frame = push_frame(engine->thread);
+			// set return addr
+			// restore cache
+			break;
+		}
+		case RET: {
+			struct Stack_Frame* prev = engine->thread->curr_frame;
+			pop_frame(engine->thread);
+
+			if (prev != NULL && engine->thread->curr_frame != NULL) {
+				// jump back to return addr.
+				engine->thread->program_counter = prev->return_addr;
+			}
 			break;
 		}
 		default: {
-			printf("unimplemented opcode %d\n", op_code);
+			printf("unimplemented opcode %s(%d)\n", OPCODE_NAMES[op_code], op_code);
+			exit(33);
 			break;
 		}
 	}
@@ -122,22 +144,12 @@ execute_program(size_t entry_addr, size_t program_size, unsigned char* program) 
 	struct Execution_Engine engine;
 	initialise_engine(&engine, program);
 
-	for (int i = 0; i < program_size; i++) {
-		if (i > 0 && i % 4 == 0) {
-			printf("\n");
-		}
-		printf("%02x ", program[i]);
-	}
-	printf("\n");
-
 	printf("Executing %zd byte program\n", program_size);
 
 	engine.thread->program_counter = entry_addr;
 	while (engine.thread->program_counter < program_size) {
 		uint16_t op_code = peek_uint16(&engine);
-		printf("op_code: %d\n", op_code);
 		interpret_instruction(&engine, op_code);
-		return false;
 	}
 	return false;
 }

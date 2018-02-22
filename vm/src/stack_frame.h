@@ -10,7 +10,9 @@ struct Stack_Frame {
 	struct Stack_Frame* parent;
 
 	uint8_t locals[LOCALS_SIZE];
-	size_t local_index = 0;
+
+	size_t local_index;
+	size_t return_addr;
 };
 
 #endif
