@@ -235,9 +235,6 @@ void main(string[] args) {
   StopWatch rt_timer;
   rt_timer.start();
 
-  // run the vm on the generated code.
-  // auto exec = new Execution_Engine(entire_program, main_func_addr);
-
   execute_program(main_func_addr, entire_program.length, &entire_program[0]);
 
   auto rt_dur = rt_timer.peek();

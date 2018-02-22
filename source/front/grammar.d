@@ -27,7 +27,7 @@ static this() {
   populate_hash_set!(string).insert(KEYWORDS, "fn", "let", "type", "if", "else",
       "loop", "while", "match", "for", "return", "break", "next", "as", "mut",
       "default", "eval", "len_of", "size_of", "type_of", "struct", "trait", "union",
-      "enum", "defer", "false", "true", "bool", "rune", "yield", "self", "clang",);
+      "enum", "defer", "false", "true", "bool", "rune", "yield", "self", "clang", "__exit");
 
   OPERATOR_PRECEDENCE["as"] = 6;
 

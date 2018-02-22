@@ -8,6 +8,8 @@ func main() {
 
 	while n > 0 {
 		hello();
+		done();
+		hello();
 		n = n - 1;
 	}
 

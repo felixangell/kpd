@@ -4,6 +4,8 @@ import std.bitmanip;
 import std.conv;
 
 static enum OP : ushort {
+  DIE,
+
   // pushes the given value to the
   // operand stack.
   PSH,
@@ -52,6 +54,12 @@ static enum OP : ushort {
   GTRS,
   GTRI,
   GTRL,
+
+  // less than
+  LT,
+  LTS,
+  LTI,
+  LTL,
 
   // pops and subtract the top two values
   // on the operand stack, pushes

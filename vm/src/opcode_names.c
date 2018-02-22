@@ -1,4 +1,5 @@
 const char* OPCODE_NAMES[] = {
+	"DIE",
 	"PSH",
 	"PSHS",
 	"PSHI",
@@ -24,6 +25,10 @@ const char* OPCODE_NAMES[] = {
 	"GTRS",
 	"GTRI",
 	"GTRL",
+	"LT",
+	"LTS",
+	"LTI",
+	"LTL",
 	"SUB",
 	"SUBS",
 	"SUBI",

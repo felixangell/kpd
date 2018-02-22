@@ -51,7 +51,15 @@ struct Code_Generator {
     emit(encode(OP.ENTR));
 
     if (func.func_body !is null) {
-      gen_block(func.func_body);
+      gen_block(func.func_body, delegate() {
+        foreach (arg; func.params.byKeyValue()) {
+          // the arg params should already be on the stack
+          // from the function call.
+          emit(encode(OP.ALLOCI));
+          addr_table[arg.key] = local_addr;
+          local_addr += int.sizeof; // FIXME
+        }
+      });
     }
 
     emit(encode(OP.RET));
@@ -110,6 +118,9 @@ struct Code_Generator {
       break;
     case ">":
       emit(encode(OP.GTRI));
+      break;
+    case "<":
+      emit(encode(OP.LTI));
       break;
 
       // simple arithmetic operations
@@ -171,6 +182,8 @@ struct Code_Generator {
       emit(encode(OP.PSHI, integer.value.to!int));
     } else if (auto path = cast(ast.Path_Expression_Node) expr) {
       gen_path_expr(path);
+    } else if (auto call = cast(ast.Call_Node) expr) {
+      gen_call_node(call);
     } else {
       err_logger.Fatal("unhandled expr " ~ to!string(expr));
     }
@@ -203,8 +216,18 @@ struct Code_Generator {
 
       // HACK
       const string name = to!string(fst.value.lexeme);
+      if (name == "__exit") {
+        emit(encode(OP.DIE));
+        return;
+      }
+
       if (name !in func_addr_reg) {
         err_logger.Fatal("No such function " ~ name ~ " registered");
+      }
+
+      // push all the expressoins on the stack
+      foreach (idx, arg; call_node.args) {
+        gen_expr(arg);
       }
 
       uint addr = func_addr_reg[name];
@@ -232,6 +255,15 @@ struct Code_Generator {
   // or we can mangle the names.
   uint local_addr = 0;
   uint[string] addr_table;
+
+  void gen_ret_stat(ast.Return_Statement_Node ret) {
+    if (ret.value is null) {
+      emit(encode(OP.RET));
+      return;
+    }
+
+    gen_expr(ret.value);
+  }
 
   void gen_var_stat(ast.Variable_Statement_Node var) {
     // what do we do if the value doesnt exist? for now
@@ -265,13 +297,18 @@ struct Code_Generator {
       gen_var_stat(var);
     } else if (auto expr = stat.instanceof!(ast.Expression_Node)) {
       gen_expr(expr);
+    } else if (auto ret_statement = stat.instanceof!(ast.Return_Statement_Node)) {
+      gen_ret_stat(ret_statement);
     } else {
       err_logger.Warn("unhandled statement node " ~ to!string(stat));
     }
   }
 
-  uint gen_block(ast.Block_Node block) {
+  uint gen_block(ast.Block_Node block, void delegate() header = null) {
     uint block_start_addr = program_index;
+    if (header !is null) {
+      header();
+    }
     foreach (ref stat; block.statements) {
       gen_stat(stat);
     }

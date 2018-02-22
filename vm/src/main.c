@@ -205,6 +205,8 @@ MAKE_POP_TYPE(int64_t);
 // of the program.
 uint64_t num_calls = 0;
 
+bool kill_flag = false;
+
 static void
 interpret_instruction(struct Execution_Engine* engine, uint16_t op_code) {
 	static size_t last_call_return_addr = 0;
@@ -213,6 +215,10 @@ interpret_instruction(struct Execution_Engine* engine, uint16_t op_code) {
 		case ENTR: {
 			struct Stack_Frame* frame = push_frame(engine->thread);
 			frame->return_addr = last_call_return_addr;
+			break;
+		}
+		case DIE: {
+			kill_flag = true;
 			break;
 		}
 		case CALL: {
@@ -225,6 +231,13 @@ interpret_instruction(struct Execution_Engine* engine, uint16_t op_code) {
 		case RET: {
 			struct Stack_Frame* prev = engine->thread->curr_frame;
 			pop_frame(engine->thread);
+
+			if (prev->parent == NULL) {
+				// we dont really have anything else
+				// to do?
+				kill_flag = true;
+				return;
+			}
 
 			if (prev != NULL && engine->thread->curr_frame != NULL) {
 				engine->thread->program_counter = prev->return_addr;
@@ -241,6 +254,12 @@ interpret_instruction(struct Execution_Engine* engine, uint16_t op_code) {
 			int32_t b = thread_stack_pop(int32_t, engine->thread);
 			int32_t a = thread_stack_pop(int32_t, engine->thread);
 			thread_stack_push(int32_t, engine->thread, a > b);
+			break;
+		}
+		case LTI: {
+			int32_t b = thread_stack_pop(int32_t, engine->thread);
+			int32_t a = thread_stack_pop(int32_t, engine->thread);
+			thread_stack_push(int32_t, engine->thread, a < b);
 			break;
 		}
 		case ADDI: {
@@ -280,8 +299,10 @@ interpret_instruction(struct Execution_Engine* engine, uint16_t op_code) {
 		}
 		case LDI: {
 			uint32_t addr = peek_uint32(engine);
+
 			struct Stack_Frame* curr_frame = engine->thread->curr_frame;
-			
+			assert(curr_frame != NULL);
+
 			uint8_t raw[sizeof(int32_t)];
 			memcpy(raw, &curr_frame->locals[addr], sizeof(int32_t));
 			memmove(&engine->thread->stack[engine->thread->stack_ptr], raw, sizeof(int32_t));
@@ -377,18 +398,10 @@ execute_program(size_t entry_addr, size_t program_size, uint8_t* program) {
 
 	printf("Executing %zd byte program\n", program_size);
 
-	for (size_t i = 0; i < program_size; i++) {
-		if (i > 0 && i % 6 == 0) {
-			printf("\n");
-		}
-		printf("%02x ", program[i]);
-	}
-	printf("...\n");
-
 	do_tests();
 
 	engine.thread->program_counter = entry_addr;
-	while (engine.thread->program_counter < program_size) {
+	while (!kill_flag && engine.thread->program_counter < program_size) {
 		uint16_t op_code = peek_uint16(&engine);
 		interpret_instruction(&engine, op_code);
 	}

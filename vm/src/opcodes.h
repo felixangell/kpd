@@ -2,6 +2,8 @@
 #define OPCODES_H
 
 enum OP {
+	DIE,
+
 	// pushes the given value to the
 	// operand stack.
 	PSH,
@@ -50,6 +52,12 @@ enum OP {
 	GTRS,
 	GTRI,
 	GTRL,
+
+	// less than
+	LT,
+	LTS,
+	LTI,
+	LTL,
 
 	// pops and subtract the top two values
 	// on the operand stack, pushes

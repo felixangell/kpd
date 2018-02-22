@@ -1,0 +1,18 @@
+func yes() {}
+func no() {}
+
+func $__exit() {}
+
+func main() void {
+	let i = 0;
+	let j = 5000;
+
+	loop {
+		if i > 5 {
+			return;
+		}
+		i = i + 1;
+	}
+
+	$__exit();
+}
