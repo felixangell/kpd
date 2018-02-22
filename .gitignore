@@ -22,6 +22,3 @@ out/
 # vm object files/static libs
 vm/*.o
 vm/*.a
-
-# executable file
-krug

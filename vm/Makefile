@@ -16,4 +16,8 @@ lib: $(obj)
 $(out): $(obj)
 	clang $(LDFLAGS) $(obj) -o krugvm
 
+clean:
+	-rm $(obj)
+	-rm $(out)
+
 .PHONY: cc default all

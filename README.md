@@ -9,7 +9,7 @@ I'm using `ldc2`.
 
 	$ git clone http://github.com/felixangell/krug
 	$ cd krug
-	$ dub build
+	$ make
 	$ ./krug tests/some_test_here.krug 		# to compile only
 	$ ./krug tests/some_test_here.krug -r 		# to compile and run
 	$ ./krug tests/some_test_here.krug -r -v 	# compile and run with verbose output

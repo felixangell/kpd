@@ -74,30 +74,6 @@ void explain_err(string err_code) {
   }
 }
 
-void dump_prog(Instruction[] program) {
-  foreach (idx, instr; program) {
-
-    // address convert to hex
-    char[16] addr_buff;
-    auto addr = to!string(sformat(addr_buff[], "%08x:", idx));
-
-    // print out the instruction
-    // raw data
-    string raw;
-    char[16] byte_buff;
-    foreach (bi, b; instr.data) {
-      if (bi > 0)
-        raw ~= " ";
-      raw ~= sformat(byte_buff[], "%02x", b);
-    }
-
-    // print out the readable version
-    string instr_id = to!string(instr.id).toLower();
-
-    writefln("%s\t%-20s\t%-20s", addr, raw, instr_id);
-  }
-}
-
 bool DONT_COMPILE = false;
 
 void main(string[] args) {
@@ -251,10 +227,6 @@ void main(string[] args) {
   auto duration = compilerTimer.peek();
   err_logger.Info("Compiler took " ~ to!string(
       duration.total!"msecs") ~ "/ms or " ~ to!string(duration.total!"usecs") ~ "/µs");
-
-  //if (DUMP_BYTECODE) {
-  //  dump_prog(entire_program);
-  //}
 
   if (!RUN_PROGRAM) {
     return;
