@@ -245,9 +245,7 @@ void main(string[] args) {
       err_logger.Verbose(entry.key ~ " @ " ~ to!string(entry.value));
     }
 
-    foreach (instr; gen.program) {
-      entire_program ~= instr.data;
-    }
+    entire_program ~= gen.program;
   }
 
   auto duration = compilerTimer.peek();

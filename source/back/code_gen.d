@@ -20,7 +20,7 @@ struct Code_Generator {
   Dependency_Graph graph;
 
   uint program_index = 0;
-  Instruction[] program;
+  ubyte[] program;
 
   uint[string] func_addr_reg;
 
@@ -29,13 +29,16 @@ struct Code_Generator {
   }
 
   uint emit(Instruction instr) {
-    auto idx = program_index++;
-    program ~= instr;
+    auto idx = program_index;
+    program_index += instr.data.length;
+    program ~= instr.data;
     return idx;
   }
 
   void rewrite(uint index, Instruction instr) {
-    program[index] = instr;
+    foreach (idx, val; instr.data) {
+      program[index + idx] = val;
+    }
   }
 
   void gen_func(ast.Function_Node func) {
