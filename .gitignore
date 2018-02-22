@@ -18,3 +18,10 @@ graph_file*
 .idea/
 out/
 *.iml
+
+# vm object files/static libs
+vm/*.o
+vm/*.a
+
+# executable file
+krug
