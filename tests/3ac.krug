@@ -1,0 +1,5 @@
+func main() {
+	let a = 3;
+	let b = 6;
+	let c = a + b - 3 / (2 * (5 - 9));
+}

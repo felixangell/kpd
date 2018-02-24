@@ -1,5 +1,6 @@
 module ssa.builder;
 
+import std.range.primitives;
 import std.conv;
 
 import ssa.instr;
@@ -12,7 +13,27 @@ import ast;
 import logger;
 import krug_module;
 
-// https://pp.ipd.kit.edu/uploads/publikationen/braun13cc.pdf
+abstract class Stack_Value {}
+
+class Value : Stack_Value {
+  ast.Expression_Node val;
+
+  this(ast.Expression_Node val) {
+    this.val = val;
+  }
+}
+
+class Operand : Stack_Value {
+  Token op;
+
+  this(Token op) {
+    this.op = op;
+  }
+}
+
+/*
+https://pp.ipd.kit.edu/uploads/publikationen/braun13cc.pdf
+*/
 class SSA_Builder : Top_Level_Node_Visitor {
 
   IR_Module ir_mod;
@@ -34,8 +55,27 @@ class SSA_Builder : Top_Level_Node_Visitor {
     }
   }
 
-  override void analyze_let_node(ast.Variable_Statement_Node var) {
+  uint temp = 0;
+  string gen_temp() {
+    return "t" ~ to!string(temp++);
+  }
+
+  void build_binary_expr(ast.Binary_Expression_Node binary) {
     
+  }
+
+  void build_expr(ast.Expression_Node expr) {
+    if (auto binary = cast(ast.Binary_Expression_Node) expr) {
+      build_binary_expr(binary);
+    } else {
+      logger.Warn("ssa_builder: unhandled expr ", to!string(expr));
+    }
+  }
+
+  override void analyze_let_node(ast.Variable_Statement_Node var) {
+    if (var.value !is null) {
+      build_expr(var.value);
+    }
   }
 
   override void visit_stat(ast.Statement_Node node) {

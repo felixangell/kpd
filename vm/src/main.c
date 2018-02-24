@@ -13,6 +13,18 @@
 
 #include "opcode_names.h"
 
+/*
+	
+	this vm is not documented whatsoever other than
+	the comments in the opcodes.
+
+	the vm is a stack based virtual machine. the trade off
+	here is there are more instructions, and the code generation
+	will be a bit simpler. in addition there is no need for
+	a register allocator
+	
+*/
+
 struct Execution_Engine {
 	Array* threads;
 
