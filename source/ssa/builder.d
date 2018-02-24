@@ -1,7 +1,9 @@
 module ssa.builder;
 
+import std.stdio;
 import std.range.primitives;
 import std.conv;
+import std.traits;
 
 import ssa.instr;
 import ssa.block;
@@ -13,22 +15,10 @@ import ast;
 import logger;
 import krug_module;
 
-abstract class Stack_Value {}
-
-class Value : Stack_Value {
-  ast.Expression_Node val;
-
-  this(ast.Expression_Node val) {
-    this.val = val;
-  }
-}
-
-class Operand : Stack_Value {
-  Token op;
-
-  this(Token op) {
-    this.op = op;
-  }
+T pop(T)(ref T[] array) {
+  T val = array.back;
+  array.popBack();
+  return val;
 }
 
 /*
@@ -55,13 +45,65 @@ class SSA_Builder : Top_Level_Node_Visitor {
     }
   }
 
+  void emit() {
+
+  }
+
   uint temp = 0;
   string gen_temp() {
     return "t" ~ to!string(temp++);
   }
 
+  // this is likely a store
+  // a = b + f * -c ... 
   void build_binary_expr(ast.Binary_Expression_Node binary) {
-    
+    Value[] expr_stack;
+    Token[] operands;
+
+    void delegate(Expression_Node) build_bin;
+    build_bin = delegate(ast.Expression_Node expr) {      
+      if (auto binary = cast(Binary_Expression_Node) expr) {
+        build_bin(binary.right);
+        build_bin(binary.left);
+        operands ~= binary.operand;
+      }
+
+      else if (auto paren = cast(Paren_Expression_Node) expr) {
+        build_bin(paren.value);
+      }
+
+      // TODO flatten calls properly?
+      else if (auto call = cast(Call_Node) expr) {
+        foreach (arg; call.args) {
+          build_bin(arg);
+        }
+      }
+
+      else {
+        expr_stack ~= new Constant(expr);
+      }
+    };
+    build_bin(binary);
+
+    Value[string] names;
+    Value[] values;
+
+    while (operands.length > 0) {
+      Token op = operands.pop();
+      auto b = expr_stack.pop();
+      auto a = expr_stack.pop();
+
+      auto temp = new BinaryOp(null, op, a, b);
+      auto temp_name = gen_temp();
+      names[temp_name] = temp;
+      expr_stack ~= new Identifier(temp_name); 
+      
+      values ~= temp;
+    }
+
+    foreach (v; values) {
+      writeln(v);
+    }
   }
 
   void build_expr(ast.Expression_Node expr) {

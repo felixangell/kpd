@@ -3,6 +3,7 @@ module ssa.instr;
 import std.stdio;
 import std.conv;
 
+import ast;
 import krug_module : Token;
 import ssa.block;
 import sema.type;
@@ -31,8 +32,32 @@ class Basic_Instruction : Instruction {
 
 interface Value {}
 
-class Constant {
+class Identifier : Value {
+	string name;
+
+	this(string name) {
+		this.name = name;
+	}
+
+	override string toString() {
+		return "iden(" ~ name ~ ")";
+	}
+}
+
+class Constant : Value {
 	ast.Expression_Node value;
+
+	this (ast.Expression_Node value) {
+		this.value = value;
+	}
+
+	override string toString() {
+		if (auto i = cast(ast.Integer_Constant_Node) value) {
+			return to!string(i.value);
+		}
+
+		return to!string(value);
+	}
 }
 
 class Function {
@@ -67,21 +92,34 @@ class Alloc : Basic_Instruction {
 
 // *a = b
 class Store : Basic_Instruction {
-	this(Type type) {
-		super(type);
-	}
-
 	Value address;
 	Value val;
-}
 
-class BinaryOp : Basic_Instruction {
-	this(Type type) {
+	this(Type type, Value address, Value val) {
 		super(type);
+		this.address = address;
+		this.val = val;
 	}
 
+	override string toString() {
+		return "store " ~ to!string(val) ~ " -> " ~ to!string(address);
+	}
+}
+
+class BinaryOp : Basic_Instruction, Value {
 	Token op;
 	Value a, b;
+
+	this(Type type, Token op, Value a, Value b) {
+		super(type);
+		this.op = op;
+		this.a = a;
+		this.b = b;
+	}
+
+	override string toString() {
+		return to!string(a) ~ " " ~ op.lexeme ~ " " ~ to!string(b);
+	}
 }
 
 class UnaryOp : Basic_Instruction {

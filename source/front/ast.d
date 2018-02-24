@@ -227,6 +227,15 @@ class Call_Node : Expression_Node {
   this(Expression_Node left) {
     this.left = left;
   }
+
+  override string toString() {
+    string arguments;
+    foreach (i, a; args) {
+      if (i > 0) arguments ~= ",";
+      arguments ~= to!string(a);
+    }
+    return to!string(left) ~ "(" ~ arguments ~ ")";
+  }
 }
 
 class Symbol_Node : Expression_Node {
@@ -237,7 +246,7 @@ class Symbol_Node : Expression_Node {
   }
 
   override string toString() const {
-    return "ast.Symbol_Node(" ~ value.lexeme ~ ")";
+    return "sym(" ~ value.lexeme ~ ")";
   }
 }
 
@@ -247,6 +256,15 @@ class Path_Expression_Node : Expression_Node {
   // the table in which the path was
   // resolved to.
   Symbol_Table resolved_to = null;
+
+  override string toString() {
+    string res;
+    foreach (idx, v; values) {
+      if (idx > 0) res ~= ".";
+      res ~= to!string(v);
+    }
+    return "path(" ~ res ~ ")";
+  }
 }
 
 class Slice_Expression_Node : Expression_Node {
@@ -254,7 +272,6 @@ class Slice_Expression_Node : Expression_Node {
 
   this(Expression_Node start, Expression_Node end) {
     this.start = start;
-
   }
 }
 
@@ -264,6 +281,10 @@ class Index_Expression_Node : Expression_Node {
   this(Expression_Node array, Expression_Node index) {
     this.array = array;
     this.index = index;
+  }
+
+  override string toString() {
+    return to!string(array) ~ "[" ~ to!string(index) ~ "]";
   }
 }
 
@@ -294,6 +315,10 @@ class Binary_Expression_Node : Expression_Node {
     this.operand = operator;
     this.right = right;
   }
+
+  override string toString() {
+    return to!string(left)~operand.lexeme ~ to!string(right);
+  }
 }
 
 class Unary_Expression_Node : Expression_Node {
@@ -304,6 +329,10 @@ class Unary_Expression_Node : Expression_Node {
     this.operand = operand;
     this.value = value;
   }
+
+  override string toString() {
+    return operand.lexeme ~ to!string(value);
+  }
 }
 
 class Paren_Expression_Node : Expression_Node {
@@ -311,6 +340,10 @@ class Paren_Expression_Node : Expression_Node {
 
   this(Expression_Node value) {
     this.value = value;
+  }
+
+  override string toString() {
+    return "(" ~ to!string(value) ~ ")";
   }
 }
 

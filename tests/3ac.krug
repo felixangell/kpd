@@ -1,5 +1,11 @@
+func sqrt(a int) int {
+	return 4;
+}
+
 func main() {
+	let b = 15;
 	let a = 3;
-	let b = 6;
-	let c = a + b - 3 / (2 * (5 - 9));
+	let c = 24;
+
+	let x = (-b + sqrt(b^2 - 4 * a * c)) / (2*a);
 }
