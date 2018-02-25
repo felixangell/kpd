@@ -63,8 +63,8 @@ class SSA_Builder : Top_Level_Node_Visitor {
     void delegate(Expression_Node) build_bin;
     build_bin = delegate(ast.Expression_Node expr) {      
       if (auto binary = cast(Binary_Expression_Node) expr) {
-        build_bin(binary.right);
         build_bin(binary.left);
+        build_bin(binary.right);
         operands ~= binary.operand;
       }
 
@@ -90,8 +90,8 @@ class SSA_Builder : Top_Level_Node_Visitor {
 
     while (operands.length > 0) {
       Token op = operands.pop();
-      auto b = expr_stack.pop();
       auto a = expr_stack.pop();
+      auto b = expr_stack.pop();
 
       auto temp = new BinaryOp(null, op, a, b);
       auto temp_name = gen_temp();

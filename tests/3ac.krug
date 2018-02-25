@@ -7,5 +7,5 @@ func main() {
 	let a = 3;
 	let c = 24;
 
-	let x = (-b + sqrt(b^2 - 4 * a * c)) / (2*a);
+	let x = a + b * c;
 }

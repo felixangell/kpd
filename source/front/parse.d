@@ -700,7 +700,7 @@ class Parser : Compilation_Phase {
 
       // what?!
       if (is_binary_op(peek().lexeme) && peek(1).cmp(";")) {
-        writeln("just letting you know something weird happened in parse_bin_op");
+        logger.Warn("just letting you know something weird happened in parse_bin_op");
         return left;
       }
 
