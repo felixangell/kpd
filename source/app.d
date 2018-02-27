@@ -182,7 +182,7 @@ void main(string[] args) {
     }
   }
 
-  logger.Verbose("Performing semantic analysis on: ");
+  logger.Verbose("Semantic Analysis: ");
   foreach (ref dep; sorted_deps) {
     auto sema = new Semantic_Analysis(graph);
     foreach (ref entry; dep.as_trees.byKeyValue) {
@@ -196,7 +196,7 @@ void main(string[] args) {
     return;
   }
 
-  logger.Verbose("Constructing SSA");
+  logger.Verbose("Control Flow Analysis:");
   foreach (ref dep; sorted_deps) {
     auto ssa_builder = new SSA_Builder;
     foreach (ref entry; dep.as_trees.byKeyValue) {
@@ -210,11 +210,7 @@ void main(string[] args) {
   ubyte[] entire_program;
   uint main_func_addr = 0;
 
-  // TODO:
-  // is it worth converting to some kind
-  // of IR like SSA for optimisation and
-  // then code genning the IR?
-  logger.Verbose("Generating code for: ");
+  logger.Verbose("Code Generation: ");
   foreach (ref dep; sorted_deps) {
     auto gen = new Code_Generator(graph);
     foreach (ref entry; dep.as_trees.byKeyValue) {

@@ -21,6 +21,11 @@ T pop(T)(ref T[] array) {
   return val;
 }
 
+uint temp = 0;
+string gen_temp() {
+  return "t" ~ to!string(temp++);
+}
+
 /*
 https://pp.ipd.kit.edu/uploads/publikationen/braun13cc.pdf
 */
@@ -35,23 +40,25 @@ class SSA_Builder : Top_Level_Node_Visitor {
 
   override void analyze_named_type_node(ast.Named_Type_Node) {}
 
+  // we generate one control flow graph per function
+  // convert the ast.Block_Node into a bunch of basic blocks
+  // 
+  // the flow can only enter via the FIRST instruction of the
+  // basic block
+  // control will leave the block without halting or branching
+  // basic block is a node in a control flow graph.
+  //
+  // 1. the first instruction is a leader.
+  // 2. any instruction that is the target of a jump is a leader.
+  // 3. any instruction that follows a jump is a leader.
   override void analyze_function_node(ast.Function_Node func) {
     auto ssa_func = ir_mod.add_function(func.name.lexeme);
     Basic_Block block = ssa_func.push_block();
     curr_block = &block;
 
     if (func.func_body !is null) {
-      visit_block(func.func_body);
+
     }
-  }
-
-  void emit() {
-
-  }
-
-  uint temp = 0;
-  string gen_temp() {
-    return "t" ~ to!string(temp++);
   }
 
   // this is likely a store
