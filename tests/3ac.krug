@@ -6,6 +6,5 @@ func main() {
 	let b = 15;
 	let a = 3;
 	let c = 24;
-
-	let x = a + b * c;
+	let x = a + (b * c);
 }
