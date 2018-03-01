@@ -41,12 +41,14 @@ class Kir_Builder : Top_Level_Node_Visitor {
 
   override void analyze_named_type_node(ast.Named_Type_Node) {}
 
-  void build_block(ast.Block_Node block) {
-    curr_func.push_block();
+  Label build_block(ast.Block_Node block) {
+    auto bb = curr_func.push_block();
 
     foreach (stat; block.statements) {
       visit_stat(stat);
     }
+
+    return new Label(bb.name(), bb);
   }
 
   // convert an AST type to a krug ir type
@@ -96,11 +98,7 @@ class Kir_Builder : Top_Level_Node_Visitor {
     }
   }
 
-  void build_binary_expr(ast.Binary_Expression_Node binary) {
-    
-  }
-
-  Value build_binary(ast.Binary_Expression_Node binary) {
+  Value build_binary_expr(ast.Binary_Expression_Node binary) {
     Value left = build_expr(binary.left);
     Value right = build_expr(binary.right);
 
@@ -117,7 +115,7 @@ class Kir_Builder : Top_Level_Node_Visitor {
     if (auto integer_const = cast(Integer_Constant_Node) expr) {
       return new Constant(prim_type("int"), integer_const);
     } else if (auto binary = cast(Binary_Expression_Node) expr) {
-      return build_binary(binary);
+      return build_binary_expr(binary);
     } else if (auto path = cast(Path_Expression_Node) expr) {
        // FIXME
       return build_expr(path.values[0]);
@@ -127,6 +125,30 @@ class Kir_Builder : Top_Level_Node_Visitor {
       logger.Fatal("unhandled build_expr in ssa ", to!string(expr));
     }
     return null;
+  }
+
+  void analyze_return_node(ast.Return_Statement_Node ret) {    
+    auto ret_instr = new Return(prim_type("void"));
+
+    // its not a void type
+    if (ret.value !is null) {
+      ret_instr.set_type(get_type(ret.value));
+      ret_instr.results ~= build_expr(ret.value);
+    }
+
+    // TODO return values
+    curr_func.add_instr(ret_instr);
+  }
+
+  void analyze_if_node(ast.If_Statement_Node if_stat) {
+    Value condition = build_expr(if_stat.condition);
+
+    If jmp = new If(condition);
+    curr_func.add_instr(jmp);
+    jmp.a = build_block(if_stat.block);
+
+    // new block for else stuff
+    jmp.b = new Label(curr_func.push_block());
   }
 
   override void analyze_let_node(ast.Variable_Statement_Node var) {
@@ -142,6 +164,10 @@ class Kir_Builder : Top_Level_Node_Visitor {
   override void visit_stat(ast.Statement_Node node) {
     if (auto let = cast(ast.Variable_Statement_Node) node) {
       analyze_let_node(let);
+    } else if (auto ret = cast(ast.Return_Statement_Node) node) {
+      analyze_return_node(ret);
+    } else if (auto if_stat = cast(ast.If_Statement_Node) node) {
+      analyze_if_node(if_stat);
     } else {
       logger.Warn("unhandled node in ssa ", to!string(node));
     }

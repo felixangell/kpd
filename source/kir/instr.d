@@ -26,6 +26,11 @@ class Basic_Block {
 		this.id = parent.blocks.length;
 	}
 
+	// todo dlang get thingy?
+	string name() {
+		return "_bb" ~ to!string(id);
+	}
+
 	void dump() {
 		writeln("_bb", to!string(id), ":");
 		foreach (instr; instructions) {
@@ -33,8 +38,9 @@ class Basic_Block {
 		}
 	}
 
-	void add_instr(Instruction instr) {
+	Instruction add_instr(Instruction instr) {
 		instructions ~= instr;
+		return instr;
 	}
 }
 
@@ -126,8 +132,8 @@ class Function {
 		return a;
 	}
 
-	void add_instr(Instruction i) {
-		curr_block.add_instr(i);
+	Instruction add_instr(Instruction i) {
+		return curr_block.add_instr(i);
 	}
 
 	void dump() {
@@ -180,6 +186,7 @@ class Store : Basic_Instruction {
 	}
 }
 
+// a op b
 class BinaryOp : Basic_Instruction, Value {
 	Token op;
 	Value a, b;
@@ -200,6 +207,7 @@ class BinaryOp : Basic_Instruction, Value {
 	}
 }
 
+// op a
 class UnaryOp : Basic_Instruction {
 	this(Type type) {
 		super(type);
@@ -209,14 +217,68 @@ class UnaryOp : Basic_Instruction {
 	Value a;
 }
 
+// jump <label>
 class Jump {
 
 }
 
+class Label : Basic_Value {
+	string name;
+	Basic_Block reference;
+
+	this(Basic_Block bb) {
+		super(prim_type("void"));
+		this.name = bb.name();
+		this.reference = bb;
+	}
+
+	this(string name, Basic_Block reference) {
+		super(prim_type("void"));
+		this.name = name;
+		this.reference = reference;
+	}
+
+	override string toString() {
+		return ":" ~ name;
+	}
+}
+
+//              a 			 b
+// if <cond> <label> else <label>
+class If : Basic_Instruction {
+	Value condition;
+	Label a, b;
+
+	this(Value condition) {
+		super(prim_type("bool")); // ?
+		this.condition = condition;
+	}
+
+	override string toString() {
+		return "if " ~ to!string(condition) ~ " goto " ~ to!string(a) ~ " else " ~ to!string(b);
+	}
+}
+
+// ret T [val]
 class Return : Basic_Instruction {
+	Value[] results;
+
 	this(Type type) {
 		super(type);
 	}
 
-	Value[] results;
+	void set_type(Type type) {
+		this.type = type;
+	}
+
+	override string toString() {
+		string values_str = "";
+		if (results !is null) {
+			foreach (i, r; results) {
+				if (i > 0) values_str ~= ", ";
+				values_str ~= to!string(r);
+			}
+		}
+		return "ret " ~ to!string(type) ~ " " ~ values_str;
+	}
 }

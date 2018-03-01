@@ -11,5 +11,9 @@ func main() {
 	let b int = 15;
 	let a int = 3;
 	let c int = 24;
+
 	let x = a + b;
+	if x == 15 {
+		sqrt(5, 10);
+	}
 }
