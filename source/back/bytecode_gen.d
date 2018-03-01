@@ -1,4 +1,4 @@
-module back.code_gen;
+module back.bytecode_gen;
 
 import std.stdio;
 import std.conv;
@@ -10,13 +10,11 @@ import krug_module;
 import dependency_scanner;
 import exec.instruction;
 
-// credit to Adam D. Ruppe
-// http://forum.dlang.org/thread/gyfofjdfzjzmkbsygqsf@forum.dlang.org
 T instanceof(T)(Object o) if (is(T == class)) {
   return cast(T) o;
 }
 
-struct Code_Generator {
+struct Bytecode_Generator {
   Dependency_Graph graph;
 
   uint program_index = 0;

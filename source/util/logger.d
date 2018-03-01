@@ -173,3 +173,14 @@ static void Fatal(string[] strings...) {
 static void Verbose(string[] strings...) {
   Log(Log_Level.Verbose, join(strings));
 }
+
+static void VerboseHeader(string[] strings...) {
+  string res = join(strings);
+  auto w = res.length;
+
+  writeln("\n");
+  Verbose(replicate("#", w * 2));
+  Verbose(replicate(" ", w / 2), res);
+  Verbose(replicate("#", w * 2));
+  writeln("\n");
+}

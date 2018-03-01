@@ -20,12 +20,11 @@ import compiler_error;
 import parse.parser;
 import ast;
 import logger;
-import ssa.builder;
+import kir.builder;
 
 import exec.instruction;
 import exec.exec_engine;
 import sema.analyzer;
-import back.code_gen;
 
 static string os_name() {
   // this should cover most of the important-ish ones
@@ -131,6 +130,7 @@ void main(string[] args) {
   // TODO: this should be elsewhere... ?
   assert("main" in proj.graph);
 
+  logger.VerboseHeader("Cycle detection: ");
   SCC[] cycles = proj.graph.get_scc();
   if (cycles.length > 0) {
     foreach (cycle; cycles) {
@@ -164,7 +164,7 @@ void main(string[] args) {
   // modules with the least amount of dependencies
   // are first
   auto sorted_deps = flattened.sort!((a, b) => a.dep_count() < b.dep_count());
-  logger.Verbose("Parsing: ");
+  logger.VerboseHeader("Parsing: ");
   foreach (ref dep; sorted_deps) {
     foreach (ref entry; dep.token_streams.byKeyValue) {
       logger.Verbose("- " ~ dep.name ~ "::" ~ entry.key);
@@ -182,7 +182,7 @@ void main(string[] args) {
     }
   }
 
-  logger.Verbose("Semantic Analysis: ");
+  logger.VerboseHeader("Semantic Analysis: ");
   foreach (ref dep; sorted_deps) {
     auto sema = new Semantic_Analysis(graph);
     foreach (ref entry; dep.as_trees.byKeyValue) {
@@ -196,37 +196,12 @@ void main(string[] args) {
     return;
   }
 
-  logger.Verbose("Control Flow Analysis:");
+  logger.VerboseHeader("Control Flow Analysis:");
   foreach (ref dep; sorted_deps) {
-    auto ssa_builder = new SSA_Builder;
+    auto ssa_builder = new Kir_Builder;
     foreach (ref entry; dep.as_trees.byKeyValue) {
       ssa_builder.build(dep, entry.key);
     }
-  }
-
-  if (DONT_COMPILE)
-    return;
-
-  ubyte[] entire_program;
-  uint main_func_addr = 0;
-
-  logger.Verbose("Code Generation: ");
-  foreach (ref dep; sorted_deps) {
-    auto gen = new Code_Generator(graph);
-    foreach (ref entry; dep.as_trees.byKeyValue) {
-      gen.process(dep, entry.key);
-    }
-
-    if ("main" in gen.func_addr_reg) {
-      main_func_addr = gen.func_addr_reg["main"];
-    }
-
-    logger.Verbose("addr tables");
-    foreach (entry; gen.func_addr_reg.byKeyValue()) {
-      logger.Verbose(entry.key ~ " @ " ~ to!string(entry.value));
-    }
-
-    entire_program ~= gen.program;
   }
 
   auto duration = compilerTimer.peek();
@@ -240,7 +215,7 @@ void main(string[] args) {
   StopWatch rt_timer;
   rt_timer.start();
 
-  execute_program(main_func_addr, entire_program.length, &entire_program[0]);
+  // TODO run the program here!
 
   auto rt_dur = rt_timer.peek();
   logger.Info("Program execution took " ~ to!string(

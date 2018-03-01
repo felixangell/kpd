@@ -1,10 +1,12 @@
-module ssa.ir_module;
+module kir.ir_mod;
 
+import std.conv;
+import std.stdio;
 import std.container.array : back;
 
-import ssa.instr;
+import kir.instr;
 
-class IR_Module {
+class Kir_Module {
 	Function[] functions;
 
 	Function current_func() {

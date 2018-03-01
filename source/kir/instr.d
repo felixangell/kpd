@@ -1,17 +1,41 @@
-module ssa.instr;
+module kir.instr;
 
 import std.stdio;
 import std.conv;
 
 import ast;
 import krug_module : Token;
-import ssa.block;
 import sema.type;
 import ast;
 
 interface Instruction {
 	Type get_type();
-	string to_string();
+}
+
+class Basic_Block {
+	Basic_Block[] preds;
+	Basic_Block[] succs;
+
+	ulong id;
+
+	Instruction[] instructions;
+	Function parent;
+
+	this(Function parent) {
+		this.parent = parent;
+		this.id = parent.blocks.length;
+	}
+
+	void dump() {
+		writeln("_bb", to!string(id), ":");
+		foreach (instr; instructions) {
+			writeln(" ", to!string(instr));
+		}
+	}
+
+	void add_instr(Instruction instr) {
+		instructions ~= instr;
+	}
 }
 
 class Basic_Instruction : Instruction {
@@ -21,7 +45,7 @@ class Basic_Instruction : Instruction {
 		this.type = type;
 	}
 
-	string to_string() {
+	override string toString() {
 		return to!string(type);
 	}
 
@@ -30,12 +54,31 @@ class Basic_Instruction : Instruction {
 	}
 }
 
-interface Value {}
+interface Value {
+	Type get_type();
+}
 
-class Identifier : Value {
+class Basic_Value : Value {
+	protected Type type;
+
+	this(Type type) {
+		this.type = type;
+	}
+
+	override string toString() {
+		return to!string(type);
+	}
+
+	Type get_type() {
+		return type;
+	}
+}
+
+class Identifier : Basic_Value {
 	string name;
 
 	this(string name) {
+		super(null); // fixme
 		this.name = name;
 	}
 
@@ -44,10 +87,11 @@ class Identifier : Value {
 	}
 }
 
-class Constant : Value {
+class Constant : Basic_Value {
 	ast.Expression_Node value;
 
-	this (ast.Expression_Node value) {
+	this (Type t, ast.Expression_Node value) {
+		super(t);
 		this.value = value;
 	}
 
@@ -64,11 +108,26 @@ class Function {
 	string name;
 	Alloc[] locals;
 	Basic_Block[] blocks;
+	Basic_Block curr_block;
 
 	Basic_Block push_block() {
-		auto block = Basic_Block(this);
+		auto block = new Basic_Block(this);
 		blocks ~= block;
+		curr_block = block;
 		return block;
+	}
+
+	// this is the assumption that
+	// the first basic block in a function
+	// is the entry block, we are adding
+	// all of the allocations to this part!
+	Value add_alloc(Alloc a) {
+		blocks[0].add_instr(a);
+		return a;
+	}
+
+	void add_instr(Instruction i) {
+		curr_block.add_instr(i);
 	}
 
 	void dump() {
@@ -84,9 +143,20 @@ class Phi {
 }
 
 // a = new int
-class Alloc : Basic_Instruction {
-	this(Type type) {
+class Alloc : Basic_Instruction, Value {
+	string name;
+
+	this(Type type, string name) {
 		super(type);
+		this.name = name;
+	}
+
+	override Type get_type() {
+		return type;
+	}
+
+	override string toString() {
+		return "%" ~ name ~ " = new " ~ to!string(type);
 	}
 }
 
@@ -102,7 +172,11 @@ class Store : Basic_Instruction {
 	}
 
 	override string toString() {
-		return "store " ~ to!string(val) ~ " -> " ~ to!string(address);
+		string addr = to!string(address);
+		if (auto alloc = cast(Alloc) address) {
+			addr = "%" ~ alloc.name;
+		}
+		return "store " ~ to!string(val) ~ " -> " ~ to!string(addr);
 	}
 }
 
@@ -115,6 +189,10 @@ class BinaryOp : Basic_Instruction, Value {
 		this.op = op;
 		this.a = a;
 		this.b = b;
+	}
+
+	override Type get_type() {
+		return type;
 	}
 
 	override string toString() {

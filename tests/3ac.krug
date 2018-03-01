@@ -1,4 +1,9 @@
-func sqrt(a int) int {
+// FIXME param a and variable a
+// are not causing a symbol conflict!
+func sqrt(a int, b int) int {
+	let a = 3;
+	let z = 5;
+	let asfsdf = 444123;
 	return 4;
 }
 

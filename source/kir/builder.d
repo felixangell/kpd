@@ -1,19 +1,20 @@
-module ssa.builder;
+module kir.builder;
 
 import std.stdio;
 import std.range.primitives;
 import std.conv;
 import std.traits;
 
-import ssa.instr;
-import ssa.block;
+import kir.instr;
 import sema.visitor;
-import ssa.ir_module;
+import kir.ir_mod;
 
 import logger;
 import ast;
 import logger;
 import krug_module;
+import sema.infer : Type;
+import sema.type : prim_type;
 
 T pop(T)(ref T[] array) {
   T val = array.back;
@@ -29,20 +30,37 @@ string gen_temp() {
 /*
 https://pp.ipd.kit.edu/uploads/publikationen/braun13cc.pdf
 */
-class SSA_Builder : Top_Level_Node_Visitor {
+class Kir_Builder : Top_Level_Node_Visitor {
 
-  IR_Module ir_mod;
-  Basic_Block* curr_block;
+  Kir_Module ir_mod;
+  Function curr_func;
 
   this() {
-    ir_mod = new IR_Module();
+    ir_mod = new Kir_Module();
   }
 
   override void analyze_named_type_node(ast.Named_Type_Node) {}
 
   void build_block(ast.Block_Node block) {
-    auto stats = block.statements;
-    
+    curr_func.push_block();
+
+    foreach (stat; block.statements) {
+      visit_stat(stat);
+    }
+  }
+
+  // convert an AST type to a krug ir type
+  Type get_type(Type_Node t) {
+    if (auto resolved = cast(Resolved_Type) t) {
+      return resolved.type;
+    } else if (auto prim = cast(Primitive_Type_Node) t) {
+      return prim_type(prim.type_name.lexeme);
+    }
+
+    logger.Error("Leaking unresolved type! ", to!string(t));
+
+    // FIXME just pretend it's an integer for now!
+    return prim_type("int");
   }
 
   // we generate one control flow graph per function
@@ -57,78 +75,48 @@ class SSA_Builder : Top_Level_Node_Visitor {
   // 2. any instruction that is the target of a jump is a leader.
   // 3. any instruction that follows a jump is a leader.
   override void analyze_function_node(ast.Function_Node func) {
-    auto ssa_func = ir_mod.add_function(func.name.lexeme);
-    Basic_Block block = ssa_func.push_block();
-    curr_block = &block;
+    curr_func = ir_mod.add_function(func.name.lexeme);
+    curr_func.push_block();
+
+    // alloc all the params
+    foreach (p; func.params.byValue()) {
+      curr_func.add_alloc(new Alloc(get_type(p.type), p.twine.lexeme));
+    }
 
     if (func.func_body !is null) {
       build_block(func.func_body);      
     }
   }
 
-  // this is likely a store
-  // a = b + f * -c ... 
   void build_binary_expr(ast.Binary_Expression_Node binary) {
-    Value[] expr_stack;
-    Token[] operands;
-
-    void delegate(Expression_Node) build_bin;
-    build_bin = delegate(ast.Expression_Node expr) {      
-      if (auto binary = cast(Binary_Expression_Node) expr) {
-        build_bin(binary.left);
-        build_bin(binary.right);
-        operands ~= binary.operand;
-      }
-
-      else if (auto paren = cast(Paren_Expression_Node) expr) {
-        build_bin(paren.value);
-      }
-
-      // TODO flatten calls properly?
-      else if (auto call = cast(Call_Node) expr) {
-        foreach (arg; call.args) {
-          build_bin(arg);
-        }
-      }
-
-      else {
-        expr_stack ~= new Constant(expr);
-      }
-    };
-    build_bin(binary);
-
-    Value[string] names;
-    Value[] values;
-
-    while (operands.length > 0) {
-      Token op = operands.pop();
-      auto a = expr_stack.pop();
-      auto b = expr_stack.pop();
-
-      auto temp = new BinaryOp(null, op, a, b);
-      auto temp_name = gen_temp();
-      names[temp_name] = temp;
-      expr_stack ~= new Identifier(temp_name); 
-      
-      values ~= temp;
-    }
-
-    foreach (v; values) {
-      writeln(v);
-    }
+    
   }
 
-  void build_expr(ast.Expression_Node expr) {
-    if (auto binary = cast(ast.Binary_Expression_Node) expr) {
-      build_binary_expr(binary);
+  Value build_expr(ast.Expression_Node expr) {
+    if (auto integer_const = cast(Integer_Constant_Node) expr) {
+      return new Constant(prim_type("int"), integer_const);
+    } else if (auto binary = cast(Binary_Expression_Node) expr) {
+      auto left = build_expr(binary.left);
+      auto right = build_expr(binary.left);    
+      return left; // FIXME
+    } else if (auto path = cast(Path_Expression_Node) expr) {
+       // FIXME
+      return build_expr(path.values[0]);
+    } else if (auto sym = cast(Symbol_Node) expr) {
+      return new Identifier(sym.value.lexeme);
     } else {
-      logger.Warn("ssa_builder: unhandled expr ", to!string(expr));
+      logger.Fatal("unhandled build_expr in ssa ", to!string(expr));
     }
+    return null;
   }
 
   override void analyze_let_node(ast.Variable_Statement_Node var) {
+    // TODO handle global variables.
+    auto addr = curr_func.add_alloc(new Alloc(get_type(var.type), var.twine.lexeme));
+
     if (var.value !is null) {
-      build_expr(var.value);
+      auto val = build_expr(var.value);
+      curr_func.add_instr(new Store(val.get_type(), addr, val));
     }
   }
 
@@ -140,7 +128,7 @@ class SSA_Builder : Top_Level_Node_Visitor {
     }
   }
 
-	IR_Module build(ref Module mod, string sub_mod_name) {
+	Kir_Module build(ref Module mod, string sub_mod_name) {
 		assert(mod !is null);
 
     if (sub_mod_name !in mod.as_trees) {
