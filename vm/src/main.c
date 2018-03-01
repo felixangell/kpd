@@ -2,13 +2,15 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <assert.h>
-#include <collectc/array.h>
+#include <string.h>
+#include <stdlib.h>
 
 #define ARRAY_SIZEOF(x) (sizeof(x) / sizeof(x[0]))
 
 #include "stack_frame.h"
 #include "opcodes.h"
 #include "krugvm.h"
+#include "array.h"
 #include "vthread.h"
 
 #include "opcode_names.h"
@@ -26,7 +28,7 @@
 */
 
 struct Execution_Engine {
-	Array* threads;
+	struct array* threads;
 
 	struct Virtual_Thread* main;
 	struct Virtual_Thread* thread;
@@ -49,7 +51,7 @@ make_thread(struct Execution_Engine* engine) {
 
 static void 
 initialise_engine(struct Execution_Engine* engine, uint8_t* program) {
-	array_new(&engine->threads);
+	engine->threads = new_array(2);
 	engine->main = make_thread(engine);
 	engine->program = program;
 }
@@ -57,12 +59,11 @@ initialise_engine(struct Execution_Engine* engine, uint8_t* program) {
 static void
 destroy_engine(struct Execution_Engine* engine) {
 	// destroy all the threads.
-	for (size_t i = 0; i < array_size(engine->threads); i++) {
-		struct Virtual_Thread* thread;
-		array_get_at(engine->threads, i, (void*) &thread);
+	for (size_t i = 0; i < engine->threads->size; i++) {
+		struct Virtual_Thread* thread = array_get(engine->threads, i);
 		destroy_thread(thread);
 	}
-	array_destroy(engine->threads);
+	destroy_array(engine->threads);
 }
 
 static uint64_t 

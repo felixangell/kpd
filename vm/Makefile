@@ -1,23 +1,23 @@
-src := $(wildcard src/*.c)
-obj := $(patsubst %.c,%.o,$(src))
-out := krugvm.a
+CC_SRC_FILES := $(wildcard src/*.c)
+CC_OBJ_FILES := $(patsubst %.c,%.o,$(CC_SRC_FILES))
+OUT := krugvm.a
 
-CCFLAGS := -Wall -Wextra -g3 -std=c99
-LDFLAGS := -lcollectc
+CC := clang
+CC_FLAGS := -Wall -Wextra -g3 -std=c99
 
-default: $(out)
+default: $(OUT)
 
 %.o: %.c
-	clang $(CCFLAGS) -c $< -o $@
+	$(CC) $(CC_FLAGS) -c $< -o $@
 
-lib: $(obj)
-	ar -cvq $(out) $(obj)
+lib: $(CC_OBJ_FILES)
+	ar -cvq $(OUT) $(CC_OBJ_FILES)
 	
-$(out): $(obj)
-	clang $(LDFLAGS) $(obj) -o krugvm
+$(OUT): $(CC_OBJ_FILES)
+	$(CC) $(LD_FLAGS) $(CC_OBJ_FILES) -o $(OUT)
 
 clean:
-	-rm $(obj)
-	-rm $(out)
+	-rm $(CC_OBJ_FILES)
+	-rm $(OUT)
 
 .PHONY: cc default all

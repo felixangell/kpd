@@ -1,0 +1,9 @@
+func main() {
+	let c = 3;
+	loop {
+		c = c + 2;
+		if c > 50 {
+			break;
+		}
+	}
+}

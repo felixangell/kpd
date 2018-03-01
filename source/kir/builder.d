@@ -151,6 +151,11 @@ class Kir_Builder : Top_Level_Node_Visitor {
     jmp.b = new Label(curr_func.push_block());
   }
 
+  void analyze_loop_node(ast.Loop_Statement_Node loop) {
+    auto loop_body = build_block(loop.block);
+    curr_func.add_instr(new Jump(loop_body));
+  }
+
   override void analyze_let_node(ast.Variable_Statement_Node var) {
     // TODO handle global variables.
     auto addr = curr_func.add_alloc(new Alloc(get_type(var.type), var.twine.lexeme));
@@ -168,8 +173,10 @@ class Kir_Builder : Top_Level_Node_Visitor {
       analyze_return_node(ret);
     } else if (auto if_stat = cast(ast.If_Statement_Node) node) {
       analyze_if_node(if_stat);
+    } else if (auto loop = cast(ast.Loop_Statement_Node) node) {
+      analyze_loop_node(loop);
     } else {
-      logger.Warn("unhandled node in ssa ", to!string(node));
+      logger.Warn("kir_builder: unhandled node: ", to!string(node));
     }
   }
 

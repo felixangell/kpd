@@ -234,7 +234,7 @@ class Call_Node : Expression_Node {
       if (i > 0) arguments ~= ",";
       arguments ~= to!string(a);
     }
-    return to!string(left) ~ "(" ~ arguments ~ ")";
+    return "(" ~ to!string(left) ~ ")(" ~ arguments ~ ")";
   }
 }
 

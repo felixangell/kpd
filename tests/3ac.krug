@@ -12,6 +12,34 @@ func main() {
 	let a int = 3;
 	let c int = 24;
 
+	loop {
+		c = c + 2;
+		if c > 50 {
+			break;
+		}
+	}
+
+	while a < b {
+		if a == 2 {
+			next;
+		}
+		break;
+	}
+
+	if a == 2 {
+
+	} else {
+
+	}
+
+	if a == a {
+
+	} else if a == b {
+
+	} else {
+
+	}
+
 	let x = a + b;
 	if x == 15 {
 		sqrt(5, 10);

@@ -218,8 +218,17 @@ class UnaryOp : Basic_Instruction {
 }
 
 // jump <label>
-class Jump {
+class Jump : Basic_Instruction {
+	Label label;
 
+	this(Label label) {
+		super(prim_type("void"));
+		this.label = label;
+	}
+
+	override string toString() {
+		return "jmp " ~ to!string(label);
+	}
 }
 
 class Label : Basic_Value {
