@@ -16,7 +16,8 @@ here's a brief overview of how the compiler works (so far):
 - each of these trees are then semantically analysed:
   * all symbols are declared
   * names are resolved
-  * ...
+  * ... (TODO) other semantic parses (mostly type stuff)
+    have been temporarily removed.
 - then these trees are translated into "Krug IR" or KIR;
   * (TODO) make this an SSA based IR
 - (TODO) KIR can then be translated into bytecode for the krugvm
