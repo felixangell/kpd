@@ -40,6 +40,11 @@ class SSA_Builder : Top_Level_Node_Visitor {
 
   override void analyze_named_type_node(ast.Named_Type_Node) {}
 
+  void build_block(ast.Block_Node block) {
+    auto stats = block.statements;
+    
+  }
+
   // we generate one control flow graph per function
   // convert the ast.Block_Node into a bunch of basic blocks
   // 
@@ -57,7 +62,7 @@ class SSA_Builder : Top_Level_Node_Visitor {
     curr_block = &block;
 
     if (func.func_body !is null) {
-
+      build_block(func.func_body);      
     }
   }
 

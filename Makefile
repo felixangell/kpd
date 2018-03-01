@@ -2,7 +2,7 @@ src_files := $(wildcard source/*.d)
 exe := krug
 
 $(exe): $(src_files)
-	cd vm && make clean && make lib
+	cd vm && make lib
 	dub build --force --arch=x86_64
 
 go: $(exe)
@@ -11,6 +11,7 @@ go: $(exe)
 all: $(exe)
 
 clean:
+	cd vm && make clean
 	-rm $(exe)
 
 .PHONY: clean $(exe)
