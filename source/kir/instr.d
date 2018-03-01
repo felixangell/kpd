@@ -239,7 +239,7 @@ class Label : Basic_Value {
 	}
 
 	override string toString() {
-		return ":" ~ name;
+		return "#" ~ name;
 	}
 }
 

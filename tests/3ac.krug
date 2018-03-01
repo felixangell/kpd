@@ -16,4 +16,6 @@ func main() {
 	if x == 15 {
 		sqrt(5, 10);
 	}
+
+	sqrt(10, 5);
 }
