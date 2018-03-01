@@ -50,11 +50,19 @@ class Kir_Builder : Top_Level_Node_Visitor {
   }
 
   // convert an AST type to a krug ir type
-  Type get_type(Type_Node t) {
+  Type get_type(Node t) {
     if (auto resolved = cast(Resolved_Type) t) {
       return resolved.type;
     } else if (auto prim = cast(Primitive_Type_Node) t) {
       return prim_type(prim.type_name.lexeme);
+    } else if (auto sym = cast(Symbol_Node) t) {
+      // TODO
+      // since the type inference stuff passes
+      // were temporarily removed
+      // we dont know any of the type information
+      // for nowe let's just assume we're dealing with ints!
+      // otherwise we would want to lookup the type here!
+      return prim_type("int");
     }
 
     logger.Error("Leaking unresolved type! ", to!string(t));
@@ -92,18 +100,29 @@ class Kir_Builder : Top_Level_Node_Visitor {
     
   }
 
+  Value build_binary(ast.Binary_Expression_Node binary) {
+    Value left = build_expr(binary.left);
+    Value right = build_expr(binary.right);
+
+    auto temp = new Alloc(left.get_type(), gen_temp());
+    curr_func.add_instr(temp);
+
+    auto expr = new BinaryOp(left.get_type(), binary.operand, left, right);
+    auto store = new Store(left.get_type(), temp, expr);
+    curr_func.add_instr(store);
+    return new Identifier(temp.get_type(), temp.name);
+  }
+
   Value build_expr(ast.Expression_Node expr) {
     if (auto integer_const = cast(Integer_Constant_Node) expr) {
       return new Constant(prim_type("int"), integer_const);
     } else if (auto binary = cast(Binary_Expression_Node) expr) {
-      auto left = build_expr(binary.left);
-      auto right = build_expr(binary.left);    
-      return left; // FIXME
+      return build_binary(binary);
     } else if (auto path = cast(Path_Expression_Node) expr) {
        // FIXME
       return build_expr(path.values[0]);
     } else if (auto sym = cast(Symbol_Node) expr) {
-      return new Identifier(sym.value.lexeme);
+      return new Identifier(get_type(sym), sym.value.lexeme);
     } else {
       logger.Fatal("unhandled build_expr in ssa ", to!string(expr));
     }

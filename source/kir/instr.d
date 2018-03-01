@@ -77,13 +77,13 @@ class Basic_Value : Value {
 class Identifier : Basic_Value {
 	string name;
 
-	this(string name) {
-		super(null); // fixme
+	this(Type type, string name) {
+		super(type); // fixme
 		this.name = name;
 	}
 
 	override string toString() {
-		return "iden(" ~ name ~ ")";
+		return "$" ~ name;
 	}
 }
 

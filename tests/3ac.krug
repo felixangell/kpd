@@ -8,8 +8,8 @@ func sqrt(a int, b int) int {
 }
 
 func main() {
-	let b = 15;
-	let a = 3;
-	let c = 24;
-	let x = a + (b * c);
+	let b int = 15;
+	let a int = 3;
+	let c int = 24;
+	let x = a + b;
 }
