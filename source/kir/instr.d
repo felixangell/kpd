@@ -34,7 +34,7 @@ class Basic_Block {
 	void dump() {
 		writeln("_bb", to!string(id), ":");
 		foreach (instr; instructions) {
-			writeln(" ", to!string(instr));
+			writeln("    ", to!string(instr));
 		}
 	}
 

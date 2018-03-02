@@ -10,4 +10,13 @@ func main() {
 		foo[i] = 'a';
 		i = i + 1;
 	}
+
+	if i == 3 {
+
+	}
+
+	if i == 2 {
+	
+	}
+	return;
 }

@@ -226,6 +226,10 @@ class Kir_Builder : Top_Level_Node_Visitor {
   void analyze_loop_node(ast.Loop_Statement_Node loop) {
     auto loop_body = build_block(loop.block);
     curr_func.add_instr(new Jump(loop_body));
+
+    // jump must be the last instruction in it's block!
+    // so we need to push a basic block here.
+    curr_func.push_block();
   }
 
   void analyze_break_node(ast.Break_Statement_Node b) {
