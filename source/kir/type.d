@@ -30,6 +30,10 @@ Integer_Type get_uint(uint width) {
 class Array_Type : Kir_Type {
 	Kir_Type base;
 
+	this (Kir_Type base) {
+		this.base = base;
+	}
+
 	bool cmp(Kir_Type t) {
 		if (auto arr = cast(Array_Type) t) {
 			// if the base types are the same

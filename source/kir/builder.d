@@ -60,6 +60,26 @@ class Kir_Builder : Top_Level_Node_Visitor {
   }
 
   kt.Kir_Type conv_prim_type(ast.Primitive_Type_Node prim) {
+    switch (prim.type_name.lexeme) {
+    // signed integers
+    case "s8": return get_int(8);
+    case "s16": return get_int(16);
+    case "s32": return get_int(32);
+    case "s64": return get_int(64);
+
+    // unsigned integers
+    case "u8": return get_uint(8);
+    case "u16": return get_uint(16);
+    case "u32": return get_uint(32);
+    case "u64": return get_uint(64);
+
+    case "bool": return get_uint(8);
+    case "rune": return get_uint(32);
+
+    default: break;
+    }
+
+    logger.Error("Unhandled conversion of primitive type to kir type ", to!string(prim));
     return null;
   }
 
@@ -77,6 +97,8 @@ class Kir_Builder : Top_Level_Node_Visitor {
       // for nowe let's just assume we're dealing with ints!
       // otherwise we would want to lookup the type here!
       return get_int(32);
+    } else if (auto arr = cast(Array_Type_Node) t) {
+      return new kt.Array_Type(get_type(arr.base_type));
     }
 
     logger.Error("Leaking unresolved type! ", to!string(t));
