@@ -1,0 +1,7 @@
+type Person struct {
+	age uint,
+};
+
+func main() {
+	let p Person;
+}
