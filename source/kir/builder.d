@@ -170,9 +170,7 @@ class Kir_Builder : Top_Level_Node_Visitor {
 
     // create a store if we're dealing with an assignment
     if (binary.operand.lexeme == "=") {
-      auto store = new Store(left.get_type(), left, right);
-      curr_func.add_instr(store);
-      return store;
+      return new Store(left.get_type(), left, right);
     }
 
     auto temp = new Alloc(left.get_type(), gen_temp());
