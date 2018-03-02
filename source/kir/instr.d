@@ -5,11 +5,11 @@ import std.conv;
 
 import ast;
 import krug_module : Token;
-import sema.type;
+import kt;
 import ast;
 
 interface Instruction {
-	Type get_type();
+	Kir_Type get_type();
 }
 
 class Basic_Block {
@@ -45,9 +45,9 @@ class Basic_Block {
 }
 
 class Basic_Instruction : Instruction {
-	protected Type type;
+	protected Kir_Type type;
 
-	this(Type type) {
+	this(Kir_Type type) {
 		this.type = type;
 	}
 
@@ -55,19 +55,19 @@ class Basic_Instruction : Instruction {
 		return to!string(type);
 	}
 
-	Type get_type() {
+	Kir_Type get_type() {
 		return type;
 	}
 }
 
 interface Value {
-	Type get_type();
+	Kir_Type get_type();
 }
 
 class Basic_Value : Value {
-	protected Type type;
+	protected Kir_Type type;
 
-	this(Type type) {
+	this(Kir_Type type) {
 		this.type = type;
 	}
 
@@ -75,7 +75,7 @@ class Basic_Value : Value {
 		return to!string(type);
 	}
 
-	Type get_type() {
+	Kir_Type get_type() {
 		return type;
 	}
 }
@@ -83,7 +83,7 @@ class Basic_Value : Value {
 class Identifier : Basic_Value {
 	string name;
 
-	this(Type type, string name) {
+	this(Kir_Type type, string name) {
 		super(type); // fixme
 		this.name = name;
 	}
@@ -96,7 +96,7 @@ class Identifier : Basic_Value {
 class Constant : Basic_Value {
 	ast.Expression_Node value;
 
-	this (Type t, ast.Expression_Node value) {
+	this (Kir_Type t, ast.Expression_Node value) {
 		super(t);
 		this.value = value;
 	}
@@ -152,12 +152,12 @@ class Phi {
 class Alloc : Basic_Instruction, Value {
 	string name;
 
-	this(Type type, string name) {
+	this(Kir_Type type, string name) {
 		super(type);
 		this.name = name;
 	}
 
-	override Type get_type() {
+	override Kir_Type get_type() {
 		return type;
 	}
 
@@ -171,7 +171,7 @@ class Store : Basic_Instruction {
 	Value address;
 	Value val;
 
-	this(Type type, Value address, Value val) {
+	this(Kir_Type type, Value address, Value val) {
 		super(type);
 		this.address = address;
 		this.val = val;
@@ -191,14 +191,14 @@ class BinaryOp : Basic_Instruction, Value {
 	Token op;
 	Value a, b;
 
-	this(Type type, Token op, Value a, Value b) {
+	this(Kir_Type type, Token op, Value a, Value b) {
 		super(type);
 		this.op = op;
 		this.a = a;
 		this.b = b;
 	}
 
-	override Type get_type() {
+	override Kir_Type get_type() {
 		return type;
 	}
 
@@ -209,7 +209,7 @@ class BinaryOp : Basic_Instruction, Value {
 
 // op a
 class UnaryOp : Basic_Instruction {
-	this(Type type) {
+	this(Kir_Type type) {
 		super(type);
 	}
 
@@ -222,7 +222,7 @@ class Jump : Basic_Instruction {
 	Label label;
 
 	this(Label label) {
-		super(prim_type("void"));
+		super(new Void_Type());
 		this.label = label;
 	}
 
@@ -236,13 +236,13 @@ class Label : Basic_Value {
 	Basic_Block reference;
 
 	this(Basic_Block bb) {
-		super(prim_type("void"));
+		super(new Void_Type());
 		this.name = bb.name();
 		this.reference = bb;
 	}
 
 	this(string name, Basic_Block reference) {
-		super(prim_type("void"));
+		super(new Void_Type());
 		this.name = name;
 		this.reference = reference;
 	}
@@ -259,7 +259,7 @@ class If : Basic_Instruction {
 	Label a, b;
 
 	this(Value condition) {
-		super(prim_type("bool")); // ?
+		super(get_uint(8)); // ?
 		this.condition = condition;
 	}
 
@@ -272,11 +272,11 @@ class If : Basic_Instruction {
 class Return : Basic_Instruction {
 	Value[] results;
 
-	this(Type type) {
+	this(Kir_Type type) {
 		super(type);
 	}
 
-	void set_type(Type type) {
+	void set_type(Kir_Type type) {
 		this.type = type;
 	}
 

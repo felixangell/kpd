@@ -9,6 +9,7 @@ import kir.instr;
 import sema.visitor;
 import kir.ir_mod;
 
+import kt;
 import logger;
 import ast;
 import logger;
@@ -51,12 +52,23 @@ class Kir_Builder : Top_Level_Node_Visitor {
     return new Label(bb.name(), bb);
   }
 
+  // convert a Type into a KIR Type.
+  // note this Type is not a type node from
+  // the AST but a Type from the type system
+  kt.Kir_Type conv(Type t) {
+    return null;
+  }
+
+  kt.Kir_Type conv_prim_type(ast.Primitive_Type_Node prim) {
+    return null;
+  }
+
   // convert an AST type to a krug ir type
-  Type get_type(Node t) {
+  kt.Kir_Type get_type(Node t) {
     if (auto resolved = cast(Resolved_Type) t) {
-      return resolved.type;
+      return conv(resolved.type);
     } else if (auto prim = cast(Primitive_Type_Node) t) {
-      return prim_type(prim.type_name.lexeme);
+      return conv_prim_type(prim);
     } else if (auto sym = cast(Symbol_Node) t) {
       // TODO
       // since the type inference stuff passes
@@ -64,13 +76,13 @@ class Kir_Builder : Top_Level_Node_Visitor {
       // we dont know any of the type information
       // for nowe let's just assume we're dealing with ints!
       // otherwise we would want to lookup the type here!
-      return prim_type("int");
+      return get_int(32);
     }
 
     logger.Error("Leaking unresolved type! ", to!string(t));
 
     // FIXME just pretend it's an integer for now!
-    return prim_type("int");
+    return get_int(32);
   }
 
   // we generate one control flow graph per function
@@ -113,7 +125,8 @@ class Kir_Builder : Top_Level_Node_Visitor {
 
   Value build_expr(ast.Expression_Node expr) {
     if (auto integer_const = cast(Integer_Constant_Node) expr) {
-      return new Constant(prim_type("int"), integer_const);
+      // FIXME
+      return new Constant(get_int(32), integer_const);
     } else if (auto binary = cast(Binary_Expression_Node) expr) {
       return build_binary_expr(binary);
     } else if (auto path = cast(Path_Expression_Node) expr) {
@@ -128,7 +141,7 @@ class Kir_Builder : Top_Level_Node_Visitor {
   }
 
   void analyze_return_node(ast.Return_Statement_Node ret) {    
-    auto ret_instr = new Return(prim_type("void"));
+    auto ret_instr = new Return(new Void_Type());
 
     // its not a void type
     if (ret.value !is null) {
@@ -156,6 +169,10 @@ class Kir_Builder : Top_Level_Node_Visitor {
     curr_func.add_instr(new Jump(loop_body));
   }
 
+  void analyze_break_node(ast.Break_Statement_Node b) {
+    // TODO
+  }
+
   override void analyze_let_node(ast.Variable_Statement_Node var) {
     // TODO handle global variables.
     auto addr = curr_func.add_alloc(new Alloc(get_type(var.type), var.twine.lexeme));
@@ -175,6 +192,8 @@ class Kir_Builder : Top_Level_Node_Visitor {
       analyze_if_node(if_stat);
     } else if (auto loop = cast(ast.Loop_Statement_Node) node) {
       analyze_loop_node(loop);
+    } else if (auto b = cast(ast.Break_Statement_Node) node) {
+      analyze_break_node(b);
     } else {
       logger.Warn("kir_builder: unhandled node: ", to!string(node));
     }

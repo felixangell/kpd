@@ -198,9 +198,9 @@ void main(string[] args) {
 
   logger.VerboseHeader("Control Flow Analysis:");
   foreach (ref dep; sorted_deps) {
-    auto ssa_builder = new Kir_Builder;
+    auto kir_builder = new Kir_Builder;
     foreach (ref entry; dep.as_trees.byKeyValue) {
-      ssa_builder.build(dep, entry.key);
+      kir_builder.build(dep, entry.key);
     }
   }
 

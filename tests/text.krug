@@ -1,0 +1,13 @@
+func main() {
+	let foo [rune]; // [rune; size]/
+
+	let i u64 = 0;
+	loop {
+		if i > 10 {
+			break;
+		}
+
+		foo[i] = 'a';
+		i = i + 1;
+	}
+}
