@@ -209,7 +209,12 @@ class Call : Basic_Instruction, Value {
 	}
 
 	override string toString() {
-		return "invoke " ~ to!string(left);
+		string params;
+		foreach (i, a; args) {
+			if (i > 0) params ~= ", ";
+			params ~= to!string(a);
+		}
+		return "invoke " ~ to!string(left) ~ "(" ~ params ~ ")";
 	}
 }
 

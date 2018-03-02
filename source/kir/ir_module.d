@@ -21,7 +21,8 @@ class Kir_Module {
 	}
 
 	void dump() {
-		foreach (func; functions) {
+		foreach (i, func; functions) {
+			if (i > 0) write('\n');
 			func.dump();
 		}
 	}
