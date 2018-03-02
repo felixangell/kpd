@@ -4,5 +4,8 @@ func main() {
 	let i s32 = 3;
 	let j *s32 = &i;
 	@j = 69;
+	if i == 69 {
+		print_value(i);
+	}
 	print_value(i);
 }

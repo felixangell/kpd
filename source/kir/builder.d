@@ -151,7 +151,11 @@ class Kir_Builder : Top_Level_Node_Visitor {
       build_block(func.func_body);      
     }
 
-    if (!cast(Return) curr_func.last_instr()) {
+    // if there are no instructions in the last basic
+    // block add a return
+    // OR if the last instruction is not a return!
+    if (curr_func.curr_block.instructions.length == 0 
+        || !cast(Return) curr_func.last_instr()) {
       curr_func.add_instr(new Return(new Void_Type()));
     }
   }
