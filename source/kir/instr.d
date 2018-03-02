@@ -2,6 +2,7 @@ module kir.instr;
 
 import std.stdio;
 import std.conv;
+import std.range.primitives : back;
 
 import ast;
 import krug_module : Token;
@@ -155,6 +156,10 @@ class Function {
 		return a;
 	}
 
+	Instruction last_instr() {
+		return curr_block.instructions.back;
+	}
+
 	Instruction add_instr(Instruction i) {
 		return curr_block.add_instr(i);
 	}
@@ -190,7 +195,7 @@ class Alloc : Basic_Instruction, Value {
 }
 
 // *a = b
-class Store : Basic_Instruction {
+class Store : Basic_Instruction, Value {
 	Value address;
 	Value val;
 
@@ -198,6 +203,10 @@ class Store : Basic_Instruction {
 		super(type);
 		this.address = address;
 		this.val = val;
+	}
+
+	override Kir_Type get_type() {
+		return type;
 	}
 
 	override string toString() {

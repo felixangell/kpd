@@ -145,17 +145,29 @@ class Kir_Builder : Top_Level_Node_Visitor {
       build_block(func.func_body);      
     }
 
-    curr_func.add_instr(new Return(new Void_Type()));
+    if (!cast(Return) curr_func.last_instr()) {
+      curr_func.add_instr(new Return(new Void_Type()));
+    }
   }
 
+  // i feel like this is all completely shit and
+  // probably wont work. do this properly! but for now
+  // it works for most of the test cases?
   Value build_binary_expr(ast.Binary_Expression_Node binary) {
     Value left = build_expr(binary.left);
     Value right = build_expr(binary.right);
+    auto expr = new BinaryOp(left.get_type(), binary.operand, left, right);
+
+    // create a store if we're dealing with an assignment
+    if (binary.operand.lexeme == "=") {
+      auto store = new Store(left.get_type(), left, right);
+      curr_func.add_instr(store);
+      return store;
+    }
 
     auto temp = new Alloc(left.get_type(), gen_temp());
     curr_func.add_instr(temp);
 
-    auto expr = new BinaryOp(left.get_type(), binary.operand, left, right);
     auto store = new Store(left.get_type(), temp, expr);
     curr_func.add_instr(store);
     return new Identifier(temp.get_type(), temp.name);
