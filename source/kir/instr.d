@@ -126,6 +126,9 @@ class Constant : Basic_Value {
 		if (auto i = cast(ast.Integer_Constant_Node) value) {
 			return to!string(i.value);
 		}
+		else if (auto f = cast(ast.Float_Constant_Node) value) {
+			return to!string(f.value);
+		}
 		else if (auto r = cast(ast.Rune_Constant_Node) value) {
 			return "'" ~ to!string(r.value) ~ "'";
 		}

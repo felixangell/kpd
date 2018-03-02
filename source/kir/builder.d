@@ -76,6 +76,9 @@ class Kir_Builder : Top_Level_Node_Visitor {
     case "bool": return get_uint(8);
     case "rune": return get_int(32);
 
+    case "f32": return get_float(32);
+    case "f64": return get_float(64);
+
     // TODO: what width should these types
     // be !
     case "int": return get_int(32);
@@ -114,6 +117,10 @@ class Kir_Builder : Top_Level_Node_Visitor {
     } 
     else if (auto ptr = cast(Pointer_Type_Node) t) {
       return new kt.Pointer_Type(get_type(ptr.base_type));
+    }
+
+    if (t is null) {
+      assert(0);
     }
 
     logger.Error("Leaking unresolved type! ", to!string(t), to!string(typeid(t)));
@@ -237,6 +244,10 @@ class Kir_Builder : Top_Level_Node_Visitor {
     if (auto integer_const = cast(Integer_Constant_Node) expr) {
       // FIXME
       return new Constant(get_int(32), integer_const);
+    }
+    else if (auto float_const = cast(Float_Constant_Node) expr) {
+      // FIXME
+      return new Constant(get_float(64), float_const);
     } 
     else if (auto rune_const = cast(Rune_Constant_Node) expr) {
       // runes are a 4 byte signed integer.

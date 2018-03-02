@@ -6,8 +6,22 @@ interface Kir_Type {
 	bool cmp(Kir_Type t);
 };
 
+Floating_Type f32, f64;
+static this() {
+	f32 = new Floating_Type(32, true);
+	f64 = new Floating_Type(64, true);
+}
+
 Integer_Type[uint] signed_type_cache;
 Integer_Type[uint] unsigned_type_cache;
+
+Floating_Type get_float(uint width) {
+	final switch (width) {
+	case 32: return f32;
+	case 64: return f64;
+	}
+	assert(0);
+}
 
 Integer_Type get_int(uint width) {
 	if (width in signed_type_cache) {
