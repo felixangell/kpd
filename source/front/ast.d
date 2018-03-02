@@ -183,7 +183,7 @@ class Boolean_Constant_Node : Constant_Node!bool {
 
 class Rune_Constant_Node : Constant_Node!dchar {
   this(Token tok) {
-    super(tok, to!dchar(tok.lexeme[0]));
+    super(tok, to!dchar(tok.lexeme[1]));
   }
 }
 

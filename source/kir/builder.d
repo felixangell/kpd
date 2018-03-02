@@ -74,10 +74,19 @@ class Kir_Builder : Top_Level_Node_Visitor {
     case "u64": return get_uint(64);
 
     case "bool": return get_uint(8);
-    case "rune": return get_uint(32);
+    case "rune": return get_int(32);
+
+    // TODO: what width should these types
+    // be !
+    case "int": return get_int(32);
+    case "uint": return get_uint(32);
+
+    case "void": return new Void_Type();
 
     default: break;
     }
+
+    // TODO f32 and f64.
 
     logger.Error("Unhandled conversion of primitive type to kir type ", to!string(prim));
     return null;
@@ -145,19 +154,47 @@ class Kir_Builder : Top_Level_Node_Visitor {
     return new Identifier(temp.get_type(), temp.name);
   }
 
+  Value build_path(ast.Path_Expression_Node path) {
+    if (path.values.length == 1) {
+      return build_expr(path.values[0]);
+    }
+
+    foreach (v; path.values) {
+      writeln(v);
+    }
+
+    assert(0);
+  }
+
+  Value build_index_expr(ast.Index_Expression_Node node) {
+    Value addr = build_expr(node.array);
+    Value sub = build_expr(node.index);
+    return new Index(addr.get_type(), addr, sub);
+  }
+
   Value build_expr(ast.Expression_Node expr) {
     if (auto integer_const = cast(Integer_Constant_Node) expr) {
       // FIXME
       return new Constant(get_int(32), integer_const);
-    } else if (auto binary = cast(Binary_Expression_Node) expr) {
+    } 
+    else if (auto rune_const = cast(Rune_Constant_Node) expr) {
+      // runes are a 4 byte signed integer.
+      return new Constant(get_int(32), rune_const);
+    } 
+    else if (auto index = cast(Index_Expression_Node) expr) {
+      return build_index_expr(index);
+    } 
+    else if (auto binary = cast(Binary_Expression_Node) expr) {
       return build_binary_expr(binary);
-    } else if (auto path = cast(Path_Expression_Node) expr) {
-       // FIXME
-      return build_expr(path.values[0]);
-    } else if (auto sym = cast(Symbol_Node) expr) {
+    } 
+    else if (auto path = cast(Path_Expression_Node) expr) {
+      return build_path(path);
+    } 
+    else if (auto sym = cast(Symbol_Node) expr) {
       return new Identifier(get_type(sym), sym.value.lexeme);
-    } else {
-      logger.Fatal("unhandled build_expr in ssa ", to!string(expr));
+    } 
+    else {
+      logger.Fatal("unhandled build_expr in ssa ", to!string(expr), " -> ", to!string(typeid(expr)));
     }
     return null;
   }
@@ -216,6 +253,8 @@ class Kir_Builder : Top_Level_Node_Visitor {
       analyze_loop_node(loop);
     } else if (auto b = cast(ast.Break_Statement_Node) node) {
       analyze_break_node(b);
+    } else if (auto e = cast(ast.Expression_Node) node) {
+      build_expr(e);
     } else {
       logger.Warn("kir_builder: unhandled node: ", to!string(node));
     }

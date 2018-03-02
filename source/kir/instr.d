@@ -93,6 +93,25 @@ class Identifier : Basic_Value {
 	}
 }
 
+class Index : Basic_Instruction, Value {
+	Value addr;
+	Value index;
+
+	this(Kir_Type t, Value addr, Value index) {
+		super(t);
+		this.addr = addr;
+		this.index = index;
+	}
+
+	override Kir_Type get_type() {
+		return type;
+	}
+
+	override string toString() {
+		return to!string(addr) ~ "[" ~ to!string(index) ~ "]";
+	}
+}
+
 class Constant : Basic_Value {
 	ast.Expression_Node value;
 
@@ -102,8 +121,12 @@ class Constant : Basic_Value {
 	}
 
 	override string toString() {
+		// TODO
 		if (auto i = cast(ast.Integer_Constant_Node) value) {
 			return to!string(i.value);
+		}
+		else if (auto r = cast(ast.Rune_Constant_Node) value) {
+			return "'" ~ to!string(r.value) ~ "'";
 		}
 
 		return to!string(value);
@@ -182,7 +205,7 @@ class Store : Basic_Instruction {
 		if (auto alloc = cast(Alloc) address) {
 			addr = "%" ~ alloc.name;
 		}
-		return "store " ~ to!string(val) ~ " -> " ~ to!string(addr);
+		return "store " ~ to!string(addr) ~ ", " ~ to!string(val);
 	}
 }
 
