@@ -201,7 +201,7 @@ void main(string[] args) {
     return;
   }
 
-  logger.VerboseHeader("Control Flow Analysis:");
+  logger.VerboseHeader("Generating Krug IR:");
   foreach (ref dep; sorted_deps) {
     auto kir_builder = new Kir_Builder;
     foreach (ref entry; dep.as_trees.byKeyValue) {

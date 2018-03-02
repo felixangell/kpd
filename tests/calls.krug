@@ -1,0 +1,8 @@
+func add(a s32, b s32) s32 {
+	return a + b;
+}
+
+func main() {
+	let f s32 = add(5, 3);
+	add(f, f);	
+}

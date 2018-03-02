@@ -116,7 +116,7 @@ class Kir_Builder : Top_Level_Node_Visitor {
       return new kt.Pointer_Type(get_type(ptr.base_type));
     }
 
-    logger.Error("Leaking unresolved type! ", to!string(t));
+    logger.Error("Leaking unresolved type! ", to!string(t), to!string(typeid(t)));
 
     // FIXME just pretend it's an integer for now!
     return get_int(32);
@@ -226,6 +226,15 @@ class Kir_Builder : Top_Level_Node_Visitor {
     assert(0);
   }
 
+  Value build_call(ast.Call_Node call) {
+    Value left = build_expr(call.left);
+    Value[] args;
+    foreach (arg; call.args) {
+      args ~= build_expr(arg);
+    }
+    return new Call(left.get_type(), left, args);
+  }
+
   Value build_expr(ast.Expression_Node expr) {
     if (auto integer_const = cast(Integer_Constant_Node) expr) {
       // FIXME
@@ -248,7 +257,7 @@ class Kir_Builder : Top_Level_Node_Visitor {
       return new Identifier(get_type(sym), sym.value.lexeme);
     } 
     else if (auto call = cast(Call_Node) expr) {
-      return new Identifier(get_int(32), "HELLO");
+      return build_call(call);
     }
     else if (auto unary = cast(Unary_Expression_Node) expr) {
       return build_unary_expr(unary);
@@ -338,7 +347,10 @@ class Kir_Builder : Top_Level_Node_Visitor {
       analyze_break_node(b);
     } 
     else if (auto e = cast(ast.Expression_Node) node) {
-      build_expr(e);
+      auto v = build_expr(e);
+      if (auto instr = cast(Instruction) v) {
+        curr_func.add_instr(instr);
+      }
     } 
     else {
       logger.Warn("kir_builder: unhandled node: ", to!string(node));

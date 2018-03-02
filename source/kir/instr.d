@@ -13,6 +13,10 @@ interface Instruction {
 	Kir_Type get_type();
 }
 
+interface Value {
+	Kir_Type get_type();
+}
+
 class Basic_Block {
 	Basic_Block[] preds;
 	Basic_Block[] succs;
@@ -59,10 +63,6 @@ class Basic_Instruction : Instruction {
 	Kir_Type get_type() {
 		return type;
 	}
-}
-
-interface Value {
-	Kir_Type get_type();
 }
 
 class Basic_Value : Value {
@@ -191,6 +191,25 @@ class Alloc : Basic_Instruction, Value {
 
 	override string toString() {
 		return "%" ~ name ~ " = new " ~ to!string(type);
+	}
+}
+
+class Call : Basic_Instruction, Value {
+	Value left;
+	Value[] args;
+
+	this(Kir_Type type, Value left, Value[] args) {
+		super(type);
+		this.left = left;
+		this.args = args;
+	}
+
+	override Kir_Type get_type() {
+		return type;
+	}
+
+	override string toString() {
+		return "invoke " ~ to!string(left);
 	}
 }
 
