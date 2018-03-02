@@ -1,5 +1,5 @@
 func main() {
-	let foo [rune]; // [rune; size]/
+	let foo [rune]; // [rune; size]
 
 	let i u64 = 0;
 	loop {
@@ -16,7 +16,7 @@ func main() {
 	}
 
 	if i == 2 {
-	
+
 	}
 	return;
 }

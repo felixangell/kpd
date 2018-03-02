@@ -129,16 +129,23 @@ class Kir_Builder : Top_Level_Node_Visitor {
   // 3. any instruction that follows a jump is a leader.
   override void analyze_function_node(ast.Function_Node func) {
     curr_func = ir_mod.add_function(func.name.lexeme);
-    curr_func.push_block();
 
-    // alloc all the params
-    foreach (p; func.params.byValue()) {
-      curr_func.add_alloc(new Alloc(get_type(p.type), p.twine.lexeme));
+    // only generate the bb0 params block
+    // if we have params on this function
+    if (func.params.length > 0) {
+      curr_func.push_block();
+
+      // alloc all the params
+      foreach (p; func.params.byValue()) {
+        curr_func.add_alloc(new Alloc(get_type(p.type), p.twine.lexeme));
+      }
     }
 
     if (func.func_body !is null) {
       build_block(func.func_body);      
     }
+
+    curr_func.add_instr(new Return(new Void_Type()));
   }
 
   Value build_binary_expr(ast.Binary_Expression_Node binary) {
@@ -193,6 +200,9 @@ class Kir_Builder : Top_Level_Node_Visitor {
     else if (auto sym = cast(Symbol_Node) expr) {
       return new Identifier(get_type(sym), sym.value.lexeme);
     } 
+    else if (auto call = cast(Call_Node) expr) {
+      return new Identifier(get_int(32), "HELLO");
+    }
     else {
       logger.Fatal("unhandled build_expr in ssa ", to!string(expr), " -> ", to!string(typeid(expr)));
     }
@@ -246,20 +256,41 @@ class Kir_Builder : Top_Level_Node_Visitor {
     }
   }
 
+  void analyze_while_node(ast.While_Statement_Node loop) {
+    Value v = build_expr(loop.condition);
+
+    If jmp = new If(v);
+    curr_func.add_instr(jmp);
+
+    auto loop_body = build_block(loop.block);
+    jmp.a = loop_body;
+
+    jmp.b = new Label(curr_func.push_block());
+  }
+
   override void visit_stat(ast.Statement_Node node) {
     if (auto let = cast(ast.Variable_Statement_Node) node) {
       analyze_let_node(let);
-    } else if (auto ret = cast(ast.Return_Statement_Node) node) {
+    } 
+    else if (auto ret = cast(ast.Return_Statement_Node) node) {
       analyze_return_node(ret);
-    } else if (auto if_stat = cast(ast.If_Statement_Node) node) {
+    } 
+    else if (auto if_stat = cast(ast.If_Statement_Node) node) {
       analyze_if_node(if_stat);
-    } else if (auto loop = cast(ast.Loop_Statement_Node) node) {
+    } 
+    else if (auto loop = cast(ast.Loop_Statement_Node) node) {
       analyze_loop_node(loop);
-    } else if (auto b = cast(ast.Break_Statement_Node) node) {
+    } 
+    else if (auto loop = cast(ast.While_Statement_Node) node) {
+      analyze_while_node(loop);
+    } 
+    else if (auto b = cast(ast.Break_Statement_Node) node) {
       analyze_break_node(b);
-    } else if (auto e = cast(ast.Expression_Node) node) {
+    } 
+    else if (auto e = cast(ast.Expression_Node) node) {
       build_expr(e);
-    } else {
+    } 
+    else {
       logger.Warn("kir_builder: unhandled node: ", to!string(node));
     }
   }

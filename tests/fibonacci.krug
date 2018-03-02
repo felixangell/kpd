@@ -4,8 +4,8 @@ func no() {}
 func $__exit() {}
 
 func main() void {
-	let i = 0;
-	let j = 250_000;
+	let i s32 = 0;
+	let j s32 = 250_000;
 
 	while i < j {
 		yes();
