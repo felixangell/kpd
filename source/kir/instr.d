@@ -117,7 +117,7 @@ class Constant : Basic_Value {
 	ast.Expression_Node value;
 
 	this (Kir_Type t, ast.Expression_Node value) {
-		super(t);
+		super(t); // value.get_type() ?
 		this.value = value;
 	}
 
@@ -239,14 +239,47 @@ class BinaryOp : Basic_Instruction, Value {
 	}
 }
 
-// op a
-class UnaryOp : Basic_Instruction {
-	this(Kir_Type type) {
-		super(type);
+class Deref : Basic_Value {
+	Value v;
+
+	this (Value v) {
+		// if v.get_type() is a ptr, this would be the ptrs base type.
+		super(v.get_type());
+		this.v = v;
 	}
 
+	override string toString() {
+		return "@(" ~ to!string(v) ~ ")";
+	}
+}
+
+class AddrOf : Basic_Value {
+	Value v;
+
+	this (Value v) {
+		super(new Pointer_Type(v.get_type()));
+		this.v = v;
+	}
+
+	override string toString() {
+		return "&(" ~ to!string(v) ~ ")";
+	}
+}
+
+// op a
+class UnaryOp : Basic_Instruction, Value {
+	Value v;
 	Token op;
-	Value a;
+
+	this(Token op, Value v) {
+		super(v.get_type());
+		this.v = v;
+		this.op = op;
+	}
+
+	override Kir_Type get_type() {
+		return type;
+	}
 }
 
 // jump <label>

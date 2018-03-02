@@ -16,7 +16,10 @@ func main() {
 	}
 
 	if i == 2 {
-
+		i = 55;
+		let j s32 = i;
+		j = j * 2;
+		i = j + j;
 	}
 
 	return;

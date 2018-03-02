@@ -1,0 +1,8 @@
+func print_value(a s32);
+
+func main() {
+	let i s32 = 3;
+	let j *s32 = &i;
+	@j = 69;
+	print_value(i);
+}

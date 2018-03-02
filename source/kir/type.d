@@ -48,6 +48,25 @@ class Array_Type : Kir_Type {
 	}
 }
 
+class Pointer_Type : Kir_Type {
+	Kir_Type base;
+
+	this(Kir_Type base) {
+		this.base = base;
+	}
+
+	bool cmp(Kir_Type kt) {
+		if (auto ptr = cast(Pointer_Type) kt) {
+			return base.cmp(ptr.base);
+		}
+		return false;
+	}
+
+	override string toString() {
+		return "*" ~ to!string(base);
+	}
+}
+
 class Structure_Type : Kir_Type {
 	Kir_Type[] types;
 

@@ -96,9 +96,11 @@ class Kir_Builder : Top_Level_Node_Visitor {
   kt.Kir_Type get_type(Node t) {
     if (auto resolved = cast(Resolved_Type) t) {
       return conv(resolved.type);
-    } else if (auto prim = cast(Primitive_Type_Node) t) {
+    } 
+    else if (auto prim = cast(Primitive_Type_Node) t) {
       return conv_prim_type(prim);
-    } else if (auto sym = cast(Symbol_Node) t) {
+    } 
+    else if (auto sym = cast(Symbol_Node) t) {
       // TODO
       // since the type inference stuff passes
       // were temporarily removed
@@ -106,8 +108,12 @@ class Kir_Builder : Top_Level_Node_Visitor {
       // for nowe let's just assume we're dealing with ints!
       // otherwise we would want to lookup the type here!
       return get_int(32);
-    } else if (auto arr = cast(Array_Type_Node) t) {
+    } 
+    else if (auto arr = cast(Array_Type_Node) t) {
       return new kt.Array_Type(get_type(arr.base_type));
+    } 
+    else if (auto ptr = cast(Pointer_Type_Node) t) {
+      return new kt.Pointer_Type(get_type(ptr.base_type));
     }
 
     logger.Error("Leaking unresolved type! ", to!string(t));
@@ -191,6 +197,31 @@ class Kir_Builder : Top_Level_Node_Visitor {
     return new Index(addr.get_type(), addr, sub);
   }
 
+  Value value_at(ast.Expression_Node e) {
+    return new Deref(build_expr(e));
+  }
+
+  Value addr_of(ast.Expression_Node e) {
+    return new AddrOf(build_expr(e));
+  }
+
+  Value build_unary_expr(ast.Unary_Expression_Node unary) {
+    // grammar.d
+    // "+", "-", "!", "^", "@", "&"
+    final switch (unary.operand.lexeme) {
+    case "+":
+    case "-":
+    case "!":
+    case "^":
+      return new UnaryOp(unary.operand, build_expr(unary.value));
+    case "@":
+      return value_at(unary.value);
+    case "&":
+      return addr_of(unary.value);
+    }
+    assert(0);
+  }
+
   Value build_expr(ast.Expression_Node expr) {
     if (auto integer_const = cast(Integer_Constant_Node) expr) {
       // FIXME
@@ -214,6 +245,9 @@ class Kir_Builder : Top_Level_Node_Visitor {
     } 
     else if (auto call = cast(Call_Node) expr) {
       return new Identifier(get_int(32), "HELLO");
+    }
+    else if (auto unary = cast(Unary_Expression_Node) expr) {
+      return build_unary_expr(unary);
     }
     else {
       logger.Fatal("unhandled build_expr in ssa ", to!string(expr), " -> ", to!string(typeid(expr)));
