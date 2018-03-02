@@ -90,7 +90,8 @@ class Lexer : Compilation_Phase {
     string buffer = to!string(expect('\''));
     if (peek() == '\\') {
       buffer ~= recognize_esc_seq();
-    } else {
+    } 
+    else {
       buffer ~= consume();
     }
     buffer ~= expect('\'');
@@ -165,7 +166,8 @@ class Lexer : Compilation_Phase {
         consume();
         consume();
         num_comments++;
-      } else if (peek() == '*' && peek(1) == '/') {
+      } 
+      else if (peek() == '*' && peek(1) == '/') {
         last_open_comment_indices.popBack();
         consume();
         consume();
@@ -220,7 +222,8 @@ class Lexer : Compilation_Phase {
 
       if (row == last_line) {
         pad = pad + junk.length;
-      } else {
+      } 
+      else {
         pad = 0;
       }
 
@@ -256,18 +259,23 @@ class Lexer : Compilation_Phase {
       }  // raw string literal
       else if (curr == '`') {
         recognized_token = recognize_raw_str();
-      } else if (isNumber(peek())) {
+      } 
+      else if (isNumber(peek())) {
         recognized_token = recognize_num();
       }  // (-|+)digit or just digit
       else if ((curr == '+' || curr == '-') && isNumber(peek(1))) {
         recognized_token = recognize_num();
-      } else if (to!string(curr) in SYMBOLS || (to!string(curr) ~ to!string(peek(1))) in SYMBOLS) {
+      } 
+      else if (to!string(curr) in SYMBOLS || (to!string(curr) ~ to!string(peek(1))) in SYMBOLS) {
         recognized_token = recognize_sym();
-      } else if (curr == '"') {
+      } 
+      else if (curr == '"') {
         recognized_token = recognize_str();
-      } else if (curr == '\'') {
+      } 
+      else if (curr == '\'') {
         recognized_token = recognize_char();
-      } else {
+      } 
+      else {
         writeln("what is " ~ to!string(peek()));
       }
 

@@ -22,7 +22,8 @@ func main() {
 
 	if foo == 3 {
 		yes();
-	} else {
+	} 
+	else {
 		no();
 	}
 }

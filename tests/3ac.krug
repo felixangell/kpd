@@ -28,15 +28,18 @@ func main() {
 
 	if a == 2 {
 		
-	} else {
+	} 
+	else {
 
 	}
 
 	if a == a {
 
-	} else if a == b {
+	} 
+	else if a == b {
 
-	} else {
+	} 
+	else {
 
 	}
 

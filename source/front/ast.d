@@ -452,7 +452,8 @@ public:
     if (name.lexeme in fields) {
       Diagnostic_Engine.throw_error(compiler_error.SYMBOL_CONFLICT, name,
           fields[name.lexeme].name);
-    } else {
+    } 
+    else {
       fields[name.lexeme] = new Structure_Field(name, type, value);
     }
   }

@@ -94,7 +94,8 @@ class Name_Resolve_Pass : Top_Level_Node_Visitor, Semantic_Pass {
         // we only want this if we're at the
         // start of the path.
         found_sym = find_symbol(last, sym_name);
-      } else {
+      } 
+      else {
         found_sym = find_symbol_in_stab(last, sym_name);
       }
 
@@ -105,7 +106,8 @@ class Name_Resolve_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 
       if (auto stab = cast(Symbol_Table) found_sym) {
         last = stab;
-      } else if (i != type_path.values.length - 1) {
+      } 
+      else if (i != type_path.values.length - 1) {
         Token next_tok = type_path.values[i + 1];
         // it's not a symbol table so there is no more
         // places for us to search and we still have
@@ -121,7 +123,8 @@ class Name_Resolve_Pass : Top_Level_Node_Visitor, Semantic_Pass {
   Symbol_Table resolve_type(ast.Type_Node t) {
     if (auto type_path = cast(Type_Path_Node) t) {
       return resolve_type_path(type_path);
-    } else if (auto ptr = cast(Pointer_Type_Node) t) {
+    } 
+    else if (auto ptr = cast(Pointer_Type_Node) t) {
       return resolve_type(ptr.base_type);
     }
 
@@ -137,9 +140,11 @@ class Name_Resolve_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 
     if (auto var = cast(ast.Variable_Statement_Node) s.reference) {
       return resolve_type(var.type);
-    } else if (auto field = cast(ast.Structure_Field) s.reference) {
+    } 
+    else if (auto field = cast(ast.Structure_Field) s.reference) {
       return resolve_type(field.type);
-    } else if (auto param = cast(ast.Function_Parameter) s.reference) {
+    } 
+    else if (auto param = cast(ast.Function_Parameter) s.reference) {
       return resolve_type(param.type);
     }
 
@@ -162,7 +167,8 @@ class Name_Resolve_Pass : Top_Level_Node_Visitor, Semantic_Pass {
         // we only want this if we're at the
         // start of the path.
         found_sym = find_symbol(last, sym.value.lexeme);
-      } else {
+      } 
+      else {
         found_sym = find_symbol_in_stab(last, sym.value.lexeme);
       }
 
@@ -175,7 +181,8 @@ class Name_Resolve_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 
       if (auto stab = cast(Symbol_Table) found_sym) {
         last = stab;
-      } else if (i != path.values.length - 1) {
+      } 
+      else if (i != path.values.length - 1) {
         // let's try resolve it TO a symbol table, for example.
         // let felix Person
         // let blah = felix.age;
@@ -190,7 +197,8 @@ class Name_Resolve_Pass : Top_Level_Node_Visitor, Semantic_Pass {
         Token next_tok = null;
         if (auto next_sym = cast(Symbol_Node) path.values[i + 1]) {
           next_tok = next_sym.value;
-        } else {
+        } 
+        else {
           next_tok = sym.value;
         }
 
@@ -216,21 +224,29 @@ class Name_Resolve_Pass : Top_Level_Node_Visitor, Semantic_Pass {
   void analyze_expr(ast.Expression_Node expr) {
     if (auto binary = cast(ast.Binary_Expression_Node) expr) {
       analyze_binary_expr(binary);
-    } else if (auto paren = cast(ast.Paren_Expression_Node) expr) {
+    } 
+    else if (auto paren = cast(ast.Paren_Expression_Node) expr) {
       analyze_expr(paren.value);
-    } else if (auto path = cast(ast.Path_Expression_Node) expr) {
+    } 
+    else if (auto path = cast(ast.Path_Expression_Node) expr) {
       analyze_path_expr(path);
-    } else if (auto call = cast(ast.Call_Node) expr) {
+    } 
+    else if (auto call = cast(ast.Call_Node) expr) {
       analyze_call(call);
-    } else if (auto unary = cast(ast.Unary_Expression_Node) expr) {
+    } 
+    else if (auto unary = cast(ast.Unary_Expression_Node) expr) {
       analyze_unary_unary(unary);
-    } else if (cast(ast.Integer_Constant_Node) expr) {
+    } 
+    else if (cast(ast.Integer_Constant_Node) expr) {
       // NOOP
-    } else if (cast(ast.Float_Constant_Node) expr) {
+    } 
+    else if (cast(ast.Float_Constant_Node) expr) {
       // NOOP
-    } else if (cast(ast.String_Constant_Node) expr) {
+    } 
+    else if (cast(ast.String_Constant_Node) expr) {
       // NOOP
-    } else {
+    } 
+    else {
       logger.Warn("name_resolve: unhandled node " ~ to!string(expr));
     }
   }
@@ -257,15 +273,20 @@ class Name_Resolve_Pass : Top_Level_Node_Visitor, Semantic_Pass {
   override void visit_stat(ast.Statement_Node stat) {
     if (auto variable = cast(ast.Variable_Statement_Node) stat) {
       analyze_let_node(variable);
-    } else if (auto expr = cast(ast.Expression_Node) stat) {
+    } 
+    else if (auto expr = cast(ast.Expression_Node) stat) {
       analyze_expr(expr);
-    } else if (auto while_loop = cast(ast.While_Statement_Node) stat) {
+    } 
+    else if (auto while_loop = cast(ast.While_Statement_Node) stat) {
       analyze_while_stat(while_loop);
-    } else if (auto if_stat = cast(ast.If_Statement_Node) stat) {
+    } 
+    else if (auto if_stat = cast(ast.If_Statement_Node) stat) {
       analyze_if_stat(if_stat);
-    } else if (auto call = cast(ast.Call_Node) stat) {
+    } 
+    else if (auto call = cast(ast.Call_Node) stat) {
       analyze_call(call);
-    } else {
+    } 
+    else {
       logger.Warn("name_resolve: unhandled statement " ~ to!string(stat));
     }
   }

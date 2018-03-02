@@ -82,7 +82,8 @@ Type fresh(Type t) {
     auto pt = prune(type);
     if (auto var = cast(Type_Variable) pt) {
       return var;
-    } else if (auto op = cast(Type_Operator) pt) {
+    } 
+    else if (auto op = cast(Type_Operator) pt) {
       Type[] types;
       types.length = op.types.length;
 
@@ -90,7 +91,8 @@ Type fresh(Type t) {
         types[i] = fresh_type(typ);
       }
       return new Type_Operator(op.get_name(), types);
-    } else if (auto fn = cast(Function) pt) {
+    } 
+    else if (auto fn = cast(Function) pt) {
       Type[] types;
       types.length = fn.types.length;
 
@@ -116,10 +118,12 @@ void unify(Type a, Type b) {
     if (var != pb) {
       var.instance = pb;
     }
-  } else if (auto opa = cast(Type_Operator) pa) {
+  } 
+  else if (auto opa = cast(Type_Operator) pa) {
     if (auto var = cast(Type_Variable) pb) {
       unify(var, opa);
-    } else if (auto opb = cast(Type_Operator) pb) {
+    } 
+    else if (auto opb = cast(Type_Operator) pb) {
       if (cmp(opa.name, opb.name) || opa.types.length != opb.types.length) {
         logger.Error("Type mismatch '" ~ to!string(a) ~ "' defined here:\n",
             // Blame_Token(node.twine),
@@ -230,14 +234,17 @@ struct Type_Inferrer {
 
     if (auto prim = cast(Primitive_Type_Node) node) {
       return analyze_primitive(prim);
-    } else if (auto var = cast(Variable_Statement_Node) node) {
+    } 
+    else if (auto var = cast(Variable_Statement_Node) node) {
       return analyze_variable(var);
-    } else if (auto binary = cast(Binary_Expression_Node) node) {
+    } 
+    else if (auto binary = cast(Binary_Expression_Node) node) {
       auto left = analyze(binary.left, e);
       auto right = analyze(binary.right, e);
       unify(left, right);
       return left;
-    } else if (auto sym = cast(Symbol_Node) node) {
+    } 
+    else if (auto sym = cast(Symbol_Node) node) {
       return get_symbol_type(sym.value.lexeme);
     }  // this is mostly like
     // module.sub_mod.Type
@@ -252,21 +259,27 @@ struct Type_Inferrer {
             Blame_Token(type));
       }
       return t;
-    } else if (auto path = cast(ast.Path_Expression_Node) node) {
+    } 
+    else if (auto path = cast(ast.Path_Expression_Node) node) {
       return analyze_path(path);
-    } else if (auto call = cast(ast.Call_Node) node) {
+    } 
+    else if (auto call = cast(ast.Call_Node) node) {
       return analyze_call(call);
     }  // constants
     else if (cast(Integer_Constant_Node) node) {
       return prim_type("int");
-    } else if (cast(Float_Constant_Node) node) {
+    } 
+    else if (cast(Float_Constant_Node) node) {
       // the widest type for floating point
       return prim_type("f64"); // "double"
-    } else if (cast(Boolean_Constant_Node) node) {
+    } 
+    else if (cast(Boolean_Constant_Node) node) {
       return prim_type("bool");
-    } else if (cast(String_Constant_Node) node) {
+    } 
+    else if (cast(String_Constant_Node) node) {
       return prim_type("string");
-    } else if (cast(Rune_Constant_Node) node) {
+    } 
+    else if (cast(Rune_Constant_Node) node) {
       return prim_type("rune");
     }
 

@@ -30,13 +30,17 @@ static string os_name() {
   // this should cover most of the important-ish ones
   version (linux) {
     return "Linux";
-  } else version (Windows) {
+  } 
+  else version (Windows) {
     return "Windows";
-  } else version (OSX) {
+  } 
+  else version (OSX) {
     return "Mac OS X";
-  } else version (POSIX) {
+  } 
+  else version (POSIX) {
     return "POSIX";
-  } else {
+  } 
+  else {
     return "Undefined";
   }
 }
@@ -69,7 +73,8 @@ void explain_err(string err_code) {
   if (num in compiler_error.ERROR_REGISTER) {
     auto error = compiler_error.ERROR_REGISTER[num];
     writeln(error.detail);
-  } else {
+  } 
+  else {
     logger.Error("No such error defined for '" ~ err_code ~ "'");
   }
 }
