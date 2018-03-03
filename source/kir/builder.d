@@ -250,6 +250,47 @@ class Kir_Builder : Top_Level_Node_Visitor {
     return new Call(left.get_type(), left, args);
   }
 
+  // this is a specialize block thingy majig
+  Value build_eval_expr(ast.Block_Expression_Node eval) {
+    ast.Block_Node block = eval.block;
+
+    auto bb = curr_func.push_block("_yield");
+
+    // hm! how should this be done
+    // we need to store it in a temporary
+    // but we need to know what type it is
+    // because the type sema phases are gone
+    // the block_Expr_node has no type
+    //
+    // when i do finally implement this...
+    // create an alloc with the same type as the 
+    // eval block.
+    // when we build the yield expression, we
+    // do a store into the alloc we created
+    // then we return the value at the alloc
+    // 
+    // for now! NOTE NOTE NOTE
+    // we are going to assume the type is
+    // a signed 32 bit integer cos lol
+
+    Alloc a = new Alloc(get_int(32), bb.name() ~ "_" ~ gen_temp());
+    curr_func.add_instr(a);
+
+    foreach (s; block.statements) {
+      if (auto yield = cast(ast.Yield_Statement_Node) s) {
+        auto val = build_expr(yield.value);
+        curr_func.add_instr(new Store(a.get_type(), a, val));
+      }
+      else {
+        visit_stat(s);        
+      }
+    }
+
+    curr_func.push_block();
+
+    return a;
+  }
+
   Value build_expr(ast.Expression_Node expr) {
     if (auto integer_const = cast(Integer_Constant_Node) expr) {
       // FIXME
@@ -280,6 +321,9 @@ class Kir_Builder : Top_Level_Node_Visitor {
     }
     else if (auto unary = cast(Unary_Expression_Node) expr) {
       return build_unary_expr(unary);
+    }
+    else if (auto eval = cast(Block_Expression_Node) expr) {
+      return build_eval_expr(eval);
     }
     else {
       logger.Fatal("unhandled build_expr in ssa ", to!string(expr), " -> ", to!string(typeid(expr)));

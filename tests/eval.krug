@@ -1,0 +1,8 @@
+func main() {
+	let y f32 = eval {
+		let a f32 = 3;
+		let b f32 = 6;
+		yield a * b;
+	};
+	let z s32 = y + 2;
+}

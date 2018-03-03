@@ -23,6 +23,8 @@ class Basic_Block {
 
 	ulong id;
 
+	string namespace = "";
+
 	Instruction[] instructions;
 	Function parent;
 
@@ -33,11 +35,11 @@ class Basic_Block {
 
 	// todo dlang get thingy?
 	string name() {
-		return "_bb" ~ to!string(id);
+		return "_bb" ~ to!string(id) ~ namespace;
 	}
 
 	void dump() {
-		writeln("_bb", to!string(id), ":");
+		writeln(name(), ":");
 		foreach (instr; instructions) {
 			writeln("    ", to!string(instr));
 		}
@@ -143,8 +145,9 @@ class Function {
 	Basic_Block[] blocks;
 	Basic_Block curr_block;
 
-	Basic_Block push_block() {
+	Basic_Block push_block(string namespace = "") {
 		auto block = new Basic_Block(this);
+		block.namespace ~= namespace;
 		blocks ~= block;
 		curr_block = block;
 		return block;
