@@ -42,8 +42,18 @@ class Kir_Builder : Top_Level_Node_Visitor {
 
   override void analyze_named_type_node(ast.Named_Type_Node) {}
 
-  Label build_block(ast.Block_Node block) {
-    auto bb = curr_func.push_block();
+  // NOTE:
+  // taking a basic block to build onto is a hack so that
+  // we can set 'last_looping_bb' for the
+  // analyze_loop_node and analyze_while_node
+  // i.e. we can push the block ourselves, set the 'last_looping_bb'
+  // and then pass it. OTHERWISE if we try set it we have to do
+  // it AFTER this function is executed... which means that we
+  // will have already emitted the code for the statements that
+  // need it (i.e. a next_statement_node) and thus 'last_looping_bb'
+  // will be null.
+  Label build_block(ast.Block_Node block, Basic_Block b = null) {
+    auto bb = b is null ? curr_func.push_block() : b;
 
     foreach (stat; block.statements) {
       visit_stat(stat);
@@ -302,12 +312,26 @@ class Kir_Builder : Top_Level_Node_Visitor {
   }
 
   void analyze_loop_node(ast.Loop_Statement_Node loop) {
-    auto loop_body = build_block(loop.block);
+    auto loop_body = new Label(curr_func.push_block());
+    last_looping_bb = loop_body;
+    build_block(loop.block, loop_body.reference);
+
     curr_func.add_instr(new Jump(loop_body));
 
     // jump must be the last instruction in it's block!
     // so we need to push a basic block here.
     curr_func.push_block();
+  }
+
+  Label last_looping_bb;
+
+  // note: the way this works is we will jump to the most 
+  // recent basic block of a looping statement?
+  // not sure if this will work!
+  void analyze_next_node(ast.Next_Statement_Node n) {
+    assert(last_looping_bb !is null);
+
+    curr_func.add_instr(new Jump(last_looping_bb));      
   }
 
   void analyze_break_node(ast.Break_Statement_Node b) {
@@ -330,9 +354,11 @@ class Kir_Builder : Top_Level_Node_Visitor {
     If jmp = new If(v);
     curr_func.add_instr(jmp);
 
-    auto loop_body = build_block(loop.block);
-    jmp.a = loop_body;
+    auto loop_body = new Label(curr_func.push_block());
+    last_looping_bb = loop_body;
+    build_block(loop.block, loop_body.reference);
 
+    jmp.a = loop_body;
     jmp.b = new Label(curr_func.push_block());
   }
 
@@ -354,7 +380,10 @@ class Kir_Builder : Top_Level_Node_Visitor {
     } 
     else if (auto b = cast(ast.Break_Statement_Node) node) {
       analyze_break_node(b);
-    } 
+    }
+    else if (auto n = cast(ast.Next_Statement_Node) node) {
+      analyze_next_node(n);
+    }
     else if (auto e = cast(ast.Expression_Node) node) {
       auto v = build_expr(e);
       if (auto instr = cast(Instruction) v) {
@@ -380,8 +409,6 @@ class Kir_Builder : Top_Level_Node_Visitor {
     foreach (node; ast) {
       super.process_node(node);
     }
-
-    ir_mod.dump();
 
     return ir_mod;
 	}

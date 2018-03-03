@@ -20,6 +20,7 @@ import compiler_error;
 import parse.parser;
 import ast;
 import logger;
+import kir.ir_mod;
 import kir.builder;
 
 import exec.instruction;
@@ -205,7 +206,9 @@ void main(string[] args) {
   foreach (ref dep; sorted_deps) {
     auto kir_builder = new Kir_Builder;
     foreach (ref entry; dep.as_trees.byKeyValue) {
-      kir_builder.build(dep, entry.key);
+      auto mod = kir_builder.build(dep, entry.key);
+      mod.dump();
+      // TODO verify the module here
     }
   }
 

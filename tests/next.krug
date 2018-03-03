@@ -1,0 +1,9 @@
+func main() {
+	let i s32 = 3;
+	loop {
+		if i == 2 {
+			next;
+		}
+		i = i + 1;
+	}
+}
