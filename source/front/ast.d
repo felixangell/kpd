@@ -68,9 +68,14 @@ class While_Statement_Node : Statement_Node {
 class If_Statement_Node : Statement_Node {
   Expression_Node condition;
   Block_Node block;
+
   this(Expression_Node condition, Block_Node block) {
     this.condition = condition;
     this.block = block;
+  }
+
+  override string toString() {
+    return "if(" ~ to!string(condition) ~ ")";
   }
 }
 
@@ -140,6 +145,10 @@ class Variable_Statement_Node : Statement_Node, Semicolon_Stat {
     this.type = type;
     this.mutable = mutable;
   }
+
+  override string toString() {
+    return twine.lexeme ~ " : " ~ (type !is null ? to!string(type) : "") ~ (value !is null ? " = " ~ to!string(value) : "");
+  }
 }
 
 // CONSTANTS
@@ -158,17 +167,29 @@ class String_Constant_Node : Constant_Node!string {
   this(Token tok) {
     super(tok, tok.lexeme);
   }
+
+  override string toString() {
+    return value;
+  }
 }
 
 class Float_Constant_Node : Constant_Node!double {
   this(Token tok) {
     super(tok, to!double(tok.lexeme));
   }
+
+  override string toString() {
+    return to!string(value);
+  }
 }
 
 class Integer_Constant_Node : Constant_Node!BigInt {
   this(Token tok) {
     super(tok, BigInt(tok.lexeme));
+  }
+
+  override string toString() {
+    return to!string(value);
   }
 }
 
@@ -179,11 +200,19 @@ class Boolean_Constant_Node : Constant_Node!bool {
     // we create the node.
     super(tok, tok.cmp("true") ? true : false);
   }
+
+  override string toString() {
+    return value ? "true" : "false";
+  }
 }
 
 class Rune_Constant_Node : Constant_Node!dchar {
   this(Token tok) {
     super(tok, to!dchar(tok.lexeme[1]));
+  }
+
+  override string toString() {
+    return "'" ~ to!string(value) ~ "'";
   }
 }
 
@@ -304,6 +333,10 @@ class Block_Expression_Node : Expression_Node {
   this(Block_Node block) {
     this.block = block;
   }
+
+  override string toString() {
+    return "eval ...";
+  }
 }
 
 class Binary_Expression_Node : Expression_Node {
@@ -371,6 +404,10 @@ class Primitive_Type_Node : Type_Node {
 
   this(Token type_name) {
     this.type_name = type_name;
+  }
+
+  override string toString() {
+    return type_name.lexeme;
   }
 }
 

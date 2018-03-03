@@ -313,7 +313,6 @@ class Kir_Builder : Top_Level_Node_Visitor {
           build_block(curr_func, b);
         }
         else {
-          writeln("visiting stat " ~ to!string(typeid(s)));
           visit_stat(s);
         }
       }
@@ -329,7 +328,8 @@ class Kir_Builder : Top_Level_Node_Visitor {
 
     push_bb();
 
-    return a;
+    // hm
+    return new Identifier(a.get_type(), a.name);
   }
 
   Value build_expr(ast.Expression_Node expr) {
@@ -448,6 +448,8 @@ class Kir_Builder : Top_Level_Node_Visitor {
   }
 
   override void visit_stat(ast.Statement_Node node) {
+    Basic_Block block_sample = curr_func.curr_block;
+
     if (auto let = cast(ast.Variable_Statement_Node) node) {
       analyze_let_node(let);
     } 
@@ -478,6 +480,13 @@ class Kir_Builder : Top_Level_Node_Visitor {
     else {
       logger.Warn("kir_builder: unhandled node: ", to!string(node));
     }
+
+    if (block_sample.instructions.length == 0) {
+      return;
+    }
+
+    auto last_instr = block_sample.instructions[$-1];
+    last_instr.set_code(to!string(node));
   }
 
 	Kir_Module build(ref Module mod, string sub_mod_name) {

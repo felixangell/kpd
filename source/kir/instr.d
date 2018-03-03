@@ -2,6 +2,8 @@ module kir.instr;
 
 import std.stdio;
 import std.conv;
+import std.string;
+import std.array : replicate;
 import std.range.primitives : back;
 
 import ast;
@@ -11,6 +13,9 @@ import ast;
 
 interface Instruction {
 	Kir_Type get_type();
+
+	void set_code(string s);
+	string get_code();
 }
 
 interface Value {
@@ -41,7 +46,18 @@ class Basic_Block {
 	void dump() {
 		writeln(name(), ":");
 		foreach (instr; instructions) {
-			writeln("    ", to!string(instr));
+			auto code_sample = instr.get_code();
+			if (code_sample != "") {
+				code_sample = "; " ~ code_sample;
+			}
+
+			auto ir_code = to!string(instr).strip();
+
+			enum margin = 50;
+			auto space_pad = replicate(" ", (margin - ir_code.length));
+
+			enum tab_size = 4;
+			writeln(replicate(" ", tab_size), ir_code, space_pad ~ code_sample);
 		}
 	}
 
@@ -53,9 +69,17 @@ class Basic_Block {
 
 class Basic_Instruction : Instruction {
 	protected Kir_Type type;
+	protected string code;
 
 	this(Kir_Type type) {
 		this.type = type;
+	}
+
+	override void set_code(string s) {
+		this.code = s;
+	}
+	override string get_code() {
+		return code;
 	}
 
 	override string toString() {
