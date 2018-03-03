@@ -28,6 +28,16 @@ string gen_temp() {
   return "t" ~ to!string(temp++);
 }
 
+// this is a stupid crazy hack and im not sure how i feel about this
+// but basically we have the NORMAL build_block and then
+// we have a version which builds blocks but handles all of the
+// yield stuff.
+// whenever we handle a Block_Expression_Node, we set
+// the current build_block to handle it for YIELDS, and once
+// we're done we set it _back_ to the default block builder!
+// stupid hacky thing but it works!
+alias Block_Builder_Function = Label delegate(Function current_func, ast.Block_Node block, Basic_Block b = null);
+
 /*
 https://pp.ipd.kit.edu/uploads/publikationen/braun13cc.pdf
 */
@@ -36,8 +46,12 @@ class Kir_Builder : Top_Level_Node_Visitor {
   Kir_Module ir_mod;
   Function curr_func;
 
+  // fuck me what am I doing  
+  Block_Builder_Function build_block;
+
   this() {
     ir_mod = new Kir_Module();
+    build_block = &build_normal_bb;
   }
 
   override void analyze_named_type_node(ast.Named_Type_Node) {}
@@ -52,8 +66,8 @@ class Kir_Builder : Top_Level_Node_Visitor {
   // will have already emitted the code for the statements that
   // need it (i.e. a next_statement_node) and thus 'last_looping_bb'
   // will be null.
-  Label build_block(ast.Block_Node block, Basic_Block b = null) {
-    auto bb = b is null ? curr_func.push_block() : b;
+  Label build_normal_bb(Function current_func, ast.Block_Node block, Basic_Block b = null) {
+    auto bb = b is null ? push_bb() : b;
 
     foreach (stat; block.statements) {
       visit_stat(stat);
@@ -156,7 +170,7 @@ class Kir_Builder : Top_Level_Node_Visitor {
     // only generate the bb0 params block
     // if we have params on this function
     if (func.params.length > 0) {
-      curr_func.push_block();
+      push_bb();
 
       // alloc all the params
       foreach (p; func.params.byValue()) {
@@ -165,7 +179,7 @@ class Kir_Builder : Top_Level_Node_Visitor {
     }
 
     if (func.func_body !is null) {
-      build_block(func.func_body);      
+      build_block(curr_func, func.func_body);      
     }
 
     // if there are no instructions in the last basic
@@ -250,12 +264,20 @@ class Kir_Builder : Top_Level_Node_Visitor {
     return new Call(left.get_type(), left, args);
   }
 
+  Basic_Block push_bb(string namespace = "") {
+    // assuming the prior hack!
+    if (ref this.build_block == &build_normal_bb) {
+      return curr_func.push_block(namespace);      
+    }
+
+    if (namespace != "") {
+      namespace = "_" ~ namespace;       
+    }
+    return curr_func.push_block("_yield" ~ namespace);
+  } 
+
   // this is a specialize block thingy majig
   Value build_eval_expr(ast.Block_Expression_Node eval) {
-    ast.Block_Node block = eval.block;
-
-    auto bb = curr_func.push_block("_yield");
-
     // hm! how should this be done
     // we need to store it in a temporary
     // but we need to know what type it is
@@ -273,20 +295,39 @@ class Kir_Builder : Top_Level_Node_Visitor {
     // we are going to assume the type is
     // a signed 32 bit integer cos lol
 
+    auto bb = push_bb("_yield");
+
     Alloc a = new Alloc(get_int(32), bb.name() ~ "_" ~ gen_temp());
     curr_func.add_instr(a);
 
-    foreach (s; block.statements) {
-      if (auto yield = cast(ast.Yield_Statement_Node) s) {
-        auto val = build_expr(yield.value);
-        curr_func.add_instr(new Store(a.get_type(), a, val));
-      }
-      else {
-        visit_stat(s);        
-      }
-    }
+    // what the fuck am i doing!
+    this.build_block = delegate(Function curr_func, ast.Block_Node block, Basic_Block unused = null) {
+      auto bb = push_bb();
 
-    curr_func.push_block();
+      foreach (s; block.statements) {
+        if (auto yield = cast(ast.Yield_Statement_Node) s) {
+          auto val = build_expr(yield.value);
+          curr_func.add_instr(new Store(a.get_type(), a, val));
+        }
+        else if (auto b = cast(ast.Block_Node) s) {
+          build_block(curr_func, b);
+        }
+        else {
+          writeln("visiting stat " ~ to!string(typeid(s)));
+          visit_stat(s);
+        }
+      }
+
+      return new Label(bb.name(), bb);
+    };
+    build_block(curr_func, eval.block);
+
+    // this is a crazy hack! im not sure how i feel
+    // about this.
+    // RESET the build block shit
+    this.build_block = &build_normal_bb;
+
+    push_bb();
 
     return a;
   }
@@ -349,22 +390,22 @@ class Kir_Builder : Top_Level_Node_Visitor {
 
     If jmp = new If(condition);
     curr_func.add_instr(jmp);
-    jmp.a = build_block(if_stat.block);
+    jmp.a = build_block(curr_func, if_stat.block);
 
     // new block for else stuff
-    jmp.b = new Label(curr_func.push_block());
+    jmp.b = new Label(push_bb());
   }
 
   void analyze_loop_node(ast.Loop_Statement_Node loop) {
-    auto loop_body = new Label(curr_func.push_block());
+    auto loop_body = new Label(push_bb());
     last_looping_bb = loop_body;
-    build_block(loop.block, loop_body.reference);
+    build_block(curr_func, loop.block, loop_body.reference);
 
     curr_func.add_instr(new Jump(loop_body));
 
     // jump must be the last instruction in it's block!
     // so we need to push a basic block here.
-    curr_func.push_block();
+    push_bb();
   }
 
   Label last_looping_bb;
@@ -398,12 +439,12 @@ class Kir_Builder : Top_Level_Node_Visitor {
     If jmp = new If(v);
     curr_func.add_instr(jmp);
 
-    auto loop_body = new Label(curr_func.push_block());
+    auto loop_body = new Label(push_bb());
     last_looping_bb = loop_body;
-    build_block(loop.block, loop_body.reference);
+    build_block(curr_func, loop.block, loop_body.reference);
 
     jmp.a = loop_body;
-    jmp.b = new Label(curr_func.push_block());
+    jmp.b = new Label(push_bb());
   }
 
   override void visit_stat(ast.Statement_Node node) {
