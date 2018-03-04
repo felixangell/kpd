@@ -77,11 +77,7 @@ class Declaration_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 			auto existing = curr_sym_table.register_sym(new Symbol(node, node
 					.twine));
 			if (existing !is null) {
-				logger.Error("Named type '" ~ colour.Bold(
-						node.twine.lexeme) ~ "' defined here:",
-						Blame_Token(node.twine),
-						"Conflicts with symbol defined here:",
-						Blame_Token(existing.tok));
+				Diagnostic_Engine.throw_error(SYMBOL_CONFLICT, node.twine, existing.tok);
 			}
 		}
 	}
@@ -134,12 +130,9 @@ class Declaration_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 					symbol_name);
 		}
 
-		auto existing = curr_sym_table.register_sym(new Symbol(node, symbol_name));
-		if (existing !is null) {
-			logger.Error("Function '" ~ colour.Bold(
-					node.name.lexeme) ~ "' defined here:\n", Blame_Token(node.name),
-					"Conflicts with symbol defined here:\n",
-					Blame_Token(existing.tok));
+		auto existing = curr_sym_table.register_sym(new Symbol(node, node.name));
+		if (existing) {
+			Diagnostic_Engine.throw_error(SYMBOL_CONFLICT, node.name, existing.tok);
 		}
 
 		// some functions have no body!
@@ -151,15 +144,15 @@ class Declaration_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 		visit_block(node.func_body, delegate() {
 			// introduce recv (if applicable) into func body symbol table
 			if (node.func_recv !is null) {
-				curr_sym_table.register_sym(new Symbol(node.func_recv, node
-					.func_recv.twine.lexeme));
+				curr_sym_table.register_sym(new Symbol(node.func_recv, node.func_recv.twine.lexeme));
 			}
 
 			// introduce parameters into function body symbol table
 			foreach (param; node.params) {
-				// we don't have to check for conflicts here because
-				// this HAS to be done during the parsing stage!
-				curr_sym_table.register_sym(new Symbol(param, param.twine.lexeme));
+				auto conflicting_param = curr_sym_table.register_sym(new Symbol(param, param.twine));
+				if (conflicting_param) {
+					Diagnostic_Engine.throw_error(SYMBOL_CONFLICT, param.twine, conflicting_param.tok);
+				}
 			}
 		});
 
@@ -174,9 +167,7 @@ class Declaration_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 	override void analyze_let_node(ast.Variable_Statement_Node node) {
 		auto existing = curr_sym_table.register_sym(new Symbol(node, node.twine));
 		if (existing !is null) {
-			logger.Error("Variable '", colour.Bold(node.twine.lexeme),
-					"' defined here:\n", Blame_Token(node.twine),
-					"Conflicts with symbol defined here: \n");
+			Diagnostic_Engine.throw_error(SYMBOL_CONFLICT, node.twine, existing.tok);
 		}
 	}
 
@@ -184,19 +175,16 @@ class Declaration_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 		assert(mod !is null);
 
 		if (sub_mod_name !in mod.as_trees) {
-			logger.Error("couldn't find the AST for " ~ sub_mod_name ~
-					" in module " ~ mod.name ~ " ...");
+			logger.Error("couldn't find the AST for " ~ sub_mod_name ~ " in module " ~ mod.name ~ " ...");
 			return;
 		}
 
 		mod.sym_tables[sub_mod_name] = push_sym_table();
 
-		{
-			auto ast = mod.as_trees[sub_mod_name];
-			foreach (node; ast) {
-				if (node !is null) {
-					super.process_node(node);
-				}
+		auto ast = mod.as_trees[sub_mod_name];
+		foreach (node; ast) {
+			if (node !is null) {
+				super.process_node(node);
 			}
 		}
 	}

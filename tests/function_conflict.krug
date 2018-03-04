@@ -1,0 +1,7 @@
+func add() int {
+	
+}
+
+func add() f32 {
+	
+}
