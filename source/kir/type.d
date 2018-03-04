@@ -17,8 +17,10 @@ Integer_Type[uint] unsigned_type_cache;
 
 Floating_Type get_float(uint width) {
 	final switch (width) {
-	case 32: return f32;
-	case 64: return f64;
+	case 32:
+		return f32;
+	case 64:
+		return f64;
 	}
 	assert(0);
 }
@@ -44,7 +46,7 @@ Integer_Type get_uint(uint width) {
 class Array_Type : Kir_Type {
 	Kir_Type base;
 
-	this (Kir_Type base) {
+	this(Kir_Type base) {
 		this.base = base;
 	}
 
@@ -106,7 +108,8 @@ class Structure_Type : Kir_Type {
 	override string toString() {
 		string type_list;
 		foreach (i, t; types) {
-			if (i > 0) type_list ~= ",";
+			if (i > 0)
+				type_list ~= ",";
 			type_list ~= to!string(t);
 		}
 		return "{" ~ type_list ~ "}";

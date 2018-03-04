@@ -12,18 +12,19 @@ import kargs.command;
 extern (C) bool execute_program(size_t entry_addr, size_t instruction_count, ubyte* program);
 
 class Run_Command : Command {
-	this() { 
-		super("run"); 
+	this() {
+		super("run");
 	}
 
 	override void process(string[] args) {
-		  StopWatch rt_timer;
-		  rt_timer.start();
+		StopWatch rt_timer;
+		rt_timer.start();
 
-		  // TODO run the program here!
+		// TODO run the program here!
 
-		  auto rt_dur = rt_timer.peek();
-		  logger.Info("Program execution took ", to!string(rt_dur.total!"msecs"), "/ms or ", to!string(rt_dur.total!"usecs"), "/µs");
-
+		auto rt_dur = rt_timer.peek();
+		logger.Info("Program execution took ",
+				to!string(rt_dur.total!"msecs"),
+				"/ms or ", to!string(rt_dur.total!"usecs"), "/µs");
 	}
 }

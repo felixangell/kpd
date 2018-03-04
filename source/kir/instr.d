@@ -78,6 +78,7 @@ class Basic_Instruction : Instruction {
 	override void set_code(string s) {
 		this.code = s;
 	}
+
 	override string get_code() {
 		return code;
 	}
@@ -142,7 +143,7 @@ class Index : Basic_Instruction, Value {
 class Constant : Basic_Value {
 	ast.Expression_Node value;
 
-	this (Kir_Type t, ast.Expression_Node value) {
+	this(Kir_Type t, ast.Expression_Node value) {
 		super(t); // value.get_type() ?
 		this.value = value;
 	}
@@ -151,11 +152,9 @@ class Constant : Basic_Value {
 		// TODO
 		if (auto i = cast(ast.Integer_Constant_Node) value) {
 			return to!string(i.value);
-		}
-		else if (auto f = cast(ast.Float_Constant_Node) value) {
+		} else if (auto f = cast(ast.Float_Constant_Node) value) {
 			return to!string(f.value);
-		}
-		else if (auto r = cast(ast.Rune_Constant_Node) value) {
+		} else if (auto r = cast(ast.Rune_Constant_Node) value) {
 			return "'" ~ to!string(r.value) ~ "'";
 		}
 
@@ -241,7 +240,8 @@ class Call : Basic_Instruction, Value {
 	override string toString() {
 		string params;
 		foreach (i, a; args) {
-			if (i > 0) params ~= ", ";
+			if (i > 0)
+				params ~= ", ";
 			params ~= to!string(a);
 		}
 		return "invoke " ~ to!string(left) ~ "(" ~ params ~ ")";
@@ -296,7 +296,7 @@ class BinaryOp : Basic_Instruction, Value {
 class Deref : Basic_Value {
 	Value v;
 
-	this (Value v) {
+	this(Value v) {
 		// if v.get_type() is a ptr, this would be the ptrs base type.
 		super(v.get_type());
 		this.v = v;
@@ -310,7 +310,7 @@ class Deref : Basic_Value {
 class AddrOf : Basic_Value {
 	Value v;
 
-	this (Value v) {
+	this(Value v) {
 		super(new Pointer_Type(v.get_type()));
 		this.v = v;
 	}
@@ -383,7 +383,8 @@ class If : Basic_Instruction {
 	}
 
 	override string toString() {
-		return "if " ~ to!string(condition) ~ " goto " ~ to!string(a) ~ " else " ~ to!string(b);
+		return "if " ~ to!string(condition) ~ " goto " ~ to!string(a) ~ " else " ~ to!string(
+				b);
 	}
 }
 
@@ -403,7 +404,8 @@ class Return : Basic_Instruction {
 		string values_str = "";
 		if (results !is null) {
 			foreach (i, r; results) {
-				if (i > 0) values_str ~= ", ";
+				if (i > 0)
+					values_str ~= ", ";
 				values_str ~= to!string(r);
 			}
 		}

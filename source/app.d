@@ -1,24 +1,22 @@
 import std.stdio;
-import std.datetime.stopwatch : StopWatch;
 import std.conv;
 
 import kargs.command;
 import logger;
 
-bool DONT_COMPILE = false;
-
 void main(string[] args) {
-  StopWatch compilerTimer;
-  compilerTimer.start();
+	if (args.length == 1) {
+		logger.Fatal("No sub-command offered.");
+		return;
+	}
 
-  process_args(args);
-
-  if (args.length == 1) {
-    logger.Error("no input file.");
-    return;
-  }
-
-  auto duration = compilerTimer.peek();
-  logger.Info("Compiler took ", to!string(
-      duration.total!"msecs"), "/ms or ", to!string(duration.total!"usecs"), "/µs");
+	string command_name = args[1];
+	if (command_name in commands) {
+		commands[command_name].process(args[2 .. $]);
+	} else if (command_name.length == 1 && command_name[0] in short_flags) {
+		string cmd_name = short_flags[command_name[0]];
+		commands[cmd_name].process(args[2 .. $]);
+	} else {
+		logger.Fatal("No such command '", command_name, "'.");
+	}
 }
