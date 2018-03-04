@@ -225,7 +225,7 @@ class Function_Node : Node {
 	Block_Node func_body;
 	Variable_Statement_Node func_recv;
 	Function_Parameter[] params;
-	Generic_Sigil[] generics;
+	Generic_Set generics;
 }
 
 class Block_Node : Statement_Node {
@@ -384,7 +384,10 @@ class Paren_Expression_Node : Expression_Node {
 
 // TYPE AST NODES
 
+alias Generic_Set = Generic_Sigil[];
+
 class Type_Node : Node {
+	Generic_Set sigils;
 }
 
 class Resolved_Type : Type_Node {
@@ -417,8 +420,20 @@ class Primitive_Type_Node : Type_Node {
 
 class Type_Path_Node : Type_Node {
 	Token[] values;
+
+	override string toString() {
+		string res;
+		foreach (i, v; values) {
+			if (i > 0) res ~= '.';
+			res ~= v.lexeme;
+		}
+		return res;
+	}
 }
 
+// TODO i might remove this and replace
+// it with some generic tuple type in the
+// runtime/stdlib
 class Tuple_Type_Node : Type_Node {
 	Type_Node[] types;
 }
@@ -432,6 +447,10 @@ public:
 		this.base_type = base_type;
 		this.value = value;
 	}
+
+	override string toString() {
+		return "[" ~ to!string(base_type) ~ "]";
+	}
 }
 
 class Slice_Type_Node : Type_Node {
@@ -441,6 +460,10 @@ public:
 	this(Type_Node base_type) {
 		this.base_type = base_type;
 	}
+
+	override string toString() {
+		return "&[" ~ to!string(base_type) ~ "]";
+	}
 }
 
 class Pointer_Type_Node : Type_Node {
@@ -449,6 +472,10 @@ public:
 
 	this(Type_Node base_type) {
 		this.base_type = base_type;
+	}
+
+	override string toString() {
+		return "*" ~ to!string(base_type);
 	}
 }
 
@@ -481,6 +508,14 @@ class Structure_Field : Node {
 		this.type = type;
 		this.value = value;
 	}
+
+	override string toString() {
+		string val = "";
+		if (value !is null) {
+			val = "=" ~ to!string(value);
+		}
+		return name.lexeme ~ ":" ~ to!string(type) ~ val;
+	}
 };
 
 class Structure_Type_Node : Type_Node {
@@ -489,6 +524,15 @@ public:
 
 	void add_field(Token name, Type_Node type, Expression_Node value = null) {
 		fields ~= new Structure_Field(name, type, value);
+	}
+
+	override string toString() {
+		string fields;
+		foreach (i, f; fields) {
+			if (i > 0) fields ~= ';';
+			fields ~= to!string(f);
+		}
+		return "struct {" ~ fields ~ "}";
 	}
 }
 
@@ -541,7 +585,3 @@ struct Generic_Sigil {
 	Token name;
 	Type_Path_Node[] restrictions;
 }
-
-// i dont think order matters here,
-// associative arrays dont preserve order
-alias Generic_Set = Generic_Sigil[string];

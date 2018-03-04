@@ -1,0 +1,20 @@
+type Entry!(K, V) struct {
+	key K,
+	val V,
+};
+
+type Hash_Set!K struct {
+	values [Entry],
+};
+
+func add_stuff!(T)(a T) {
+
+}
+
+func main() {
+	let blah !A struct { v A };
+	let people !string Hash_Set;
+
+	add_stuff!int(5, 6);
+	add_stuff!(f64)(3, 4);
+}

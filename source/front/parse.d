@@ -74,7 +74,7 @@ class Parser : Compilation_Phase {
 
 	Token expect(string str) {
 		if (!peek().cmp(str)) {
-			logger.Error(peek(), "Expected '" ~ str ~ "', found: '");
+			logger.Error(peek(), "Expected '" ~ str ~ "', found: '" ~ to!string(peek()) ~ "'");
 			assert(0);
 		}
 		return consume();
@@ -369,36 +369,92 @@ class Parser : Compilation_Phase {
 	}
 
 	ast.Type_Node parse_type() {
-		Token tok = peek();
+		Generic_Set sigils;
 
-		switch (tok.lexeme) {
+		// TODO: handle non parenthesis type sigil thingies
+		if (peek().cmp("!")) {
+			expect("!");
+
+			if (peek().cmp("(")) {
+				expect("(");
+
+				for (int idx = 0; has_next() && !peek().cmp(")"); idx++) {
+					if (idx > 0) {
+						expect(",");
+					}
+					sigils ~= parse_generic_sigil();
+				}
+
+				expect(")");
+			} else {
+				// no parenthesis, expect at least ONE
+				// generic sigil
+				sigils ~= parse_generic_sigil();
+			}
+		}
+
+		ast.Type_Node type;
+
+		switch (peek().lexeme) {
 		case keyword.Structure:
-			return parse_structure_type();
+			type = parse_structure_type();
+			break;
 		case keyword.Trait:
-			return parse_trait_type();
+			type = parse_trait_type();
+			break;
 		case keyword.Union:
-			return parse_union_type();
+			type = parse_union_type();
+			break;
 		case keyword.Enum:
-			return parse_enum_type();
+			type = parse_enum_type();
+			break;
 		case keyword.Function:
-			return parse_func_type();
+			type = parse_func_type();
+			break;
 		case "&":
-			return parse_slice_type();
+			type = parse_slice_type();
+			break;
 		case "[":
-			return parse_array_type();
+			type = parse_array_type();
+			break;
 		case "(":
-			return parse_tuple_type();
+			type = parse_tuple_type();
+			break;
 		case "*":
-			return parse_pointer_type();
+			type = parse_pointer_type();
+			break;
 		default:
 			break;
 		}
 
-		if (tok.lexeme in PRIMITIVE_TYPES) {
-			return new Primitive_Type_Node(consume());
+		// we havent got a type
+		// it might be a primitive
+		if (type is null) {
+			if (peek().lexeme in PRIMITIVE_TYPES) {
+				type = new Primitive_Type_Node(consume());				
+			}
+			else {
+				// not a primitive, not a type earlier
+				// let's try a type path.
+				type = parse_type_path();				
+			}
 		}
 
-		return parse_type_path();
+		// we only complain if we have
+		// parse generic sigls because
+		// the type here not being parsed is
+		// perfectly ok behaviour.
+		if (type is null && sigils !is null) {
+			auto curr = peek();
+			logger.Fatal("Failed to parse type:\n", Blame_Token(curr));
+		}
+
+		// apply the sigils if we can
+		if (type !is null) {
+			type.sigils = sigils;
+		}
+
+		return type;
 	}
 
 	ast.Named_Type_Node parse_named_type() {

@@ -1,0 +1,8 @@
+func add!(T)(a T, b T) T {
+	return a + b;
+}
+
+func main() {
+	let a f64 = add!(f64)(5.3, 4.5);
+	let f s32 = add!(s32)(333, 32);
+}

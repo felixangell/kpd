@@ -166,8 +166,7 @@ class Kir_Builder : Top_Level_Node_Visitor {
 			assert(0);
 		}
 
-		logger.Error("Leaking unresolved type! ", to!string(t), to!string(typeid(
-				t)));
+		logger.Error("Leaking unresolved type! ", to!string(t), to!string(typeid(t)));
 
 		// FIXME just pretend it's an integer for now!
 		return get_int(32);
