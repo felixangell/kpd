@@ -46,6 +46,8 @@ static string os_name() {
   }
 }
 
+// this hooks into the virtual machine which
+// is separately implemented in C
 extern (C) bool execute_program(size_t entry_addr, size_t instruction_count, ubyte* program);
 
 // FIXME this only handles a few common cases.
@@ -53,8 +55,11 @@ static string arch_type() {
   version (X86) {
     return "x86";
   }
-  version (X86_64) {
+  else version (X86_64) {
     return "x86_64";
+  } 
+  else {
+    return "Undefined";
   }
 }
 
@@ -110,14 +115,12 @@ void main(string[] args) {
     return;
   }
 
-  if (logger.VERBOSE_LOGGING) {
-    logger.Verbose();
-    logger.Verbose("KRUG COMPILER, VERSION " ~ VERSION);
-    logger.Verbose("Executing compiler, optimization level O" ~ to!string(OPTIMIZATION_LEVEL));
-    logger.Verbose("Operating system: " ~ os_name());
-    logger.Verbose("Target architecture: " ~ arch_type());
-    logger.Verbose("Compiler is in " ~ (RELEASE_MODE ? "release" : "debug") ~ " mode");
-    logger.Verbose();
+  debug {
+    writeln("KRUG COMPILER, VERSION " ~ VERSION);
+    writeln("* Executing compiler, optimization level O" ~ to!string(OPTIMIZATION_LEVEL));
+    writeln("* Operating system: " ~ os_name());
+    writeln("* Target architecture: " ~ arch_type());
+    writeln("* Compiler is in " ~ (RELEASE_MODE ? "release" : "debug") ~ " mode");
     writeln();
   }
 

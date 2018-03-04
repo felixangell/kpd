@@ -155,6 +155,8 @@ static void Error(Token t, string msg) {
   Error(msg, "\n", Blame_Token(t));
 }
 
+// TODO remove the lazy join things
+
 static void Error(string[] strings...) {
   Log(Log_Level.Error, join(strings));
 }
@@ -175,7 +177,13 @@ static void Verbose(string[] strings...) {
   Log(Log_Level.Verbose, join(strings));
 }
 
+// prints a verbose message in a nice big
+// obnoxious border.
 static void VerboseHeader(string[] strings...) {
+  if (!VERBOSE_LOGGING) {
+    return;
+  }
+
   string res = join(strings);
   auto w = res.length;
 
