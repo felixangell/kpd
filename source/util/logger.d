@@ -109,10 +109,6 @@ static void Log(Log_Level lvl, string str) {
 		return;
 	}
 
-	if (SUPPRESS_COMPILER_WARNINGS && lvl == Log_Level.Warning) {
-		return;
-	}
-
 	auto out_stream = (lvl == Log_Level.Error || lvl == Log_Level.Fatal) ? stderr : stdout;
 
 	auto col = colour.RESET;

@@ -1,28 +1,13 @@
 module cflags;
 
+enum VERSION = "0.0.1";
+enum KRUG_EXT = ".krug";
+
 uint OPTIMIZATION_LEVEL = 0;
-
-const VERSION = "0.0.1";
-
-const KRUG_EXT = ".krug";
-
 bool RELEASE_MODE = false;
-
 string ARCH = arch_type();
-
 string OPERATING_SYSTEM = os_name();
-
 string OUT_NAME = "main";
-
-bool RUN_PROGRAM = false;
-
-string ERROR_CODE = null;
-
-bool SUPPRESS_COMPILER_WARNINGS = false;
-
-bool DEV_MODE = false;
-
-bool DUMP_BYTECODE = false;
 
 static string os_name() {
 	// this should cover most of the important-ish ones

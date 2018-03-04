@@ -47,6 +47,13 @@ class Build_Command : Command {
 			return;
 		}
 
+		getopt(args, 
+			"verbose|v", &VERBOSE_LOGGING,
+			"arch", &ARCH,
+			"release|r", &RELEASE_MODE,
+			"opt|O", &OPTIMIZATION_LEVEL,
+			"out|o", &OUT_NAME);
+
 		debug {
 			writeln("KRUG COMPILER, VERSION ", VERSION);
 			writeln("* Executing compiler, optimization level O", to!string(OPTIMIZATION_LEVEL));
