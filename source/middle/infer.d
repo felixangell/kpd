@@ -77,10 +77,19 @@ bool occurs_in(Type t, Type[] types) {
 	return false;
 }
 
-Type fresh(Type t) {
-	Type fresh_type(Type type) {
+Type fresh(Type t, Type_Variable[string] generics) {
+	Type_Variable[string] mappings;
+
+	Type fresh_type(Type type, Type_Variable[string] generics) {
 		auto pt = prune(type);
 		if (auto var = cast(Type_Variable) pt) {
+			if (var.get_name() in generics) {
+				if (var.get_name() !in mappings) {
+					auto new_type_var = new Type_Variable();
+					mappings[new_type_var.get_name()] = new_type_var;
+				}
+				return mappings[var.get_name()];
+			}
 			return var;
 		}
 		else if (auto op = cast(Type_Operator) pt) {
@@ -88,7 +97,7 @@ Type fresh(Type t) {
 			types.length = op.types.length;
 
 			foreach (i, typ; op.types) {
-				types[i] = fresh_type(typ);
+				types[i] = fresh_type(typ, generics);
 			}
 			return new Type_Operator(op.get_name(), types);
 		}
@@ -97,17 +106,17 @@ Type fresh(Type t) {
 			types.length = fn.types.length;
 
 			foreach (i, typ; fn.types) {
-				types[i] = fresh_type(typ);
+				types[i] = fresh_type(typ, generics);
 			}
 
-			return new Function(fresh_type(fn.ret), types);
+			return new Function(fresh_type(fn.ret, generics), types);
 		}
 
 		logger.Fatal("bad type!");
 		assert(0);
 	}
 
-	return fresh_type(t);
+	return fresh_type(t, generics);
 }
 
 void unify(Type a, Type b) {
@@ -166,9 +175,9 @@ Type_Node resolve(Type_Node old, Type resolved) {
 struct Type_Inferrer {
 	Type_Environment e;
 
-	Type get_type(string name) {
+	Type get_type(string name, Type_Variable[string] generics) {
 		if (name in e.data) {
-			return fresh(e.data[name]);
+			return fresh(e.data[name], generics);
 		}
 
 		logger.Verbose("Couldn't find type ", name, " in environment:");
@@ -179,14 +188,14 @@ struct Type_Inferrer {
 		assert(0);
 	}
 
-	Type analyze_primitive(ast.Primitive_Type_Node node) {
+	Type analyze_primitive(ast.Primitive_Type_Node node, Type_Variable[string] generics) {
 		auto type_name = node.type_name.lexeme;
 		// handle if this primitive doesn't exist.
 		return prim_type(type_name);
 	}
 
-	Type get_symbol_type(string sym_name) {
-		Type t = get_type(sym_name);
+	Type get_symbol_type(string sym_name, Type_Variable[string] generics) {
+		Type t = get_type(sym_name, generics);
 		if (t !is null) {
 			return t;
 		}
@@ -196,20 +205,20 @@ struct Type_Inferrer {
 	}
 
 	// TODO this needs to be done properly...
-	Type analyze_path(Path_Expression_Node path) {
+	Type analyze_path(Path_Expression_Node path, Type_Variable[string] generics) {
 		auto fst = path.values[0];
-		return analyze(fst, e);
+		return analyze(fst, e, generics);
 	}
 
-	Type analyze_call(Call_Node call) {
-		Type func = analyze(call.left, e);
+	Type analyze_call(Call_Node call, Type_Variable[string] generics) {
+		Type func = analyze(call.left, e, generics);
 		assert(func !is null);
 
 		if (auto f = cast(Function) func) {
 			// TODO check length of arguments
 
 			foreach (i, arg; f.types) {
-				unify(analyze(call.args[i], e), arg);
+				unify(analyze(call.args[i], e, generics), arg);
 			}
 
 			return f.ret;
@@ -217,36 +226,36 @@ struct Type_Inferrer {
 		assert(0);
 	}
 
-	Type analyze_variable(Variable_Statement_Node node) {
+	Type analyze_variable(Variable_Statement_Node node, Type_Variable[string] generics) {
 		if (node.type !is null) {
 			// resolve the type we're given.
-			return analyze(node.type, e);
+			return analyze(node.type, e, generics);
 		}
 
 		// we have to infer the type from the value of the
 		// expression instead. TODO handle no expression! (error)
-		auto resolved = analyze(node.value, e);
+		auto resolved = analyze(node.value, e, generics);
 		node.type = resolve(node.type, resolved);
 		return resolved;
 	}
 
-	Type analyze(ast.Node node, Type_Environment e) {
+	Type analyze(ast.Node node, Type_Environment e, Type_Variable[string] generics) {
 		this.e = e;
 
 		if (auto prim = cast(Primitive_Type_Node) node) {
-			return analyze_primitive(prim);
+			return analyze_primitive(prim, generics);
 		}
 		else if (auto var = cast(Variable_Statement_Node) node) {
-			return analyze_variable(var);
+			return analyze_variable(var, generics);
 		}
 		else if (auto binary = cast(Binary_Expression_Node) node) {
-			auto left = analyze(binary.left, e);
-			auto right = analyze(binary.right, e);
+			auto left = analyze(binary.left, e, generics);
+			auto right = analyze(binary.right, e, generics);
 			unify(left, right);
 			return left;
 		}
 		else if (auto sym = cast(Symbol_Node) node) {
-			return get_symbol_type(sym.value.lexeme);
+			return get_symbol_type(sym.value.lexeme, generics);
 		} // this is mostly like
 		// module.sub_mod.Type
 		// Type
@@ -262,10 +271,10 @@ struct Type_Inferrer {
 			return t;
 		}
 		else if (auto path = cast(ast.Path_Expression_Node) node) {
-			return analyze_path(path);
+			return analyze_path(path, generics);
 		}
 		else if (auto call = cast(ast.Call_Node) node) {
-			return analyze_call(call);
+			return analyze_call(call, generics);
 		} // constants
 		else if (cast(Integer_Constant_Node) node) {
 			return prim_type("int");

@@ -8,6 +8,8 @@ import krug_module;
 
 import sema.decl;
 import sema.name_resolve;
+import sema.top_level_type_decl;
+import sema.type_infer_pass;
 
 import dependency_scanner;
 
@@ -17,7 +19,19 @@ interface Semantic_Pass {
 
 // the passes to run on
 // the semantic modules in order
-Semantic_Pass[] passes = [new Declaration_Pass, new Name_Resolve_Pass,];
+Semantic_Pass[] passes = [
+	new Declaration_Pass, 
+	new Name_Resolve_Pass,
+
+	// declare the types in the top level.
+	new Top_Level_Type_Decl_Pass,
+
+	new Type_Infer_Pass,
+];
+
+void log(Semantic_Pass pass, Log_Level level, string[] msg...) {
+	logger.Log(level, to!string(pass) ~ ": " ~ logger.join(msg));
+}
 
 struct Semantic_Analysis {
 	Dependency_Graph graph;

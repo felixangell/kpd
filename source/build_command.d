@@ -144,6 +144,9 @@ class Build_Command : Command {
 			return;
 		}
 
+		bool GEN_IR = false;
+		if (!GEN_IR) return;
+
 		logger.VerboseHeader("Generating Krug IR:");
 		foreach (ref dep; sorted_deps) {
 			auto kir_builder = new Kir_Builder;

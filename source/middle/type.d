@@ -49,7 +49,7 @@ class Type_Variable : Type {
 
 	static uint next_id = -1;
 
-	this(Type[] types) {
+	this(Type[] types = []) {
 		super(types);
 		this.id = ++next_id;
 	}

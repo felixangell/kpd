@@ -1,3 +1,5 @@
+module grammar;
+
 import std.string;
 import std.uni;
 import containers.hashset;

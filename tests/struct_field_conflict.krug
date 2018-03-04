@@ -1,0 +1,8 @@
+type Stuff struct {
+	a string,
+	a int,
+	b int,
+	c int,
+	c f64,
+	d f64,	
+};

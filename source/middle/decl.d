@@ -6,6 +6,9 @@ import std.conv;
 import logger;
 import colour;
 import ast;
+import diag.engine;
+import compiler_error;
+
 import sema.analyzer : Semantic_Pass;
 import sema.infer : Type_Environment;
 import sema.symbol;
@@ -20,14 +23,10 @@ class Declaration_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 	Symbol_Table analyze_structure_type_node(ast.Structure_Type_Node s) {
 		auto table = new Symbol_Table;
 		foreach (idx, field; s.fields) {
-			table.register_sym(new Symbol(field, field.name));
-			// NOTE: we do not have to check for conflicts here
-			// because these are checked for when parsing. we could
-			// be true to the linear-ness of the compiler and store
-			// the conflicts as a collision in the hashmap or something
-			// but instead I've decided to check earlier.
-			// same applies for union types, and any other type
-			// with a field member type thing.
+			auto og_field = table.register_sym(new Symbol(field, field.name));
+			if (og_field) {
+				Diagnostic_Engine.throw_error(SYMBOL_CONFLICT, field.name, og_field.tok);
+			}
 		}
 		return table;
 	}
