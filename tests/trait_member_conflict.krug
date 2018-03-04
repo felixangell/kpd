@@ -1,0 +1,6 @@
+type Foo trait {
+	foo func() i32,	
+	bar func() f64,	
+	baz func() *i32,	
+	bar func() [i32],	
+};

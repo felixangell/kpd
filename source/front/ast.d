@@ -563,9 +563,14 @@ public:
 	}
 }
 
-struct Trait_Attribute {
+class Trait_Attribute : Node {
 	Token twine;
 	Function_Type_Node type;
+
+	this(Token twine, Function_Type_Node type) {
+		this.twine = twine;
+		this.type = type;
+	}
 }
 
 class Trait_Type_Node : Type_Node {
@@ -573,7 +578,7 @@ public:
 	Trait_Attribute[] attributes;
 
 	void add_attrib(Token name, Function_Type_Node func_type_node) {
-		attributes ~= Trait_Attribute(name, func_type_node);
+		attributes ~= new Trait_Attribute(name, func_type_node);
 	}
 }
 

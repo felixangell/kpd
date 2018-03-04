@@ -42,6 +42,17 @@ class Declaration_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 		return table;
 	}
 
+	Symbol_Table analyze_trait_type_node(ast.Trait_Type_Node t) {
+		auto table = new Symbol_Table;
+		foreach (idx, attrib; t.attributes) {
+			auto og_field = table.register_sym(new Symbol(attrib, attrib.twine));
+			if (og_field) {
+				Diagnostic_Engine.throw_error(SYMBOL_CONFLICT, attrib.twine, og_field.tok);
+			}
+		}
+		return table;
+	}
+
 	override void visit_stat(ast.Statement_Node stat) {
 		if (auto var = cast(Variable_Statement_Node) stat) {
 			analyze_let_node(var);
@@ -73,7 +84,13 @@ class Declaration_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 			table.name = name;
 			table.reference = node;
 			curr_sym_table.register_sym(name, table);
-		} 
+		}
+		else if (auto trait = cast(Trait_Type_Node) tn) {
+			auto table = analyze_trait_type_node(trait);
+			table.name = name;
+			table.reference = node;
+			curr_sym_table.register_sym(name, table);
+		}
 		// TODO: traits.
 		else {
 			// just a symbol we dont care about the type
