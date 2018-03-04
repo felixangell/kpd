@@ -43,11 +43,14 @@ class Declaration_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 	override void visit_stat(ast.Statement_Node stat) {
 		if (auto var = cast(Variable_Statement_Node) stat) {
 			analyze_let_node(var);
-		} else if (auto while_loop = cast(ast.While_Statement_Node) stat) {
+		}
+		else if (auto while_loop = cast(ast.While_Statement_Node) stat) {
 			visit_block(while_loop.block);
-		} else if (auto if_stat = cast(ast.If_Statement_Node) stat) {
+		}
+		else if (auto if_stat = cast(ast.If_Statement_Node) stat) {
 			visit_block(if_stat.block);
-		} else {
+		}
+		else {
 			logger.Warn("decl: Unhandled statement " ~ to!string(stat));
 		}
 	}
@@ -62,12 +65,13 @@ class Declaration_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 			table.name = name;
 			table.reference = node;
 			curr_sym_table.register_sym(name, table);
-		} else if (auto anon_union = cast(Union_Type_Node) tn) {
+		}
+		else if (auto anon_union = cast(Union_Type_Node) tn) {
 			auto table = analyze_anon_union_type_node(anon_union);
 			table.name = name;
 			table.reference = node;
 			curr_sym_table.register_sym(name, table);
-		}  // TODO: traits.
+		} // TODO: traits.
 		else {
 			// just a symbol we dont care about the type
 
@@ -96,7 +100,8 @@ class Declaration_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 				return mangle_word(type_path.values[0].lexeme);
 			}
 			// handle proper type paths...
-		} else if (auto ptr = cast(ast.Pointer_Type_Node) t) {
+		}
+		else if (auto ptr = cast(ast.Pointer_Type_Node) t) {
 			return mangle_word("ptr") ~ "_" ~ mangle_type(ptr.base_type);
 		}
 

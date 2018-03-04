@@ -137,7 +137,8 @@ static void Log(Log_Level lvl, string str) {
 
 	if (lvl == Log_Level.Verbose) {
 		out_stream.writef("# ");
-	} else {
+	}
+	else {
 		out_stream.writef("%s: ", error_level);
 	}
 	out_stream.writeln(str);

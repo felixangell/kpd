@@ -3,5 +3,5 @@ indent_style = tab
 indent_size = 4
 max_line_length = 80
 dfmt_soft_max_line_length = 80
-dfmt_brace_style = otbs
+dfmt_brace_style = stroustrup
 dfmt_split_operator_at_line_end = true

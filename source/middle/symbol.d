@@ -60,7 +60,8 @@ class Symbol_Table : Symbol_Value {
 
 		if (outer is null) {
 			env = new Type_Environment;
-		} else {
+		}
+		else {
 			env = new Type_Environment(outer.env);
 		}
 	}

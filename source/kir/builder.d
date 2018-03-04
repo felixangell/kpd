@@ -142,9 +142,11 @@ class Kir_Builder : Top_Level_Node_Visitor {
 	kt.Kir_Type get_type(Node t) {
 		if (auto resolved = cast(Resolved_Type) t) {
 			return conv(resolved.type);
-		} else if (auto prim = cast(Primitive_Type_Node) t) {
+		}
+		else if (auto prim = cast(Primitive_Type_Node) t) {
 			return conv_prim_type(prim);
-		} else if (auto sym = cast(Symbol_Node) t) {
+		}
+		else if (auto sym = cast(Symbol_Node) t) {
 			// TODO
 			// since the type inference stuff passes
 			// were temporarily removed
@@ -152,9 +154,11 @@ class Kir_Builder : Top_Level_Node_Visitor {
 			// for nowe let's just assume we're dealing with ints!
 			// otherwise we would want to lookup the type here!
 			return get_int(32);
-		} else if (auto arr = cast(Array_Type_Node) t) {
+		}
+		else if (auto arr = cast(Array_Type_Node) t) {
 			return new kt.Array_Type(get_type(arr.base_type));
-		} else if (auto ptr = cast(Pointer_Type_Node) t) {
+		}
+		else if (auto ptr = cast(Pointer_Type_Node) t) {
 			return new kt.Pointer_Type(get_type(ptr.base_type));
 		}
 
@@ -325,9 +329,11 @@ class Kir_Builder : Top_Level_Node_Visitor {
 				if (auto yield = cast(ast.Yield_Statement_Node) s) {
 					auto val = build_expr(yield.value);
 					curr_func.add_instr(new Store(a.get_type(), a, val));
-				} else if (auto b = cast(ast.Block_Node) s) {
+				}
+				else if (auto b = cast(ast.Block_Node) s) {
 					build_block(curr_func, b);
-				} else {
+				}
+				else {
 					visit_stat(s);
 				}
 			}
@@ -351,27 +357,37 @@ class Kir_Builder : Top_Level_Node_Visitor {
 		if (auto integer_const = cast(Integer_Constant_Node) expr) {
 			// FIXME
 			return new Constant(get_int(32), integer_const);
-		} else if (auto float_const = cast(Float_Constant_Node) expr) {
+		}
+		else if (auto float_const = cast(Float_Constant_Node) expr) {
 			// FIXME
 			return new Constant(get_float(64), float_const);
-		} else if (auto rune_const = cast(Rune_Constant_Node) expr) {
+		}
+		else if (auto rune_const = cast(Rune_Constant_Node) expr) {
 			// runes are a 4 byte signed integer.
 			return new Constant(get_int(32), rune_const);
-		} else if (auto index = cast(Index_Expression_Node) expr) {
+		}
+		else if (auto index = cast(Index_Expression_Node) expr) {
 			return build_index_expr(index);
-		} else if (auto binary = cast(Binary_Expression_Node) expr) {
+		}
+		else if (auto binary = cast(Binary_Expression_Node) expr) {
 			return build_binary_expr(binary);
-		} else if (auto path = cast(Path_Expression_Node) expr) {
+		}
+		else if (auto path = cast(Path_Expression_Node) expr) {
 			return build_path(path);
-		} else if (auto sym = cast(Symbol_Node) expr) {
+		}
+		else if (auto sym = cast(Symbol_Node) expr) {
 			return new Identifier(get_type(sym), sym.value.lexeme);
-		} else if (auto call = cast(Call_Node) expr) {
+		}
+		else if (auto call = cast(Call_Node) expr) {
 			return build_call(call);
-		} else if (auto unary = cast(Unary_Expression_Node) expr) {
+		}
+		else if (auto unary = cast(Unary_Expression_Node) expr) {
 			return build_unary_expr(unary);
-		} else if (auto eval = cast(Block_Expression_Node) expr) {
+		}
+		else if (auto eval = cast(Block_Expression_Node) expr) {
 			return build_eval_expr(eval);
-		} else {
+		}
+		else {
 			logger.Fatal("unhandled build_expr in ssa ", to!string(expr),
 					" -> ", to!string(typeid(expr)));
 		}
@@ -459,24 +475,32 @@ class Kir_Builder : Top_Level_Node_Visitor {
 
 		if (auto let = cast(ast.Variable_Statement_Node) node) {
 			analyze_let_node(let);
-		} else if (auto ret = cast(ast.Return_Statement_Node) node) {
+		}
+		else if (auto ret = cast(ast.Return_Statement_Node) node) {
 			analyze_return_node(ret);
-		} else if (auto if_stat = cast(ast.If_Statement_Node) node) {
+		}
+		else if (auto if_stat = cast(ast.If_Statement_Node) node) {
 			analyze_if_node(if_stat);
-		} else if (auto loop = cast(ast.Loop_Statement_Node) node) {
+		}
+		else if (auto loop = cast(ast.Loop_Statement_Node) node) {
 			analyze_loop_node(loop);
-		} else if (auto loop = cast(ast.While_Statement_Node) node) {
+		}
+		else if (auto loop = cast(ast.While_Statement_Node) node) {
 			analyze_while_node(loop);
-		} else if (auto b = cast(ast.Break_Statement_Node) node) {
+		}
+		else if (auto b = cast(ast.Break_Statement_Node) node) {
 			analyze_break_node(b);
-		} else if (auto n = cast(ast.Next_Statement_Node) node) {
+		}
+		else if (auto n = cast(ast.Next_Statement_Node) node) {
 			analyze_next_node(n);
-		} else if (auto e = cast(ast.Expression_Node) node) {
+		}
+		else if (auto e = cast(ast.Expression_Node) node) {
 			auto v = build_expr(e);
 			if (auto instr = cast(Instruction) v) {
 				curr_func.add_instr(instr);
 			}
-		} else {
+		}
+		else {
 			logger.Warn("kir_builder: unhandled node: ", to!string(node));
 		}
 

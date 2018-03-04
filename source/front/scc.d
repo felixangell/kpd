@@ -50,7 +50,8 @@ SCC strong_connect(ref Tarjan t, Module m) {
 			if (n.index == -1) {
 				t.strong_connect(n);
 				m.low_link = min(m.low_link, n.low_link);
-			} else if (t.stack.contains(n.path)) {
+			}
+			else if (t.stack.contains(n.path)) {
 				m.low_link = min(m.low_link, n.index);
 			}
 		}

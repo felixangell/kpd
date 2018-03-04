@@ -108,7 +108,8 @@ Load_Directive[] collect_deps(ref Token[] toks) {
 					}
 				}
 				parser.expect("}");
-			} else {
+			}
+			else {
 				sub_mods ~= parser.expect(Token_Type.Identifier);
 			}
 		}

@@ -28,13 +28,17 @@ static string os_name() {
 	// this should cover most of the important-ish ones
 	version (linux) {
 		return "Linux";
-	} else version (Windows) {
+	}
+	else version (Windows) {
 		return "Windows";
-	} else version (OSX) {
+	}
+	else version (OSX) {
 		return "Mac OS X";
-	} else version (POSIX) {
+	}
+	else version (POSIX) {
 		return "POSIX";
-	} else {
+	}
+	else {
 		return "Undefined";
 	}
 }
@@ -44,9 +48,11 @@ static string os_name() {
 static string arch_type() {
 	version (X86) {
 		return "x86";
-	} else version (X86_64) {
+	}
+	else version (X86_64) {
 		return "x86_64";
-	} else {
+	}
+	else {
 		return "Undefined";
 	}
 }

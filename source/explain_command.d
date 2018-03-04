@@ -23,7 +23,8 @@ void explain_err(string err_code) {
 	if (num in compiler_error.ERROR_REGISTER) {
 		auto error = compiler_error.ERROR_REGISTER[num];
 		writeln(error.detail);
-	} else {
+	}
+	else {
 		logger.Error("No such error defined for '", err_code, "'");
 	}
 }

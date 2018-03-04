@@ -40,7 +40,7 @@ class Build_Command : Command {
 
 	override void process(string[] args) {
 		StopWatch compilerTimer;
-		compilerTimer.start();	
+		compilerTimer.start();
 
 		if (args.length == 0) {
 			logger.Error("No input files.");
@@ -81,7 +81,8 @@ class Build_Command : Command {
 
 				// TODO a better error message for this.
 				Diagnostic_Engine.throw_custom_error(DEPENDENCY_CYCLE,
-						"There is a cycle in the project dependencies: " ~ dep_string);
+						"There is a cycle in the project dependencies: " ~
+						dep_string);
 			}
 
 			// let's not continue with compilation!
@@ -147,7 +148,7 @@ class Build_Command : Command {
 		}
 
 		auto duration = compilerTimer.peek();
-			logger.Info("Compiler took ", to!string(duration.total!"msecs"),
-			"/ms or ", to!string(duration.total!"usecs"), "/µs");
+		logger.Info("Compiler took ", to!string(duration.total!"msecs"),
+				"/ms or ", to!string(duration.total!"usecs"), "/µs");
 	}
 }

@@ -165,7 +165,8 @@ class Parser : Compilation_Phase {
 
 			if (!peek().cmp("}")) {
 				expect(",");
-			} else {
+			}
+			else {
 				// allow a trailing comma.
 				if (peek().cmp(",")) {
 					consume();
@@ -202,7 +203,8 @@ class Parser : Compilation_Phase {
 
 			if (peek().cmp(",")) {
 				consume();
-			} else if (!peek().cmp(")")) {
+			}
+			else if (!peek().cmp(")")) {
 				logger.Error(peek(), "expected comma after argument in function type: ");
 			}
 		}
@@ -267,7 +269,8 @@ class Parser : Compilation_Phase {
 
 			if (!peek().cmp("}")) {
 				expect(",");
-			} else {
+			}
+			else {
 				// allow a trailing comma.
 				if (peek().cmp(",")) {
 					consume();
@@ -483,7 +486,8 @@ class Parser : Compilation_Phase {
 				}
 
 				expect(")");
-			} else {
+			}
+			else {
 				// single param
 				node.generic_params ~= parse_type_path();
 			}
@@ -622,7 +626,8 @@ class Parser : Compilation_Phase {
 					foreach (val; path.values) {
 						pan.values ~= val;
 					}
-				} else {
+				}
+				else {
 					pan.values ~= binary.left;
 				}
 				return new Binary_Expression_Node(pan, binary.operand, binary
@@ -635,7 +640,8 @@ class Parser : Compilation_Phase {
 				foreach (val; path.values) {
 					pan.values ~= val;
 				}
-			} else {
+			}
+			else {
 				pan.values ~= expr;
 			}
 		}

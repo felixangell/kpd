@@ -173,16 +173,21 @@ struct Bytecode_Generator {
 	void gen_expr(ast.Expression_Node expr) {
 		if (auto binary = cast(ast.Binary_Expression_Node) expr) {
 			gen_binary_expr(binary);
-		} else if (auto unary = cast(ast.Unary_Expression_Node) expr) {
+		}
+		else if (auto unary = cast(ast.Unary_Expression_Node) expr) {
 			gen_unary_expr(unary);
-		} else if (auto integer = cast(ast.Integer_Constant_Node) expr) {
+		}
+		else if (auto integer = cast(ast.Integer_Constant_Node) expr) {
 			// TODO handle types here.
 			emit(encode(OP.PSHI, integer.value.to!int));
-		} else if (auto path = cast(ast.Path_Expression_Node) expr) {
+		}
+		else if (auto path = cast(ast.Path_Expression_Node) expr) {
 			gen_path_expr(path);
-		} else if (auto call = cast(ast.Call_Node) expr) {
+		}
+		else if (auto call = cast(ast.Call_Node) expr) {
 			gen_call_node(call);
-		} else {
+		}
+		else {
 			logger.Fatal("unhandled expr " ~ to!string(expr));
 		}
 	}
@@ -286,20 +291,26 @@ struct Bytecode_Generator {
 	void gen_stat(ast.Statement_Node stat) {
 		if (auto if_stat = stat.instanceof!(ast.If_Statement_Node)) {
 			gen_if_stat(if_stat);
-		} else if (auto call_node = stat.instanceof!(ast.Call_Node)) {
+		}
+		else if (auto call_node = stat.instanceof!(ast.Call_Node)) {
 			gen_call_node(call_node);
-		} else if (auto loop_stat = stat.instanceof!(ast.Loop_Statement_Node)) {
+		}
+		else if (auto loop_stat = stat.instanceof!(ast.Loop_Statement_Node)) {
 			gen_loop_stat(loop_stat);
-		} else if (auto while_loop = stat.instanceof!(ast.While_Statement_Node)) {
+		}
+		else if (auto while_loop = stat.instanceof!(ast.While_Statement_Node)) {
 			gen_while_loop(while_loop);
-		} else if (auto var = stat.instanceof!(ast.Variable_Statement_Node)) {
+		}
+		else if (auto var = stat.instanceof!(ast.Variable_Statement_Node)) {
 			gen_var_stat(var);
-		} else if (auto expr = stat.instanceof!(ast.Expression_Node)) {
+		}
+		else if (auto expr = stat.instanceof!(ast.Expression_Node)) {
 			gen_expr(expr);
-		} else if (auto ret_statement = stat.instanceof!(ast
-				.Return_Statement_Node)) {
+		}
+		else if (auto ret_statement = stat.instanceof!(ast.Return_Statement_Node)) {
 			gen_ret_stat(ret_statement);
-		} else {
+		}
+		else {
 			logger.Warn("unhandled statement node " ~ to!string(stat));
 		}
 	}
@@ -321,11 +332,14 @@ struct Bytecode_Generator {
 	void gen_node(ast.Node node) {
 		if (auto named_type = node.instanceof!(ast.Named_Type_Node)) {
 			gen_named_type(named_type);
-		} else if (auto func = node.instanceof!(ast.Function_Node)) {
+		}
+		else if (auto func = node.instanceof!(ast.Function_Node)) {
 			gen_func(func);
-		} else if (auto stat = node.instanceof!(ast.Statement_Node)) {
+		}
+		else if (auto stat = node.instanceof!(ast.Statement_Node)) {
 			gen_stat(stat);
-		} else {
+		}
+		else {
 			logger.Warn("unhandled node ! " ~ to!string(node));
 		}
 	}
