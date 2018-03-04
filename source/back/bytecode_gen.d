@@ -50,11 +50,11 @@ struct Bytecode_Generator {
 
     if (func.func_body !is null) {
       gen_block(func.func_body, delegate() {
-        foreach (arg; func.params.byKeyValue()) {
+        foreach (arg; func.params) {
           // the arg params should already be on the stack
           // from the function call.
           emit(encode(OP.ALLOCI));
-          addr_table[arg.key] = local_addr;
+          addr_table[arg.twine.lexeme] = local_addr;
           local_addr += int.sizeof; // FIXME
         }
       });

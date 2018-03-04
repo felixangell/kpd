@@ -1161,25 +1161,19 @@ class Parser : Compilation_Phase {
 
     // TODO: we dont use the Function Type here... hmm?
 
-    {
-      // func params
-      expect("(");
-      for (int idx = 0; has_next() && !peek().cmp(")"); idx++) {
-        if (idx > 0) {
-          expect(",");
-        }
-        auto param = parse_func_param();
-        if (param.twine.lexeme in func.params) {
-          logger.Error("Parameter '" ~ colour.Bold(param.twine.lexeme) ~ "' defined here:",
-              Blame_Token(param.twine), "Conflicts with symbol defined here: ",
-              Blame_Token(func.params[param.twine.lexeme].twine));
-        } 
-        else {
-          func.params[param.twine.lexeme] = param;
-        }
+    // func params
+    expect("(");
+    for (int idx = 0; has_next() && !peek().cmp(")"); idx++) {
+      if (idx > 0) {
+        expect(",");
       }
-      expect(")");
+
+      auto param = parse_func_param();
+      if (param) {
+        func.params ~= param;
+      }
     }
+    expect(")");
 
     func.return_type = parse_type();
 

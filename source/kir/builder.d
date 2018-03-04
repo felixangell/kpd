@@ -173,7 +173,7 @@ class Kir_Builder : Top_Level_Node_Visitor {
       push_bb();
 
       // alloc all the params
-      foreach (p; func.params.byValue()) {
+      foreach (p; func.params) {
         curr_func.add_alloc(new Alloc(get_type(p.type), p.twine.lexeme));
       }
     }

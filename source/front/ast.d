@@ -223,8 +223,7 @@ class Function_Node : Node {
   Type_Node return_type;
   Block_Node func_body;
   Variable_Statement_Node func_recv;
-  Function_Parameter[string] params;
-
+  Function_Parameter[] params;
   Generic_Sigil[] generics;
 }
 
@@ -462,10 +461,10 @@ class Union_Field : Node {
 
 class Union_Type_Node : Type_Node {
 public:
-  Union_Field[string] fields;
+  Union_Field[] fields;
 
   void add_field(Token name, Type_Node type) {
-    fields[name.lexeme] = new Union_Field(name, type);
+    fields ~= new Union_Field(name, type);
   }
 }
 
@@ -483,16 +482,10 @@ class Structure_Field : Node {
 
 class Structure_Type_Node : Type_Node {
 public:
-  Structure_Field[string] fields;
+  Structure_Field[] fields;
 
   void add_field(Token name, Type_Node type, Expression_Node value = null) {
-    if (name.lexeme in fields) {
-      Diagnostic_Engine.throw_error(compiler_error.SYMBOL_CONFLICT, name,
-          fields[name.lexeme].name);
-    } 
-    else {
-      fields[name.lexeme] = new Structure_Field(name, type, value);
-    }
+    fields ~= new Structure_Field(name, type, value);
   }
 }
 
@@ -511,28 +504,29 @@ class Function_Parameter : Node {
 class Function_Type_Node : Type_Node {
 public:
   Type_Node return_type;
-  Function_Parameter[string] params;
+  Function_Parameter[] params;
+  Function_Parameter recv;
 
-  // make this just one receiver param
-  Function_Parameter[string] recv_params;
-
-  void add_recv_param(Token twine, Type_Node type, bool mutable = false) {
-    recv_params[twine.lexeme] = new Function_Parameter(mutable, twine, type);
+  void set_recv(Token twine, Type_Node type, bool mutable = false) {
+    recv = new Function_Parameter(mutable, twine, type);
   }
 
   void add_param(Token twine, Type_Node type, bool mutable = false) {
-    params[twine.lexeme] = new Function_Parameter(mutable, twine, type);
+    params ~= new Function_Parameter(mutable, twine, type);
   }
 }
 
-alias Trait_Attribute = Tuple!(Token, "twine", Function_Type_Node, "type");
+struct Trait_Attribute {
+  Token twine;
+  Function_Type_Node type;
+}
 
 class Trait_Type_Node : Type_Node {
 public:
-  Trait_Attribute[string] attributes;
+  Trait_Attribute[] attributes;
 
   void add_attrib(Token name, Function_Type_Node func_type_node) {
-    attributes[name.lexeme] = Trait_Attribute(name, func_type_node);
+    attributes ~= Trait_Attribute(name, func_type_node);
   }
 }
 

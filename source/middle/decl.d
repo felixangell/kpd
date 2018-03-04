@@ -151,8 +151,7 @@ class Declaration_Pass : Top_Level_Node_Visitor, Semantic_Pass {
       }
 
       // introduce parameters into function body symbol table
-      foreach (param_entry; node.params.byKeyValue()) {
-        auto param = param_entry.value;
+      foreach (param; node.params) {
         // we don't have to check for conflicts here because
         // this HAS to be done during the parsing stage!
         curr_sym_table.register_sym(new Symbol(param, param.twine.lexeme));

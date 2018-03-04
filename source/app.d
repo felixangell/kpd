@@ -50,7 +50,8 @@ static string os_name() {
 // is separately implemented in C
 extern (C) bool execute_program(size_t entry_addr, size_t instruction_count, ubyte* program);
 
-// FIXME this only handles a few common cases.
+// this is not an exhaustive list
+// of architectures!
 static string arch_type() {
   version (X86) {
     return "x86";
@@ -66,13 +67,13 @@ static string arch_type() {
 void explain_err(string err_code) {
   // validate the error code first:
   if (err_code.length != 5) {
-    logger.Error("Invalid error code '" ~ err_code ~ "' - error code format is EXXXX");
+    logger.Error("Invalid error code '", err_code, "' - error code format is EXXXX");
     return;
   }
 
   auto num = to!ushort(err_code[1 .. $]);
   if (num < 0) {
-    logger.Error("Invalid error code sign '" ~ err_code ~ "'");
+    logger.Error("Invalid error code sign '", err_code, "'");
     return;
   }
 
@@ -81,7 +82,7 @@ void explain_err(string err_code) {
     writeln(error.detail);
   } 
   else {
-    logger.Error("No such error defined for '" ~ err_code ~ "'");
+    logger.Error("No such error defined for '", err_code, "'");
   }
 }
 
@@ -116,11 +117,11 @@ void main(string[] args) {
   }
 
   debug {
-    writeln("KRUG COMPILER, VERSION " ~ VERSION);
-    writeln("* Executing compiler, optimization level O" ~ to!string(OPTIMIZATION_LEVEL));
-    writeln("* Operating system: " ~ os_name());
-    writeln("* Target architecture: " ~ arch_type());
-    writeln("* Compiler is in " ~ (RELEASE_MODE ? "release" : "debug") ~ " mode");
+    writeln("KRUG COMPILER, VERSION ", VERSION);
+    writeln("* Executing compiler, optimization level O", to!string(OPTIMIZATION_LEVEL));
+    writeln("* Operating system: ", os_name());
+    writeln("* Target architecture: ", arch_type());
+    writeln("* Compiler is in ", (RELEASE_MODE ? "release" : "debug"), " mode");
     writeln();
   }
 
@@ -150,6 +151,8 @@ void main(string[] args) {
         }
         dep_string ~= "'" ~ mod.name ~ "'";
       }
+
+      // TODO a better error message for this.
       Diagnostic_Engine.throw_custom_error(DEPENDENCY_CYCLE,
           "There is a cycle in the project dependencies: " ~ dep_string);
     }
@@ -201,7 +204,7 @@ void main(string[] args) {
 
   const auto err_count = logger.get_err_count();
   if (err_count > 0) {
-    logger.Error("Terminating compilation: " ~ to!string(err_count) ~ " errors encountered.");
+    logger.Error("Terminating compilation: ", to!string(err_count), " errors encountered.");
     return;
   }
 
@@ -216,8 +219,8 @@ void main(string[] args) {
   }
 
   auto duration = compilerTimer.peek();
-  logger.Info("Compiler took " ~ to!string(
-      duration.total!"msecs") ~ "/ms or " ~ to!string(duration.total!"usecs") ~ "/µs");
+  logger.Info("Compiler took ", to!string(
+      duration.total!"msecs"), "/ms or ", to!string(duration.total!"usecs"), "/µs");
 
   if (!RUN_PROGRAM) {
     return;
@@ -229,6 +232,5 @@ void main(string[] args) {
   // TODO run the program here!
 
   auto rt_dur = rt_timer.peek();
-  logger.Info("Program execution took " ~ to!string(
-      rt_dur.total!"msecs") ~ "/ms or " ~ to!string(rt_dur.total!"usecs") ~ "/µs");
+  logger.Info("Program execution took ", to!string(rt_dur.total!"msecs"), "/ms or ", to!string(rt_dur.total!"usecs"), "/µs");
 }
