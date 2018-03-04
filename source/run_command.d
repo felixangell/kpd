@@ -13,7 +13,7 @@ extern (C) bool execute_program(size_t entry_addr, size_t instruction_count, uby
 
 class Run_Command : Command {
 	this() {
-		super("run");
+		super("run", "compiles and runs the given krug program");
 	}
 
 	override void process(string[] args) {

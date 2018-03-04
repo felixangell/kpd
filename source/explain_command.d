@@ -30,7 +30,7 @@ void explain_err(string err_code) {
 
 class Explain_Command : Command {
 	this() {
-		super("explain");
+		super("explain", "explains the given error code");
 	}
 
 	override void process(string[] args) {

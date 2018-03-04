@@ -35,7 +35,7 @@ import kargs.command;
 
 class Build_Command : Command {
 	this() {
-		super("build");
+		super("build", "compiles the given krug program");
 	}
 
 	override void process(string[] args) {
@@ -149,32 +149,5 @@ class Build_Command : Command {
 		auto duration = compilerTimer.peek();
 			logger.Info("Compiler took ", to!string(duration.total!"msecs"),
 			"/ms or ", to!string(duration.total!"usecs"), "/µs");
-	}
-}
-
-static string os_name() {
-	// this should cover most of the important-ish ones
-	version (linux) {
-		return "Linux";
-	} else version (Windows) {
-		return "Windows";
-	} else version (OSX) {
-		return "Mac OS X";
-	} else version (POSIX) {
-		return "POSIX";
-	} else {
-		return "Undefined";
-	}
-}
-
-// this is not an exhaustive list
-// of architectures!
-static string arch_type() {
-	version (X86) {
-		return "x86";
-	} else version (X86_64) {
-		return "x86_64";
-	} else {
-		return "Undefined";
 	}
 }
