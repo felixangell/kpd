@@ -25,7 +25,7 @@ class Top_Level_Type_Decl_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 	}
 
 	override void analyze_function_node(ast.Function_Node node) {
-		
+			
 	}
 
 	override void visit_stat(ast.Statement_Node stat) {
@@ -37,8 +37,7 @@ class Top_Level_Type_Decl_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 		this.mod = mod;
 
 		if (sub_mod_name !in mod.as_trees) {
-			logger.Error("couldn't find the AST for " ~ sub_mod_name ~
-					" in module " ~ mod.name ~ " ...");
+			logger.Error("couldn't find the AST for " ~ sub_mod_name ~ " in module " ~ mod.name ~ " ...");
 			return;
 		}
 

@@ -34,7 +34,10 @@ class Declaration_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 	Symbol_Table analyze_anon_union_type_node(ast.Union_Type_Node u) {
 		auto table = new Symbol_Table;
 		foreach (idx, field; u.fields) {
-			table.register_sym(new Symbol(field, field.name));
+			auto og_field = table.register_sym(new Symbol(field, field.name));
+			if (og_field) {
+				Diagnostic_Engine.throw_error(SYMBOL_CONFLICT, field.name, og_field.tok);
+			}
 		}
 		return table;
 	}
@@ -70,12 +73,12 @@ class Declaration_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 			table.name = name;
 			table.reference = node;
 			curr_sym_table.register_sym(name, table);
-		} // TODO: traits.
+		} 
+		// TODO: traits.
 		else {
 			// just a symbol we dont care about the type
 
-			auto existing = curr_sym_table.register_sym(new Symbol(node, node
-					.twine));
+			auto existing = curr_sym_table.register_sym(new Symbol(node, node.twine));
 			if (existing !is null) {
 				Diagnostic_Engine.throw_error(SYMBOL_CONFLICT, node.twine, existing.tok);
 			}
