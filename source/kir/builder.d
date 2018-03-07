@@ -172,8 +172,9 @@ class Kir_Builder : Top_Level_Node_Visitor {
 		case "uint":
 			return get_uint(32);
 
-		case "void":
-			return VOID_TYPE;
+		case "void": return VOID_TYPE;
+
+		case "string": return STRING_TYPE;
 
 		default:
 			break;
@@ -188,6 +189,10 @@ class Kir_Builder : Top_Level_Node_Visitor {
 
 	// convert an AST type to a krug ir type
 	kt.Kir_Type get_type(Node t) {
+		if (t is null) {
+			assert(0);
+		}
+
 		if (auto resolved = cast(Resolved_Type) t) {
 			return conv(resolved.type);
 		}
@@ -208,10 +213,6 @@ class Kir_Builder : Top_Level_Node_Visitor {
 		}
 		else if (auto ptr = cast(Pointer_Type_Node) t) {
 			return new kt.Pointer_Type(get_type(ptr.base_type));
-		}
-
-		if (t is null) {
-			assert(0);
 		}
 
 		logger.Error("Leaking unresolved type! ", to!string(t), to!string(typeid(t)));
@@ -401,7 +402,7 @@ class Kir_Builder : Top_Level_Node_Visitor {
 	}
 
 	Value build_string_const(String_Constant_Node str) {
-		return null;
+		return new Constant(STRING_TYPE, str);
 	}
 
 	Value build_expr(ast.Expression_Node expr) {
@@ -498,9 +499,11 @@ class Kir_Builder : Top_Level_Node_Visitor {
 	}
 
 	override void analyze_let_node(ast.Variable_Statement_Node var) {
+		auto typ = get_type(var.type);
+		assert(typ !is null);
+
 		// TODO handle global variables.
-		auto addr = curr_func.add_alloc(new Alloc(get_type(var.type), var.twine
-				.lexeme));
+		auto addr = curr_func.add_alloc(new Alloc(typ, var.twine.lexeme));
 
 		if (var.value !is null) {
 			auto val = build_expr(var.value);

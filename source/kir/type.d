@@ -4,8 +4,9 @@ import std.conv;
 
 interface Kir_Type {
 	bool cmp(Kir_Type t);
+	string toString();
 };
-
+	 
 Floating_Type f32, f64;
 static this() {
 	f32 = new Floating_Type(32, true);
@@ -87,8 +88,11 @@ class Structure_Type : Kir_Type {
 	Kir_Type[] types;
 
 	this() {}
+
 	this(Kir_Type[] types...) {
-		this.types = types;
+		foreach (t; types) {
+			this.types ~= t;
+		}
 	}
 
 	bool cmp(Kir_Type kt) {
@@ -111,10 +115,11 @@ class Structure_Type : Kir_Type {
 	}
 
 	override string toString() {
-		string type_list;
+		string type_list = "";
 		foreach (i, t; types) {
 			if (i > 0)
 				type_list ~= ",";
+			assert(t !is null);
 			type_list ~= to!string(t);
 		}
 		return "{" ~ type_list ~ "}";
