@@ -1,5 +1,6 @@
 .dub
 docs.json
+krug_cache/
 __dummy.html
 docs/
 krug
