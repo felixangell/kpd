@@ -86,6 +86,11 @@ class Pointer_Type : Kir_Type {
 class Structure_Type : Kir_Type {
 	Kir_Type[] types;
 
+	this() {}
+	this(Kir_Type[] types...) {
+		this.types = types;
+	}
+
 	bool cmp(Kir_Type kt) {
 		auto other = cast(Structure_Type) kt;
 		if (!other) {

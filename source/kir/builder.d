@@ -14,8 +14,8 @@ import logger;
 import ast;
 import logger;
 import krug_module;
-import sema.infer : Type;
-import sema.type : prim_type;
+import sema.infer;
+import sema.type;
 
 T pop(T)(ref T[] array) {
 	T val = array.back;
@@ -28,6 +28,19 @@ string gen_temp() {
 	return "t" ~ to!string(temp++);
 }
 
+kt.Void_Type VOID_TYPE;
+
+// string type is a struct of
+// a length and an array of bytes
+// i.e.
+// struct { u64, [u8] };
+kt.Structure_Type STRING_TYPE;
+
+static this() {
+	VOID_TYPE = new Void_Type();
+	STRING_TYPE = new kt.Structure_Type(get_uint(64), new Array_Type(get_uint(8)));
+}
+
 // this is a stupid crazy hack and im not sure how i feel about this
 // but basically we have the NORMAL build_block and then
 // we have a version which builds blocks but handles all of the
@@ -36,7 +49,7 @@ string gen_temp() {
 // the current build_block to handle it for YIELDS, and once
 // we're done we set it _back_ to the default block builder!
 // stupid hacky thing but it works!
-alias Block_Builder_Function = Label delegate(Function current_func,
+alias Block_Builder_Function = Label delegate(kir.instr.Function current_func,
 		ast.Block_Node block, Basic_Block b = null);
 
 /*
@@ -45,7 +58,7 @@ https://pp.ipd.kit.edu/uploads/publikationen/braun13cc.pdf
 class Kir_Builder : Top_Level_Node_Visitor {
 
 	Kir_Module ir_mod;
-	Function curr_func;
+	kir.instr.Function curr_func;
 
 	// fuck me what am I doing  
 	Block_Builder_Function build_block;
@@ -68,7 +81,7 @@ class Kir_Builder : Top_Level_Node_Visitor {
 	// will have already emitted the code for the statements that
 	// need it (i.e. a next_statement_node) and thus 'last_looping_bb'
 	// will be null.
-	Label build_normal_bb(Function current_func, ast.Block_Node block, Basic_Block b = null) {
+	Label build_normal_bb(kir.instr.Function current_func, ast.Block_Node block, Basic_Block b = null) {
 		auto bb = b is null ? push_bb() : b;
 
 		foreach (stat; block.statements) {
@@ -76,13 +89,48 @@ class Kir_Builder : Top_Level_Node_Visitor {
 		}
 
 		return new Label(bb.name(), bb);
+	}	 
+
+	kt.Kir_Type conv_type_op(Type_Operator to) {
+		final switch (to.name) {
+		case "s8": return get_int(8);
+		case "s16": return get_int(16);
+		case "s32": return get_int(32);
+		case "s64": return get_int(64);
+
+		case "u8": return get_uint(8);
+		case "u16": return get_uint(16);
+		case "u32": return get_uint(32);
+		case "u64": return get_uint(64);
+
+		case "f32": return get_float(32);
+		case "f64": return get_float(64);
+
+		case "bool": return get_uint(8);
+		case "rune": return get_int(32);
+
+		case "void": return VOID_TYPE;
+
+		// TODO what should these types be.
+		case "int": return get_int(32);
+		case "uint": return get_uint(32);
+
+		case "string": return STRING_TYPE;
+		}
+
+		assert(0);
 	}
 
-	// convert a Type into a KIR Type.
-	// note this Type is not a type node from
-	// the AST but a Type from the type system
+	// convert a type from the type system
+	// used in the type infer/check pass
+	// into a krug IR or KIR type.
 	kt.Kir_Type conv(Type t) {
-		return null;
+		if (auto to = cast(Type_Operator) t) {
+			return conv_type_op(to);
+		}
+
+		logger.Fatal("kir_builder: unhandled type conversion from\t", to!string(t));
+		assert(0);
 	}
 
 	kt.Kir_Type conv_prim_type(ast.Primitive_Type_Node prim) {
@@ -125,7 +173,7 @@ class Kir_Builder : Top_Level_Node_Visitor {
 			return get_uint(32);
 
 		case "void":
-			return new Void_Type();
+			return VOID_TYPE;
 
 		default:
 			break;
@@ -320,7 +368,7 @@ class Kir_Builder : Top_Level_Node_Visitor {
 		curr_func.add_instr(a);
 
 		// what the fuck am i doing!
-		this.build_block = delegate(Function curr_func, ast.Block_Node block,
+		this.build_block = delegate(kir.instr.Function curr_func, ast.Block_Node block,
 				Basic_Block unused = null) {
 			auto bb = push_bb();
 
@@ -350,6 +398,10 @@ class Kir_Builder : Top_Level_Node_Visitor {
 
 		// hm
 		return new Identifier(a.get_type(), a.name);
+	}
+
+	Value build_string_const(String_Constant_Node str) {
+		return null;
 	}
 
 	Value build_expr(ast.Expression_Node expr) {
@@ -386,11 +438,12 @@ class Kir_Builder : Top_Level_Node_Visitor {
 		else if (auto eval = cast(Block_Expression_Node) expr) {
 			return build_eval_expr(eval);
 		}
-		else {
-			logger.Fatal("unhandled build_expr in ssa ", to!string(expr),
-					" -> ", to!string(typeid(expr)));
+		else if (auto str_const = cast(String_Constant_Node) expr) {
+			return build_string_const(str_const);
 		}
-		return null;
+
+		logger.Fatal("kir_builder: unhandled build_expr ", to!string(expr), " -> ", to!string(typeid(expr)));
+		assert(0);
 	}
 
 	void analyze_return_node(ast.Return_Statement_Node ret) {

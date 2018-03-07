@@ -13,6 +13,8 @@ import sema.type;
 import krug_module;
 import compiler_error;
 
+// introduce all of the top level types into
+// the type system
 class Top_Level_Type_Decl_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 	Module mod;
 

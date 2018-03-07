@@ -6,9 +6,17 @@ import containers.hashmap;
 static HashMap!(string, Type_Operator) PRIMITIVE_TYPES;
 
 static this() {
-	register_types("s8", "s16", "s32", "s64", "u8", "u16", "u32", "u64", "f32",
-			"f64", "string", "rune", "bool", "void", // TODO define these types properly.
-			"int", "uint",);
+	register_types(
+		"s8", "s16", "s32", "s64", 
+		"u8", "u16", "u32", "u64", 
+		"f32", "f64", 
+		"string", 
+		"rune", 
+		"bool", 
+		"void", // TODO define these types properly.
+		"int", 
+		"uint",
+	);
 }
 
 static void register_types(string...)(string types) {

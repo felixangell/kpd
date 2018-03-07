@@ -144,7 +144,7 @@ class Build_Command : Command {
 			return;
 		}
 
-		bool GEN_IR = false;
+		bool GEN_IR = true;
 		if (!GEN_IR) return;
 
 		logger.VerboseHeader("Generating Krug IR:");

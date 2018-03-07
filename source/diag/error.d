@@ -159,3 +159,7 @@ an invalid index for an array or tuple."
 mixin(make_err!("TYPE_MISMATCH", "0003u",
 		`This occurs when two types mismatch.`,
 		"Type '%s':", "Mismatch with type '%s':"));
+
+mixin(make_err!("NO_TYPE_ANNOTATION", "0004u",
+        `TODO.`,
+        "No type annotation for binding '%s':"));

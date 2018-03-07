@@ -1,8 +1,11 @@
 module sema.infer;
 
 import std.conv;
+import std.stdio;
 import std.algorithm : cmp;
 
+import diag.engine;
+import compiler_error;
 import logger;
 import sema.type;
 import ast;
@@ -134,10 +137,7 @@ void unify(Type a, Type b) {
 		}
 		else if (auto opb = cast(Type_Operator) pb) {
 			if (cmp(opa.name, opb.name) || opa.types.length != opb.types.length) {
-				logger.Error(
-						"Type mismatch '" ~ to!string(a) ~ "' defined here:\n",
-						// Blame_Token(node.twine),
-						"Conflicts with symbol defined here:\n", to!string(b));
+				writeln("Type mismatch between types ", to!string(a), " and ", to!string(b));
 			}
 
 			foreach (idx, t; opa.types) {
@@ -237,6 +237,11 @@ struct Type_Inferrer {
 		auto resolved = analyze(node.value, e, generics);
 		node.type = resolve(node.type, resolved);
 		return resolved;
+	}
+
+	Type analyze(ast.Node node, Type_Environment e) {
+		Type_Variable[string] generics;
+		return analyze(node, e, generics);
 	}
 
 	Type analyze(ast.Node node, Type_Environment e, Type_Variable[string] generics) {

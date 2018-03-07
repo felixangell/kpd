@@ -148,7 +148,7 @@ class Variable_Statement_Node : Statement_Node, Semicolon_Stat {
 
 	override string toString() {
 		return twine.lexeme ~ " : " ~ (type !is null ? to!string(type)
-				: "") ~ (value !is null ? " = " ~ to!string(value) : "");
+				: "_") ~ (value !is null ? " = " ~ to!string(value) : "");
 	}
 }
 
@@ -401,6 +401,10 @@ class Resolved_Type : Type_Node {
 	this(Type_Node before, Type type) {
 		this.before = before;
 		this.type = type;
+	}
+
+	override string toString() {
+		return "$" ~ (before !is null ? to!string(before) : "_");
 	}
 }
 
