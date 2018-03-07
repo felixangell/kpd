@@ -9,6 +9,8 @@ import kir.instr;
 class Kir_Module {
 	Function[] functions;
 
+	Value[string] constants;
+
 	Function current_func() {
 		return functions.back;
 	}
@@ -21,6 +23,11 @@ class Kir_Module {
 	}
 
 	void dump() {
+		foreach (entry; constants.byKeyValue()) {
+			writeln("'" ~ entry.key, " = ", to!string(entry.value));
+		}
+		writeln;
+
 		foreach (i, func; functions) {
 			if (i > 0)
 				write('\n');

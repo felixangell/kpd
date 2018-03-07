@@ -38,7 +38,7 @@ kt.Structure_Type STRING_TYPE;
 
 static this() {
 	VOID_TYPE = new Void_Type();
-	STRING_TYPE = new kt.Structure_Type(get_uint(64), new Array_Type(get_uint(8)));
+	STRING_TYPE = new kt.Structure_Type(get_uint(64), new Pointer_Type(get_uint(8)));
 }
 
 // this is a stupid crazy hack and im not sure how i feel about this
@@ -401,22 +401,34 @@ class Kir_Builder : Top_Level_Node_Visitor {
 		return new Identifier(a.get_type(), a.name);
 	}
 
+	string add_constant(Value v) {
+		auto const_temp_name = gen_temp();
+		ir_mod.constants[const_temp_name] = v;
+		return const_temp_name;
+	}
+
 	Value build_string_const(String_Constant_Node str) {
-		return new Constant(STRING_TYPE, str);
+		string const_ref = add_constant(new Constant(new Pointer_Type(get_uint(8)), str.value));
+
+		auto val = new Composite(STRING_TYPE);
+		val.add_value(new Constant(get_uint(64), to!string(str.value.length)));
+		val.add_value(new Constant_Reference(new Pointer_Type(get_uint(8)), const_ref));
+
+		return val;
 	}
 
 	Value build_expr(ast.Expression_Node expr) {
 		if (auto integer_const = cast(Integer_Constant_Node) expr) {
 			// FIXME
-			return new Constant(get_int(32), integer_const);
+			return new Constant(get_int(32), to!string(integer_const.value));
 		}
 		else if (auto float_const = cast(Float_Constant_Node) expr) {
 			// FIXME
-			return new Constant(get_float(64), float_const);
+			return new Constant(get_float(64), to!string(float_const.value));
 		}
 		else if (auto rune_const = cast(Rune_Constant_Node) expr) {
 			// runes are a 4 byte signed integer.
-			return new Constant(get_int(32), rune_const);
+			return new Constant(get_int(32), to!string(rune_const.value));
 		}
 		else if (auto index = cast(Index_Expression_Node) expr) {
 			return build_index_expr(index);

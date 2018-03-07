@@ -108,6 +108,19 @@ class Basic_Value : Value {
 	}
 }
 
+class Constant_Reference : Basic_Value {
+	string name;
+
+	this(Kir_Type type, string name) {
+		super(type);
+		this.name = name;
+	}
+
+	override string toString() {
+		return "'" ~ name ~ ":" ~ to!string(get_type());
+	}
+}
+
 class Identifier : Basic_Value {
 	string name;
 
@@ -117,7 +130,7 @@ class Identifier : Basic_Value {
 	}
 
 	override string toString() {
-		return "$" ~ name;
+		return "$" ~ name ~ ":" ~ to!string(get_type());
 	}
 }
 
@@ -140,27 +153,43 @@ class Index : Basic_Instruction, Value {
 	}
 }
 
-class Constant : Basic_Value {
-	ast.Expression_Node value;
+class Composite : Basic_Value {
+	Value[] values;
 
-	this(Kir_Type t, ast.Expression_Node value) {
-		super(t); // value.get_type() ?
+	this(Kir_Type t, Value[] values...) {
+		super(t);
+		this.values.length = values.length;
+		foreach (v; values) {
+			this.values ~= v;
+		}
+	}
+
+	void add_value(Value val) {
+		values ~= val;
+	}
+
+	override string toString() {
+		string result = "";
+		foreach (i, v; values) {
+			if (i > 0) result ~= ",";
+			result ~= to!string(v);
+		}
+		return "{" ~ result ~ "}";
+	}
+}
+
+class Constant : Basic_Value {
+	// how should we go around
+	// storing this! for now it's strings
+	string value;
+
+	this(Kir_Type t, string value) {
+		super(t);
 		this.value = value;
 	}
 
 	override string toString() {
-		// TODO
-		if (auto i = cast(ast.Integer_Constant_Node) value) {
-			return to!string(i.value);
-		}
-		else if (auto f = cast(ast.Float_Constant_Node) value) {
-			return to!string(f.value);
-		}
-		else if (auto r = cast(ast.Rune_Constant_Node) value) {
-			return "'" ~ to!string(r.value) ~ "'";
-		}
-
-		return to!string(value);
+		return value ~ ":" ~ to!string(get_type());
 	}
 }
 
