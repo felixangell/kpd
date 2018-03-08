@@ -1,3 +1,5 @@
 func main() {
 	let c string = "foo bar blah!";
+	let d = " ... world!";
+	c = "hello ";
 }

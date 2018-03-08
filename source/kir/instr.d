@@ -241,7 +241,9 @@ class Alloc : Basic_Instruction, Value {
 	string name;
 
 	this(Kir_Type type, string name) {
-		super(type);
+		// an alloc is a pointer to some
+		// memory storing the value of type T
+		super(new Pointer_Type(type));
 		this.name = name;
 	}
 
