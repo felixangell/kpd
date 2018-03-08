@@ -131,10 +131,7 @@ static void Log(Log_Level lvl, string str) {
 
 	auto error_level = colour.Colourize(col, toLower(to!string(lvl)));
 
-	if (lvl == Log_Level.Verbose) {
-		out_stream.writef("# ");
-	}
-	else {
+	if (lvl != Log_Level.Verbose) {
 		out_stream.writef("%s: ", error_level);
 	}
 	out_stream.writeln(str);
@@ -182,11 +179,5 @@ static void VerboseHeader(string[] strings...) {
 	}
 
 	string res = join(strings);
-	auto w = res.length;
-
-	writeln("\n");
-	Verbose(replicate("#", w * 2));
-	Verbose(replicate(" ", w / 2), res);
-	Verbose(replicate("#", w * 2));
-	writeln("\n");
+	writeln("! ", colour.Bold(res));
 }

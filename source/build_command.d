@@ -74,7 +74,7 @@ class Build_Command : Command {
 		// TODO: this should be elsewhere... ?
 		assert("main" in proj.graph);
 
-		logger.VerboseHeader("Cycle detection: ");
+		logger.VerboseHeader("Cycle detection:");		
 		SCC[] cycles = proj.graph.get_scc();
 		if (cycles.length > 0) {
 			foreach (cycle; cycles) {
@@ -111,7 +111,7 @@ class Build_Command : Command {
 		// modules with the least amount of dependencies
 		// are first
 		auto sorted_deps = flattened.sort!((a, b) => a.dep_count() < b.dep_count());
-		logger.VerboseHeader("Parsing: ");
+		logger.VerboseHeader("Parsing:");
 		foreach (ref dep; sorted_deps) {
 			foreach (ref entry; dep.token_streams.byKeyValue) {
 				logger.Verbose("- " ~ dep.name ~ "::" ~ entry.key);
