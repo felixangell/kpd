@@ -6,16 +6,18 @@ import std.conv;
 import std.traits;
 
 import kir.instr;
-import sema.visitor;
 import kir.ir_mod;
+
+import sema.visitor;
+import sema.symbol;
+import sema.infer;
+import sema.type;
 
 import kt;
 import logger;
 import ast;
 import logger;
 import krug_module;
-import sema.infer;
-import sema.type;
 
 T pop(T)(ref T[] array) {
 	T val = array.back;
@@ -187,6 +189,19 @@ class Kir_Builder : Top_Level_Node_Visitor {
 		return null;
 	}
 
+	kt.Kir_Type get_sym_type(ast.Symbol_Node sym) {
+		if (sym.resolved_symbol is null) {
+			logger.Fatal("Unresolved symbol node leaking! ", to!string(sym));
+			return VOID_TYPE;
+		}		
+
+		if (auto sym_val = cast(Symbol_Value) sym.resolved_symbol) {
+			return get_type(sym_val.reference);
+		}
+
+		assert(0, "shit!");
+	}
+
 	// convert an AST type to a krug ir type
 	kt.Kir_Type get_type(Node t) {
 		if (t is null) {
@@ -199,15 +214,6 @@ class Kir_Builder : Top_Level_Node_Visitor {
 		else if (auto prim = cast(Primitive_Type_Node) t) {
 			return conv_prim_type(prim);
 		}
-		else if (auto sym = cast(Symbol_Node) t) {
-			// TODO
-			// since the type inference stuff passes
-			// were temporarily removed
-			// we dont know any of the type information
-			// for nowe let's just assume we're dealing with ints!
-			// otherwise we would want to lookup the type here!
-			return get_int(32);
-		}
 		else if (auto arr = cast(Array_Type_Node) t) {
 			return new kt.Array_Type(get_type(arr.base_type));
 		}
@@ -215,7 +221,16 @@ class Kir_Builder : Top_Level_Node_Visitor {
 			return new kt.Pointer_Type(get_type(ptr.base_type));
 		}
 
-		logger.Error("Leaking unresolved type! ", to!string(t), to!string(typeid(t)));
+		// todo Paths!
+		else if (auto sym = cast(Symbol_Node) t) {
+			return get_sym_type(sym);
+		}
+		else if (auto var = cast(Variable_Statement_Node) t) {
+			assert(var.type !is null, "leaking unresolved type for Variable_Statement_Node");
+			return get_type(var.type);
+		}
+
+		logger.Error("Leaking unresolved type:\n\t", to!string(t), "\n\t", to!string(typeid(t)));
 
 		// FIXME just pretend it's an integer for now!
 		return get_int(32);

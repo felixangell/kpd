@@ -21,9 +21,7 @@ interface Semicolon_Stat {
 
 alias AST = ast.Node[];
 
-class Node {
-	Type realType;
-}
+class Node {}
 
 class Statement_Node : Node {
 }

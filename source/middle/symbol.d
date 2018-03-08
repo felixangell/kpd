@@ -12,7 +12,9 @@ class Symbol_Value {
 	ast.Node reference;
 	Token tok;
 	string name;
-	Type type;
+
+	// hm!
+	private Type type;
 
 	this(ast.Node reference, Token tok) {
 		this(reference, tok.lexeme);
