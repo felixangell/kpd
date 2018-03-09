@@ -65,6 +65,7 @@ class Type_Environment {
 	// false -> bool
 	// or add -> [int, int] : int
 	void register_type(string key, Type t) {
+		logger.Verbose("Registering type ", key, " : ", to!string(t));
 		assert(key !in data);
 		data[key] = t;
 	}
@@ -180,11 +181,11 @@ struct Type_Inferrer {
 			return fresh(e.data[name], generics);
 		}
 
-		logger.Verbose("Couldn't find type ", name, " in environment:");
+		logger.Error("Couldn't find type '", name, "' in environment:");
 		foreach (entry; e.data.byKeyValue()) {
 			logger.Verbose(entry.key, " is ", to!string(entry.value));
 		}
-
+		
 		assert(0);
 	}
 
@@ -207,7 +208,9 @@ struct Type_Inferrer {
 	// TODO this needs to be done properly...
 	Type analyze_path(Path_Expression_Node path, Type_Variable[string] generics) {
 		auto fst = path.values[0];
-		return analyze(fst, e, generics);
+		Type t = analyze(fst, e, generics);
+		writeln("i think we have inferred ", fst, " : ", to!string(t));
+		return t;
 	}
 
 	Type analyze_call(Call_Node call, Type_Variable[string] generics) {
@@ -231,6 +234,8 @@ struct Type_Inferrer {
 			// resolve the type we're given.
 			return analyze(node.type, e, generics);
 		}
+
+		writeln("--- YO");
 
 		// we have to infer the type from the value of the
 		// expression instead. TODO handle no expression! (error)
