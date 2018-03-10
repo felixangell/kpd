@@ -264,6 +264,9 @@ struct Type_Inferrer {
 			unify(left, right);
 			return left;
 		}
+		else if (auto paren = cast(Paren_Expression_Node) node) {
+			return analyze(paren.value, e, generics);
+		}
 		else if (auto sym = cast(Symbol_Node) node) {
 			return get_symbol_type(sym.value.lexeme, generics);
 		} // this is mostly like

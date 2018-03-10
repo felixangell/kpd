@@ -440,6 +440,9 @@ class Kir_Builder : Top_Level_Node_Visitor {
 		else if (auto binary = cast(Binary_Expression_Node) expr) {
 			return build_binary_expr(binary);
 		}
+		else if (auto paren = cast(Paren_Expression_Node) expr) {
+			return build_expr(paren.value);
+		}
 		else if (auto path = cast(Path_Expression_Node) expr) {
 			return build_path(path);
 		}
