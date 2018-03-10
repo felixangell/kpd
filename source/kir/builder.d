@@ -113,10 +113,6 @@ class Kir_Builder : Top_Level_Node_Visitor {
 
 		case "void": return VOID_TYPE;
 
-		// TODO what should these types be.
-		case "int": return get_int(32);
-		case "uint": return get_uint(32);
-
 		case "string": return STRING_TYPE;
 		}
 
@@ -166,13 +162,6 @@ class Kir_Builder : Top_Level_Node_Visitor {
 			return get_float(32);
 		case "f64":
 			return get_float(64);
-
-			// TODO: what width should these types
-			// be !
-		case "int":
-			return get_int(32);
-		case "uint":
-			return get_uint(32);
 
 		case "void": return VOID_TYPE;
 
@@ -469,6 +458,10 @@ class Kir_Builder : Top_Level_Node_Visitor {
 		else if (auto str_const = cast(String_Constant_Node) expr) {
 			return build_string_const(str_const);
 		}
+		else if (auto bool_const = cast(Boolean_Constant_Node) expr) {
+			string value = bool_const.value ? "1" : "0";
+			return new Constant(get_uint(8), value);
+		}
 
 		logger.Fatal("kir_builder: unhandled build_expr ", to!string(expr), " -> ", to!string(typeid(expr)));
 		assert(0);
@@ -581,6 +574,9 @@ class Kir_Builder : Top_Level_Node_Visitor {
 			if (auto instr = cast(Instruction) v) {
 				curr_func.add_instr(instr);
 			}
+		}
+		else if (auto b = cast(ast.Block_Node) node) {
+			build_block(curr_func, b);
 		}
 		else {
 			logger.Warn("kir_builder: unhandled node: ", to!string(node));

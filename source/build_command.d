@@ -129,6 +129,13 @@ class Build_Command : Command {
 			}
 		}
 
+		const auto parse_errors = logger.get_err_count();
+		if (parse_errors > 0) {
+			logger.Error("Terminating compilation: ", to!string(parse_errors),
+					" parse errors encountered.");
+			return;
+		}
+
 		logger.VerboseHeader("Semantic Analysis: ");
 		foreach (ref dep; sorted_deps) {
 			auto sema = new Semantic_Analysis(graph);
@@ -137,10 +144,10 @@ class Build_Command : Command {
 			}
 		}
 
-		const auto err_count = logger.get_err_count();
-		if (err_count > 0) {
-			logger.Error("Terminating compilation: ", to!string(err_count),
-					" errors encountered.");
+		const auto sema_errors = logger.get_err_count();
+		if (sema_errors > 0) {
+			logger.Error("Terminating compilation: ", to!string(sema_errors),
+					" semantic errors encountered.");
 			return;
 		}
 

@@ -1,5 +1,42 @@
-func main() {
+func strings() {
 	let c string = "foo bar blah!";
 	let d = " ... world!";
 	c = "hello ";
+}
+
+func integers() {
+	let x = 3333;
+	let y = -3123;
+
+	// bug.
+	// let z = x + y; 
+}
+
+func floats() {
+	let g = 3.1412;
+
+}
+
+func runes() {
+	let a = 'f';	
+}
+
+func bools() {
+	let a = true || false;
+}
+
+func arrays() {
+	let c [s32];
+
+}
+
+func pointers() {
+	let d *s32;
+}
+
+func functionystuff() {
+	let g func();
+}
+
+func main() {
 }

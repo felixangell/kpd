@@ -13,9 +13,7 @@ static this() {
 		"string", 
 		"rune", 
 		"bool", 
-		"void", // TODO define these types properly.
-		"int", 
-		"uint",
+		"void",
 	);
 }
 

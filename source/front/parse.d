@@ -772,7 +772,7 @@ class Parser : Compilation_Phase {
 			}
 
 			auto operator = consume();
-			auto right = parse_expr(comp_allowed);
+			auto right = parse_primary_expr(comp_allowed);
 			if (right is null) {
 				return null;
 			}

@@ -287,7 +287,7 @@ struct Type_Inferrer {
 			return analyze_call(call, generics);
 		} // constants
 		else if (cast(Integer_Constant_Node) node) {
-			return prim_type("int");
+			return prim_type("s32");
 		}
 		else if (cast(Float_Constant_Node) node) {
 			// the widest type for floating point
