@@ -36,7 +36,12 @@ class Type_Infer_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 			return;
 		}
 
-		auto inferred_type = inferrer.analyze(var.value, curr_sym_table.env);
+		auto inferred_type = inferrer.analyze(var, curr_sym_table.env);
+		
+		// insert the inferred type into
+		// the current environment
+		curr_sym_table.env.register_type(var.twine.lexeme, inferred_type);
+
 		var.type = new Resolved_Type(var.type, inferred_type);
 		writeln("(", to!string(var), ") : ", inferred_type);
 	}

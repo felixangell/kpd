@@ -253,6 +253,13 @@ class Name_Resolve_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 	}
 
 	void analyze_binary_expr(ast.Binary_Expression_Node binary) {
+		if (binary.operand.lexeme == "as") {
+			analyze_expr(binary.left);
+			// TODO make sure that the right hand
+			// side is a valid type.
+			return;
+		}
+
 		analyze_expr(binary.left);
 		analyze_expr(binary.right);
 	}

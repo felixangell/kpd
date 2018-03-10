@@ -150,6 +150,20 @@ class Variable_Statement_Node : Statement_Node, Semicolon_Stat {
 	}
 }
 
+class Cast_Expression_Node : Expression_Node {
+	Expression_Node left;
+	Type_Path_Node type_path;
+
+	this(Expression_Node left, Type_Path_Node type_path) {
+		this.left = left;
+		this.type_path = type_path;
+	}
+
+	override string toString() {
+		return "(" ~ to!string(left) ~ "#" ~ to!string(type_path) ~ ")";
+	}
+}
+
 // CONSTANTS
 
 class Constant_Node(T) : Expression_Node {
@@ -274,7 +288,7 @@ class Symbol_Node : Expression_Node {
 	}
 
 	override string toString() const {
-		return "sym(" ~ value.lexeme ~ ")";
+		return "[sym " ~ value.lexeme ~ "]";
 	}
 }
 
@@ -292,7 +306,7 @@ class Path_Expression_Node : Expression_Node {
 				res ~= ".";
 			res ~= to!string(v);
 		}
-		return "path(" ~ res ~ ")";
+		return "[path: " ~ res ~ "]";
 	}
 }
 

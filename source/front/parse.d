@@ -772,7 +772,18 @@ class Parser : Compilation_Phase {
 			}
 
 			auto operator = consume();
-			auto right = parse_primary_expr(comp_allowed);
+
+			ast.Expression_Node right = null;
+			if (operator.lexeme == "as") {
+				auto path = parse_type_path();
+				// TODO err check
+				left = new Cast_Expression_Node(left, path);
+				continue;
+			} 
+			else {
+				right = parse_primary_expr(comp_allowed);
+			}
+
 			if (right is null) {
 				return null;
 			}

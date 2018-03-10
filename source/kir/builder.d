@@ -449,6 +449,12 @@ class Kir_Builder : Top_Level_Node_Visitor {
 		else if (auto sym = cast(Symbol_Node) expr) {
 			return new Identifier(get_type(sym), sym.value.lexeme);
 		}
+		else if (auto cast_expr = cast(Cast_Expression_Node) expr) {
+			// TODO float to int vice versa
+			// or truncate to smaller type i.e. u32 to u8
+			// for now just spit out the build expr
+			return build_expr(cast_expr.left);
+		}
 		else if (auto call = cast(Call_Node) expr) {
 			return build_call(call);
 		}

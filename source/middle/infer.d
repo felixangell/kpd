@@ -178,10 +178,12 @@ struct Type_Inferrer {
 
 	Type get_type(string name, Type_Variable[string] generics) {
 		if (name in e.data) {
+			logger.Verbose("Found '", name, "', type is ", to!string(e.data[name]));
 			return fresh(e.data[name], generics);
 		}
 
 		logger.Error("Couldn't find type '", name, "' in environment:");
+
 		foreach (entry; e.data.byKeyValue()) {
 			logger.Verbose(entry.key, " is ", to!string(entry.value));
 		}
@@ -209,7 +211,6 @@ struct Type_Inferrer {
 	Type analyze_path(Path_Expression_Node path, Type_Variable[string] generics) {
 		auto fst = path.values[0];
 		Type t = analyze(fst, e, generics);
-		writeln("i think we have inferred ", fst, " : ", to!string(t));
 		return t;
 	}
 
@@ -234,8 +235,6 @@ struct Type_Inferrer {
 			// resolve the type we're given.
 			return analyze(node.type, e, generics);
 		}
-
-		writeln("--- YO");
 
 		// we have to infer the type from the value of the
 		// expression instead. TODO handle no expression! (error)
@@ -284,7 +283,11 @@ struct Type_Inferrer {
 			return t;
 		}
 		else if (auto path = cast(ast.Path_Expression_Node) node) {
+			// TODO!
 			return analyze_path(path, generics);
+		}
+		else if (auto cast_expr = cast(ast.Cast_Expression_Node) node) {
+			return analyze(cast_expr.left, e, generics);
 		}
 		else if (auto call = cast(ast.Call_Node) node) {
 			return analyze_call(call, generics);

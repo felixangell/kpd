@@ -1,0 +1,5 @@
+func main() {
+	let a f32 = 5;
+	let b = 6;
+	let c = a as s32 + b * a as s32;
+}
