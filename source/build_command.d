@@ -160,12 +160,16 @@ class Build_Command : Command {
 
 		logger.VerboseHeader("Generating Krug IR:");
 		foreach (ref dep; sorted_deps) {
-			auto kir_builder = new Kir_Builder;
 			foreach (ref entry; dep.as_trees.byKeyValue) {
-				writeln("Hello world\t", entry.key, " . ", dep.path, " . ", dep.name);
-				auto mod = kir_builder.build(dep, entry.key);
-				
-				
+				auto sub_mod_name = entry.key;
+				auto mod_path = dep.path;
+				auto mod_name = dep.name;
+
+				auto kir_builder = new Kir_Builder(mod_name, sub_mod_name);
+
+				logger.Verbose(" - ", mod_name, "::", sub_mod_name);
+
+				auto mod = kir_builder.build(dep, sub_mod_name);
 				mod.dump();
 				new IR_Verifier(mod);
 				modules ~= mod;
@@ -173,7 +177,7 @@ class Build_Command : Command {
 		}
 
 		logger.VerboseHeader("Optimisation Pass: ");
-		foreach (mod; modules) {
+		foreach (ref mod; modules) {
 			optimise(mod);
 		}
 

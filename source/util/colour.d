@@ -11,12 +11,20 @@ static string RESET = "\u001b[0m";
 
 bool NO_COLOURS = false;
 
+static string join(string[] strings...) {
+	string s;
+	foreach (str; strings) {
+		s ~= str;
+	}
+	return s;
+}
+
 static string Warn(string str) {
 	return Colourize(YELLOW, str);
 }
 
-static string Bold(string str) {
-	return Colourize(BOLD, str);
+static string Bold(string[] str...) {
+	return Colourize(BOLD, join(str));
 }
 
 static string Err(string str) {

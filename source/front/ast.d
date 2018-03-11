@@ -45,21 +45,35 @@ class Defer_Statement_Node : Statement_Node {
 	this(Statement_Node stat) {
 		this.stat = stat;
 	}
+
+	override string toString() {
+		return "defer " ~ to!string(stat);
+	}
 }
 
 class Loop_Statement_Node : Statement_Node {
 	Block_Node block;
+
 	this(Block_Node block) {
 		this.block = block;
+	}
+
+	override string toString() {
+		return "loop";
 	}
 }
 
 class While_Statement_Node : Statement_Node {
 	Expression_Node condition;
 	Block_Node block;
+
 	this(Expression_Node condition, Block_Node block) {
 		this.condition = condition;
 		this.block = block;
+	}
+
+	override string toString() {
+		return "while(" ~ to!string(condition) ~ ")";
 	}
 }
 
@@ -238,6 +252,15 @@ class Function_Node : Node {
 	Variable_Statement_Node func_recv;
 	Function_Parameter[] params;
 	Generic_Set generics;
+
+	override string toString() {
+		string args;
+		foreach (i, p; params) {
+			if (i > 0) args ~= ",";
+			args ~= to!string(p);
+		}
+		return "fn " ~ name.lexeme ~ "(" ~ args ~ ")";
+	}
 }
 
 class Block_Node : Statement_Node {
@@ -561,6 +584,10 @@ class Function_Parameter : Node {
 		this.mutable = mutable;
 		this.twine = twine;
 		this.type = type;
+	}
+
+	override string toString() {
+		return (mutable ? "mut" : "") ~ " " ~ twine.lexeme ~ " : " ~ to!string(type);
 	}
 }
 

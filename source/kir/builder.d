@@ -65,8 +65,8 @@ class Kir_Builder : Top_Level_Node_Visitor {
 	// fuck me what am I doing  
 	Block_Builder_Function build_block;
 
-	this() {
-		ir_mod = new Kir_Module();
+	this(string mod_name, string sub_mod_name) {
+		ir_mod = new Kir_Module(mod_name, sub_mod_name);
 		build_block = &build_normal_bb;
 	}
 
@@ -217,6 +217,13 @@ class Kir_Builder : Top_Level_Node_Visitor {
 		else if (auto var = cast(Variable_Statement_Node) t) {
 			assert(var.type !is null, "leaking unresolved type for Variable_Statement_Node");
 			return get_type(var.type);
+		}
+		else if (auto fn = cast(Function_Node) t) {
+			// void...
+			if (fn.return_type is null) {
+				return VOID_TYPE;
+			}
+			return get_type(fn.return_type);
 		}
 
 		logger.Error("Leaking unresolved type:\n\t", to!string(t), "\n\t", to!string(typeid(t)));
@@ -369,6 +376,7 @@ class Kir_Builder : Top_Level_Node_Visitor {
 
 		auto bb = push_bb("_yield");
 
+		// TODO type here is not a s32!!
 		Alloc a = new Alloc(get_int(32), bb.name() ~ "_" ~ gen_temp());
 		curr_func.add_instr(a);
 
@@ -527,9 +535,19 @@ class Kir_Builder : Top_Level_Node_Visitor {
 		// TODO
 	}
 
+	void analyze_global(ast.Variable_Statement_Node var) {
+
+	}
+
 	override void analyze_let_node(ast.Variable_Statement_Node var) {
 		auto typ = get_type(var.type);
 		assert(typ !is null);
+
+		if (curr_func is null) {
+			// it's a global
+			analyze_global(var);
+			return;
+		}
 
 		// TODO handle global variables.
 		auto addr = curr_func.add_alloc(new Alloc(typ, var.twine.lexeme));
