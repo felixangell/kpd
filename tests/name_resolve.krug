@@ -1,0 +1,5 @@
+func add() {
+	// this doesn't fail name resolve.
+	let c = !a;
+	let a = true || !false;
+}

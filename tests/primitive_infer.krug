@@ -9,7 +9,7 @@ func integers() {
 	let y = -3123;
 
 	// bug.
-	// let z = x + y; 
+	let z = x + y; 
 }
 
 func floats() {

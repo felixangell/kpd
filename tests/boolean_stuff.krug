@@ -1,0 +1,4 @@
+func main() {
+	let a = true || !false;
+	let c = !a;
+}

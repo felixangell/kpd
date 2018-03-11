@@ -707,6 +707,10 @@ class Parser : Compilation_Phase {
 	}
 
 	ast.Expression_Node parse_primary_expr(bool comp_allowed) {
+		if (is_unary_op(peek().lexeme)) {
+			return parse_unary_expr(comp_allowed);
+		}
+
 		auto left = parse_operand();
 		if (left is null) {
 			return null;

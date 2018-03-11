@@ -365,6 +365,10 @@ class UnaryOp : Basic_Instruction, Value {
 	override Kir_Type get_type() {
 		return type;
 	}
+
+	override string toString() {
+		return op.lexeme ~ "(" ~ to!string(v) ~ ")";
+	}
 }
 
 // jump <label>

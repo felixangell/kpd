@@ -286,6 +286,9 @@ struct Type_Inferrer {
 			// TODO!
 			return analyze_path(path, generics);
 		}
+		else if (auto unary = cast(ast.Unary_Expression_Node) node) {
+			return analyze(unary.value, e, generics);
+		}
 		else if (auto cast_expr = cast(ast.Cast_Expression_Node) node) {
 			return analyze(cast_expr.left, e, generics);
 		}
