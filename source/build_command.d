@@ -184,10 +184,8 @@ class Build_Command : Command {
 			}
 		}
 
-		if (OPTIMIZATION_LEVEL > 0) {
-			logger.VerboseHeader("Optimisation Pass: ");
-			optimise(krug_program);
-		}
+		logger.VerboseHeader("Optimisation Pass: ");
+		optimise(krug_program, OPTIMIZATION_LEVEL);
 
 		logger.VerboseHeader("Code Generation: ");
 		generate_code(BUILD_TARGET, krug_program);

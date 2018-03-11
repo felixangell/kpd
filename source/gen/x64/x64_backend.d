@@ -14,7 +14,7 @@ import gen.x64.generator;
 class X64_Backend : Code_Generator_Backend {
 	X64_Code code_gen(Kir_Module mod) {
 		auto gen = new X64_Generator;
-		foreach (name, func; mod.functions) {
+		foreach (ref name, func; mod.functions) {
 			gen.generate_func(func);
 		}
 		return gen.code;
@@ -26,7 +26,7 @@ class X64_Backend : Code_Generator_Backend {
 		// write all of these files
 		// into assembly files
 		// feed them into the gnu AS 
-		foreach (code_file; output) {
+		foreach (ref code_file; output) {
 			auto x64_code = cast(X64_Code) code_file;
 			writeln(x64_code.assembly_code);
 		}

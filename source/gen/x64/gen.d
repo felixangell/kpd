@@ -61,7 +61,7 @@ class X64_Generator {
 	}
 
 	string get_val(Value v) {
-		return "WHAT";
+		return "%eax";
 	}
 
 	void emit_store(Store s) {
@@ -94,6 +94,7 @@ class X64_Generator {
 	}
 
 	void emit_bb(Basic_Block bb) {
+		code.emit("{}:", bb.name());
 		foreach (instr; bb.instructions) {
 			emit_instr(instr);
 		}
@@ -107,7 +108,7 @@ class X64_Generator {
 
 		ctx ~= Block_Context();
 
-		foreach (bb; func.blocks) {
+		foreach (ref bb; func.blocks) {
 			emit_bb(bb);
 		}
 

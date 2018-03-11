@@ -20,7 +20,7 @@ void generate_code(Target t, Kir_Module[] modules) {
 
 	Generated_Output[] output_program;
 	logger.VerboseHeader("Generating code for ", to!string(modules.length), " modules");
-	foreach (mod; modules) {
+	foreach (ref mod; modules) {
 		output_program ~= backend.code_gen(mod);
 	}
 	logger.VerboseHeader("Writing generated code");
