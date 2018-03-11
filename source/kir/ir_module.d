@@ -20,12 +20,16 @@ class Kir_Module {
 		this.sub_module_name = sub_module_name;
 	}
 
-	Function[] functions;
+	Kir_Module[string] dependencies;
 
+	Function[string] functions;
 	Value[string] constants;
 
+	// most recently added func
+	Function recent_func;
+
 	Function current_func() {
-		return functions.back;
+		return recent_func;
 	}
 
 	Function add_function(string name) {
@@ -33,12 +37,13 @@ class Kir_Module {
 		// TODO mangle everything properly. but for now
 		// this should work
 		func.name = "__" ~ module_name ~ "_" ~ sub_module_name ~ "_" ~ name;
-		functions ~= func;
+		functions[func.name] = func;
+		recent_func = func;
 		return func;
 	}
 
 	void dump() {
-		writeln(colour.Bold("# Dumping module '", module_name, "::", sub_module_name, "'"));
+		writeln(colour.Bold("Dumping module '", module_name, "::", sub_module_name, "'"));
 		foreach (entry; constants.byKeyValue()) {
 			writeln("'" ~ entry.key, " = ", to!string(entry.value));
 		}
@@ -47,8 +52,9 @@ class Kir_Module {
 			writeln;
 		}
 
-		foreach (i, func; functions) {
-			if (i > 0)
+		int i = 0;
+		foreach (name, func; functions) {
+			if (i++ > 0)
 				write('\n');
 			func.dump();
 		}

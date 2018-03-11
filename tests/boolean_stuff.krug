@@ -1,4 +1,4 @@
-func printf(fmt *u8) int;
+func printf(fmt *u8);
 
 func main() {
 	let a = true || !false;

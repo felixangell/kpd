@@ -604,6 +604,15 @@ public:
 	void add_param(Token twine, Type_Node type, bool mutable = false) {
 		params ~= new Function_Parameter(mutable, twine, type);
 	}
+
+	override string toString() {
+		string stringified_params;
+		foreach (i, p; params) {
+			if (i > 0) stringified_params ~= ",";
+			stringified_params ~= to!string(params);
+		}
+		return "fn(" ~ stringified_params ~ ")";
+	}
 }
 
 class Trait_Attribute : Node {

@@ -34,9 +34,5 @@ func pointers() {
 	let d *s32;
 }
 
-func functionystuff() {
-	let g func();
-}
-
 func main() {
 }

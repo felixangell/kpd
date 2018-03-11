@@ -38,7 +38,12 @@ import sema.analyzer;
 
 import opt.opt_manager;
 
+import gen.code_gen;
+import gen.target;
+
 class Build_Command : Command {
+	Target BUILD_TARGET = Target.X64;
+
 	this() {
 		super("build", "compiles the given krug program");
 	}
@@ -57,13 +62,16 @@ class Build_Command : Command {
 			"arch", &ARCH,
 			"release|r", &RELEASE_MODE,
 			"opt|O", &OPTIMIZATION_LEVEL,
-			"out|o", &OUT_NAME);
+			"out|o", &OUT_NAME,
+			"target", &BUILD_TARGET,
+		);
 
 		debug {
 			writeln("KRUG COMPILER, VERSION ", VERSION);
 			writeln("* Executing compiler, optimization level O", to!string(OPTIMIZATION_LEVEL));
 			writeln("* Operating system: ", os_name());
-			writeln("* Target architecture: ", arch_type());
+			writeln("* Architecture: ", arch_type());
+			writeln("* Target Architecture: ", BUILD_TARGET);
 			writeln("* Compiler is in ", (RELEASE_MODE ? "release" : "debug"), " mode");
 			writeln();
 		}
@@ -156,7 +164,7 @@ class Build_Command : Command {
 		bool GEN_IR = true;
 		if (!GEN_IR) return;
 
-		Kir_Module[] modules;
+		Kir_Module[] krug_program;
 
 		logger.VerboseHeader("Generating Krug IR:");
 		foreach (ref dep; sorted_deps) {
@@ -172,16 +180,17 @@ class Build_Command : Command {
 				auto mod = kir_builder.build(dep, sub_mod_name);
 				mod.dump();
 				new IR_Verifier(mod);
-				modules ~= mod;
+				krug_program ~= mod;
 			}
 		}
 
-		logger.VerboseHeader("Optimisation Pass: ");
-		foreach (ref mod; modules) {
-			optimise(mod);
+		if (OPTIMIZATION_LEVEL > 0) {
+			logger.VerboseHeader("Optimisation Pass: ");
+			optimise(krug_program);
 		}
 
 		logger.VerboseHeader("Code Generation: ");
+		generate_code(BUILD_TARGET, krug_program);
 
 		auto duration = compilerTimer.peek();
 		logger.Info("Compiler took ", to!string(duration.total!"msecs"),

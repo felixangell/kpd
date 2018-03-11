@@ -43,7 +43,11 @@ class Type_Infer_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 		curr_sym_table.env.register_type(var.twine.lexeme, inferred_type);
 
 		var.type = new Resolved_Type(var.type, inferred_type);
-		writeln("(", to!string(var), ") : ", inferred_type);
+		logger.Verbose("-- (", to!string(var), ") : ", to!string(inferred_type));
+	}
+
+	void analyze_while_loop(ast.While_Statement_Node loop) {
+		auto infer = inferrer.analyze(loop.condition, curr_sym_table.env);
 	}
 
 	override void analyze_function_node(ast.Function_Node node) {
@@ -57,6 +61,9 @@ class Type_Infer_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 	override void visit_stat(ast.Statement_Node stat) {
 		if (auto variable = cast(ast.Variable_Statement_Node) stat) {
 			analyze_let_node(variable);
+		}
+		else if (auto loop = cast(ast.While_Statement_Node) stat) {
+			analyze_while_loop(loop);
 		}
 		else {
 			logger.Fatal("type_infer: unhandled statement " ~ to!string(stat));
