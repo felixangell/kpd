@@ -32,7 +32,7 @@ like it will mostly translate into bytecode for the krug vm.
 Nothing is in working order, but some tests might run!
 
 Make sure you have `dub` installed as well as a D compiler,
-I'm using `ldc2`.
+I'm using `dmd`.
 
 	$ git clone http://github.com/felixangell/krug
 	$ cd krug

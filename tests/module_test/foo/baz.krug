@@ -1,0 +1,4 @@
+func more_things() {
+	do_stuff();
+	do_other_stuff();
+}

@@ -324,7 +324,7 @@ class Kir_Builder : Top_Level_Node_Visitor {
 		case "&":
 			return addr_of(unary.value);
 		}
-		assert(0);
+		assert(0, "unhandled build unary expr in builder.");
 	}
 
 	Value build_call(ast.Call_Node call) {

@@ -17,16 +17,16 @@ static bool is_end_of_line(dchar c) {
 }
 
 class Lexer : Compilation_Phase {
-	Source_File* curr_file;
+	Source_File curr_file;
 
 	string input;
 	uint position;
 
 	uint row = 1, col = 1;
 
-	this(ref Source_File file) {
+	this(Source_File file) {
 		this.input = file.contents;
-		this.curr_file = &file;
+		this.curr_file = file;
 	}
 
 	string get_name() {

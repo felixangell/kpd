@@ -3,7 +3,7 @@ exe := krug
 
 $(exe): $(src_files)
 	cd vm && make lib
-	dub build --arch=x86_64
+	dub build --arch=x86_64 --compiler=ldc2
 
 go: $(exe)
 	./krug tests/main.krug -v

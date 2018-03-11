@@ -56,7 +56,7 @@ class Span {
 };
 
 class Token {
-	Source_File* parent;
+	Source_File parent;
 	string lexeme;
 	Token_Type type;
 	Span position;

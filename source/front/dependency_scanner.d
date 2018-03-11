@@ -82,8 +82,7 @@ struct Krug_Project {
 		}
 		logger.Verbose("Loading module '" ~ name ~ "'.");
 
-		auto mod = new Module(this.path ~ std.path.dirSeparator ~ name ~ std.path
-				.dirSeparator);
+		auto mod = new Module(this.path ~ std.path.dirSeparator ~ name ~ std.path.dirSeparator);
 		modules[name] = mod;
 
 		graph.register_module(mod);
@@ -129,15 +128,16 @@ Krug_Project build_krug_project(ref Source_File main_source_file) {
 	auto tokens = new Lexer(main_source_file).tokenize();
 	Load_Directive[] dirs = collect_deps(tokens);
 
-	string main_module_path = buildNormalizedPath(absolutePath(main_source_file
-			.path));
-	auto project = Krug_Project(strip_file(main_module_path));
+	string main_module_path = buildNormalizedPath(absolutePath(main_source_file.path));
 
-	auto main_mod = new Module();
+	auto file_path = strip_file(main_module_path);
+	auto project = Krug_Project(file_path);
+
+	auto main_mod = new Module(file_path);
 	project.graph.register_module(main_mod);
 
 	// TODO: this is kind of messy
-	main_mod.token_streams["main"] = tokens;
+	main_mod.token_streams[main_mod.name] = tokens;
 
 	foreach (dir; dirs) {
 		Token[] sub_modules = dir[1];

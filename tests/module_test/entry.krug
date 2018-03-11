@@ -1,0 +1,9 @@
+// this is a simple test
+// entry is the sub module with the
+// main functio entry point in it.
+
+#load foo
+
+func main() {
+	
+}

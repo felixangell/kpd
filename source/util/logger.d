@@ -38,12 +38,14 @@ static string get_line(const(Source_File*) file, ulong index) {
 
 // FIXME
 // this code is very spaghetti but it works.
-static string Blame_Token(ref Token tok) {
+static string Blame_Token(Token tok) {
 	if (tok is null) {
 		return "token is null!";
 	}
 
-	const Source_File* file = tok.parent;
+	writeln("blaming token ", tok);
+
+	Source_File file = tok.parent;
 
 	const size_t index = tok.position.start.idx;
 

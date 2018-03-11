@@ -20,18 +20,23 @@ import tarjans_scc;
 import dependency_scanner;
 import krug_module;
 import diag.engine;
+import logger;
+import kargs.command;
 
 import parse.parser;
 import ast;
 import logger;
+
 import kir.ir_mod;
+import kir.ir_verify;
 import kir.builder;
 
 import exec.instruction;
 import exec.exec_engine;
+
 import sema.analyzer;
-import logger;
-import kargs.command;
+
+import opt.opt_manager;
 
 class Build_Command : Command {
 	this() {
@@ -70,9 +75,6 @@ class Build_Command : Command {
 		// run tarjan's strongly connected components
 		// algorithm on the graph of the project to ensure
 		// there are no cycles in the krug project graph
-
-		// TODO: this should be elsewhere... ?
-		assert("main" in proj.graph);
 
 		logger.VerboseHeader("Cycle detection:");		
 		SCC[] cycles = proj.graph.get_scc();
@@ -154,15 +156,28 @@ class Build_Command : Command {
 		bool GEN_IR = true;
 		if (!GEN_IR) return;
 
+		Kir_Module[] modules;
+
 		logger.VerboseHeader("Generating Krug IR:");
 		foreach (ref dep; sorted_deps) {
 			auto kir_builder = new Kir_Builder;
 			foreach (ref entry; dep.as_trees.byKeyValue) {
+				writeln("Hello world\t", entry.key, " . ", dep.path, " . ", dep.name);
 				auto mod = kir_builder.build(dep, entry.key);
+				
+				
 				mod.dump();
-				// TODO verify the module here
+				new IR_Verifier(mod);
+				modules ~= mod;
 			}
 		}
+
+		logger.VerboseHeader("Optimisation Pass: ");
+		foreach (mod; modules) {
+			optimise(mod);
+		}
+
+		logger.VerboseHeader("Code Generation: ");
 
 		auto duration = compilerTimer.peek();
 		logger.Info("Compiler took ", to!string(duration.total!"msecs"),

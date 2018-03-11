@@ -1,4 +1,12 @@
+func printf(fmt *u8) int;
+
 func main() {
 	let a = true || !false;
 	let c = !a;
+
+	let i s64 = 0;
+	while i < 100 {
+		printf("Hello, World! %d\n", i);
+		i = i + 1;
+	}
 }
