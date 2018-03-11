@@ -5,6 +5,7 @@ import std.conv;
 interface Kir_Type {
 	bool cmp(Kir_Type t);
 	string toString();
+	uint get_width();
 };
 	 
 Floating_Type f32, f64;
@@ -51,6 +52,10 @@ class Array_Type : Kir_Type {
 		this.base = base;
 	}
 
+	uint get_width() {
+		return base.get_width();
+	}
+
 	bool cmp(Kir_Type t) {
 		if (auto arr = cast(Array_Type) t) {
 			// if the base types are the same
@@ -70,6 +75,11 @@ class Pointer_Type : Kir_Type {
 
 	this(Kir_Type base) {
 		this.base = base;
+	}
+
+	uint get_width() {
+		// ptr size is what?
+		return 8;
 	}
 
 	bool cmp(Kir_Type kt) {
@@ -93,6 +103,14 @@ class Structure_Type : Kir_Type {
 		foreach (t; types) {
 			this.types ~= t;
 		}
+	}
+
+	uint get_width() {
+		uint size = 0;
+		foreach (t; types) {
+			size += t.get_width();
+		}
+		return size;
 	}
 
 	bool cmp(Kir_Type kt) {
@@ -134,6 +152,10 @@ class Void_Type : Kir_Type {
 		return false;
 	}
 
+	uint get_width() {
+		return 0;
+	}
+
 	override string toString() {
 		return "void";
 	}
@@ -146,6 +168,10 @@ class Integer_Type : Kir_Type {
 	this(uint width, bool signed) {
 		this.width = width;
 		this.signed = signed;
+	}
+
+	uint get_width() {
+		return width / 8;
 	}
 
 	// if they are both integer types
@@ -170,6 +196,11 @@ class Floating_Type : Kir_Type {
 	this(uint width, bool signed) {
 		this.width = width;
 		this.signed = signed;
+	}
+
+	uint get_width() {
+		// ptr size is what?
+		return width / 8;
 	}
 
 	bool cmp(Kir_Type other) {
