@@ -19,9 +19,18 @@ import gen.x64.generator;
 class X64_Backend : Code_Generator_Backend {
 	X64_Code code_gen(Kir_Module mod) {
 		auto gen = new X64_Generator;
+
+		// temporary, part of hack below!
+		gen.code.emit(".text");
+
 		foreach (ref name, func; mod.functions) {
 			gen.generate_func(func);
 		}
+
+		// hack
+		gen.code.emit(".global _main");
+		gen.code.emit("_main:");
+		gen.code.emitt("nop");
 		return gen.code;
 	}
 
@@ -36,7 +45,7 @@ class X64_Backend : Code_Generator_Backend {
 			auto x64_code = cast(X64_Code) code_file;
 			
 			string file_name = "krug-asm-" ~ thisProcessID.to!string(36) ~ "-" ~ uniform!uint.to!string(36) ~ ".as";
-			auto temp_file = File(buildPath(tempDir(), file_name), "w");
+			auto temp_file = File(file_name, "w");
 			writeln("Assembly file '", temp_file.name, "' created.");
 
 			temp_file.write(x64_code.assembly_code);
@@ -45,22 +54,39 @@ class X64_Backend : Code_Generator_Backend {
 			writeln(x64_code.assembly_code);
 		}
 
-		string[] as_files_str;
+		string[] obj_file_paths;
+
+		// run the assembler on each assembly file
+		// individually.
 		foreach (as_file; as_files) {
-			as_files_str ~= as_file.name;
+			string obj_file_path = baseName(as_file.name, ".as") ~ ".o";
+
+			string[] args = ["as", "-c", as_file.name, "-o", obj_file_path];
+			writeln("Executing the following command: ", args);
+
+			auto as_pid = execute(args);
+			if (as_pid.status != 0) {
+				writeln("Assembler failed:\n", as_pid.output);
+			}
+			writeln("Assembly done with status: ", as_pid.status);
+
+			obj_file_paths ~= obj_file_path;
 		}
 
-		auto log_file = File("krug_compile_log.log", "w");
-		string[] arg = ["as", "-c"] ~ as_files_str;
+		// run the linker!
 
-		writeln("Executing the following command: ", arg);
+		string obj_files;
+		foreach (i, obj; obj_file_paths) {
+			if (i > 0) obj_files ~= " ";
+			obj_files ~= obj;
+		}
 
-		auto as_pid = spawnProcess(arg, 
-			std.stdio.stdin,
-            std.stdio.stdout,
-            log_file);
-		if (wait(as_pid) != 0) {
-		    writeln("Compilation failed!");
+		auto linker_args = ["ld", "-macosx_version_min", "10.13", obj_files, "-o", "a.out"];
+		writeln("Running linker", linker_args);
+
+		auto ld_pid = execute(linker_args);
+		if (ld_pid.status != 0) {
+			writeln("Linker failed:\n", ld_pid.output);
 		}
 	}
 }
