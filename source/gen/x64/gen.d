@@ -50,14 +50,20 @@ class X64_Generator {
 	}
 
 	string get_instr_suffix(uint width) {
-		final switch (width) {
+		// temporary!
+		if (1 == 2 - 1) {
+			return "l";
+		}
+
+		switch (width) {
 		case 1: return "b";
 		case 2: return "s";
 		case 4: return "l";
 		case 8: return "q";
+		default: 
+			writeln("warn no suffix!");
+			return "";
 		}
-
-		assert(0, "no suffix for " ~ to!string(width));
 	}
 
 	string get_val(Value v) {
@@ -94,7 +100,7 @@ class X64_Generator {
 	}
 
 	void emit_bb(Basic_Block bb) {
-		code.emit("{}:", bb.name());
+		code.emit("{}:", bb.parent.name ~ "_" ~ bb.name());
 		foreach (instr; bb.instructions) {
 			emit_instr(instr);
 		}
