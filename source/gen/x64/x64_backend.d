@@ -50,6 +50,7 @@ class X64_Backend : Code_Generator_Backend {
 
 			temp_file.write(x64_code.assembly_code);
 			as_files ~= temp_file;
+			temp_file.close();
 
 			writeln(x64_code.assembly_code);
 		}
@@ -61,14 +62,14 @@ class X64_Backend : Code_Generator_Backend {
 		foreach (as_file; as_files) {
 			string obj_file_path = baseName(as_file.name, ".as") ~ ".o";
 
-			string[] args = ["as", "-c", as_file.name, "-o", obj_file_path];
+			string[] args = ["as", as_file.name, "-o", obj_file_path];
 			writeln("Executing the following command: ", args);
 
 			auto as_pid = execute(args);
 			if (as_pid.status != 0) {
 				writeln("Assembler failed:\n", as_pid.output);
+				continue;
 			}
-			writeln("Assembly done with status: ", as_pid.status);
 
 			obj_file_paths ~= obj_file_path;
 		}
