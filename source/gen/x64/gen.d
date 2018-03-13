@@ -74,11 +74,7 @@ class X64_Generator {
 
 	void emit_store(Store s) {
 		Kir_Type t = s.get_type();
-
-		code.emitt("mov{} {}, {}", 
-			get_instr_suffix(t.get_width()), 
-			get_val(s.val), 
-			get_val(s.address));
+		writeln("what is", s);
 	}
 
 	void emit_ret() {

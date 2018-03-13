@@ -1,0 +1,9 @@
+func main() {
+	let x = 0;
+	loop {
+		if 5 + 3 == 2 {
+			x = 69;
+		}
+	}
+	let g = x + 2;
+}

@@ -1,7 +1,7 @@
 module opt.opt_manager;
 
 import opt.pass;
-import opt.constant_prop;
+import opt.ssa_gen;
 
 import logger;
 import kir.ir_mod;
@@ -15,7 +15,7 @@ void optimise(Kir_Module[] program, int level) {
 		break;
 	case 0:
 		passes = [
-			new Constant_Prop,
+			new SSA_Builder,
 		]; // minimal passes
 		break;
 	}

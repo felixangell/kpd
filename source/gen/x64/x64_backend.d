@@ -20,6 +20,11 @@ class X64_Backend : Code_Generator_Backend {
 	X64_Code code_gen(Kir_Module mod) {
 		auto gen = new X64_Generator;
 
+		// is this necessary
+		version(OSX) {
+			gen.code.emit(".macosx_version_min 10, 16");
+		}
+
 		gen.generate_mod(mod);
 
 		// hack

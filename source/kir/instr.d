@@ -37,7 +37,6 @@ interface Value {
 
 class Basic_Block {
 	Basic_Block[] preds;
-	Basic_Block[] succs;
 
 	ulong id;
 
@@ -209,12 +208,17 @@ class Constant : Basic_Value {
 class Function {
 	string name;
 	Alloc[] locals;
+	
 	Basic_Block[] blocks;
 	Basic_Block curr_block;
 
 	Basic_Block push_block(string namespace = "") {
 		auto block = new Basic_Block(this);
 		block.namespace ~= namespace;
+		
+		// FIXME this isn't correct.
+		block.preds = blocks;
+
 		blocks ~= block;
 		curr_block = block;
 		return block;
@@ -225,7 +229,7 @@ class Function {
 	// is the entry block, we are adding
 	// all of the allocations to this part!
 	Value add_alloc(Alloc a) {
-		blocks[0].add_instr(a);
+		curr_block.add_instr(a);
 		return a;
 	}
 
