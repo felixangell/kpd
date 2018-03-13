@@ -82,12 +82,28 @@ class X64_Backend : Code_Generator_Backend {
 			obj_files ~= obj;
 		}
 
-		auto linker_args = ["ld", "-macosx_version_min", "10.13", obj_files, "-o", "a.out"];
+		string[] link_flags;
+		version (OSX) {
+			link_flags ~= "-macosx_version_min";
+			link_flags ~= "10.16";
+			link_flags ~= "-lsystem";
+		}
+
+		auto linker_args = ["ld"] ~ link_flags ~ [obj_files, "-o", "a.out"];
 		writeln("Running linker", linker_args);
 
 		auto ld_pid = execute(linker_args);
 		if (ld_pid.status != 0) {
 			writeln("Linker failed:\n", ld_pid.output);
+		}
+
+		// delete object files and assembly files
+		foreach (as_file; as_files) {
+			remove(as_file.name);
+		}
+
+		foreach (obj_file; obj_file_paths) {
+			remove(obj_file);
 		}
 	}
 }
