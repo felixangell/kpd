@@ -30,19 +30,6 @@ string gen_temp() {
 	return "t" ~ to!string(temp++);
 }
 
-kt.Void_Type VOID_TYPE;
-
-// string type is a struct of
-// a length and an array of bytes
-// i.e.
-// struct { u64, [u8] };
-kt.Structure_Type STRING_TYPE;
-
-static this() {
-	VOID_TYPE = new Void_Type();
-	STRING_TYPE = new kt.Structure_Type(get_uint(64), new Pointer_Type(get_uint(8)));
-}
-
 // this is a stupid crazy hack and im not sure how i feel about this
 // but basically we have the NORMAL build_block and then
 // we have a version which builds blocks but handles all of the

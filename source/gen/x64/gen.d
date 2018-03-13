@@ -114,6 +114,7 @@ class X64_Generator {
 		// TODO these arent populated
 		foreach (k, v; mod.constants) {
 			code.emit("{}:", k);
+			code.emit_data_const(v);
 		}
 
 		code.emit(".text");

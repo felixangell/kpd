@@ -1,8 +1,12 @@
 module gen.x64.output;
 
+import std.stdio;
 import std.conv;
 
+import logger;
 import gen.backend;
+import kt;
+import kir.instr;
 
 class X64_Code : Generated_Output {
 	string assembly_code;
@@ -21,6 +25,18 @@ class X64_Code : Generated_Output {
 
 	void emitt(string fmt, string[] s...) {
 		assembly_code ~= '\t' ~ sfmt(fmt, s) ~ '\n';
+	}
+
+	// we're hoping this is a constant...
+	void emit_data_const(Value v) {
+		auto c = cast(Constant) v;
+		if (!c) {
+			logger.Fatal("emit_data_const: unhandled value ", to!string(v));
+		}
+
+		if (c.get_type().cmp(new Pointer_Type(get_uint(8)))) {
+			emitt(".asciz {}", c.value);
+		}
 	}
 
 	void push(int width, string[] p...) {

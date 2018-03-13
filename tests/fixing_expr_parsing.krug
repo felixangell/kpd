@@ -2,6 +2,7 @@ let c s32 = 3;
 let g = "foo bar baz";
 
 func main() {
+	let foopa string = "hello, world!";
 	let a = (3 + 5 * 3 - 12 / 4) - (3 * (3 - 4) + 2);
 	let c = a + a - a;
 }

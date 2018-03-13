@@ -11,6 +11,19 @@ import krug_module : Token;
 import kt;
 import ast;
 
+kt.Void_Type VOID_TYPE;
+
+// string type is a struct of
+// a length and an array of bytes
+// i.e.
+// struct { u64, [u8] };
+kt.Structure_Type STRING_TYPE;
+
+static this() {
+	VOID_TYPE = new Void_Type();
+	STRING_TYPE = new kt.Structure_Type(get_uint(64), new Pointer_Type(get_uint(8)));
+}
+
 interface Instruction {
 	Kir_Type get_type();
 
