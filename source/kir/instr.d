@@ -249,8 +249,33 @@ class Function {
 	}
 }
 
-class Phi {
+class Phi : Basic_Value {
 	Value[] edges;
+	Value[] users;
+
+	this() {
+		super(VOID_TYPE);
+	}
+
+	void add_edge(Value v) {
+		super.type = v.get_type();
+		edges ~= v;
+	}
+
+	override string toString() {
+		string edges_str;
+		foreach (i, v; edges) {
+			if (i > 0) edges_str ~= ',';
+			edges_str ~= to!string(v);
+		}
+		return "phi(" ~ edges_str ~ ")";
+	}
+}
+
+class Undef : Basic_Value {
+	this() {
+		super(VOID_TYPE);
+	}
 }
 
 // a = new int

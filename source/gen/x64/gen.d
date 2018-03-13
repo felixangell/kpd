@@ -74,7 +74,6 @@ class X64_Generator {
 
 	void emit_store(Store s) {
 		Kir_Type t = s.get_type();
-		writeln("what is", s);
 	}
 
 	void emit_ret() {

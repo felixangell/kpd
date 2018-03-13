@@ -187,8 +187,10 @@ class Build_Command : Command {
 		logger.VerboseHeader("Optimisation Pass: ");
 		optimise(krug_program, OPTIMIZATION_LEVEL);
 
-		logger.VerboseHeader("Code Generation: ");
-		generate_code(BUILD_TARGET, krug_program);
+		if ("no code generation please") {
+			logger.VerboseHeader("Code Generation: ");
+			generate_code(BUILD_TARGET, krug_program);
+		}
 
 		auto duration = compilerTimer.peek();
 		logger.Info("Compiler took ", to!string(duration.total!"msecs"),
