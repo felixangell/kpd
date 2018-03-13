@@ -20,12 +20,7 @@ class X64_Backend : Code_Generator_Backend {
 	X64_Code code_gen(Kir_Module mod) {
 		auto gen = new X64_Generator;
 
-		// temporary, part of hack below!
-		gen.code.emit(".text");
-
-		foreach (ref name, func; mod.functions) {
-			gen.generate_func(func);
-		}
+		gen.generate_mod(mod);
 
 		// hack
 		// generate a main function for us to

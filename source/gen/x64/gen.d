@@ -10,6 +10,7 @@ import logger;
 import gen.x64.output;
 
 import kt;
+import kir.ir_mod;
 import kir.instr;
 
 struct Block_Context {
@@ -104,6 +105,20 @@ class X64_Generator {
 		code.emit("{}:", bb.parent.name ~ "_" ~ bb.name());
 		foreach (instr; bb.instructions) {
 			emit_instr(instr);
+		}
+	}
+
+	void generate_mod(Kir_Module mod) {
+		code.emit(".data");
+
+		// TODO these arent populated
+		foreach (k, v; mod.constants) {
+			code.emit("{}:", k);
+		}
+
+		code.emit(".text");
+		foreach (ref name, func; mod.functions) {
+			generate_func(func);
 		}
 	}
 
