@@ -2,6 +2,7 @@ module opt.ssa_gen;
 
 import std.stdio;
 import std.conv;
+import std.algorithm : remove;
 
 import kt;
 import kir.ir_mod;
@@ -26,7 +27,8 @@ void write_var(Basic_Block block, string name, Value val) {
 		bb_defs[block.name()] = Definitions();
 	}
 	writeln("- ssa: Storing ", to!string(val), " as ", name, " in bb ", block.name());
-	bb_defs[block.name()].values[name] = val;
+	auto defs = bb_defs[block.name()];
+	defs.values[name] = val;
 }
 
 void write_phi(Basic_Block block, string name, Phi phi) {
@@ -53,11 +55,13 @@ Value remove_trivial_phi(Phi p) {
 	if (same is null) {
 		same = new Undef();
 	}
-	auto users = p.users.remove(p);
-	p.replace_by(same);
 
-	foreach (u; users) {
-		if (auto phi = cast(u)Phi) {
+	foreach (i, u; p.users) {
+		if (u == p) {
+			remove(p.users, i);	
+		}
+
+		if (auto phi = cast(Phi)u) {
 			remove_trivial_phi(phi);
 		}
 	}
@@ -66,11 +70,10 @@ Value remove_trivial_phi(Phi p) {
 }
 
 Value calculate_phi_operands(Phi phi, Basic_Block bb, string name) {
-	Phi result = phi;
 	foreach (p; bb.preds) {
-		result.add_edge(read_var(p, name));
+		phi.add_edge(read_var(p, name));
 	}
-	return remove_trivial_phi(result); // TODO remove trivial phi
+	return remove_trivial_phi(phi);
 }
 
 Value read_val_recursive(Basic_Block block, string name) {
@@ -84,7 +87,6 @@ Value read_val_recursive(Basic_Block block, string name) {
 	}
 	else {
 		val = new Phi();
-		block.write_var(name, val);
 		val = calculate_phi_operands(cast(Phi) val, block, name);
 	}
 	block.write_var(name, val);
@@ -111,7 +113,9 @@ void read_value(Basic_Block bb, Value val) {
 		read_value(bb, bin.b);
 	}
 	else {
-		logger.Fatal("unhandled value read! ", to!string(val));
+		if (!(cast(Constant) val)) {
+			logger.Fatal("unhandled value read! ", to!string(val));			
+		}
 	}
 }
 
