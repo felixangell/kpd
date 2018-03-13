@@ -32,6 +32,14 @@ class Kir_Module {
 		return recent_func;
 	}
 
+	Function get_function(string name) {
+		string mangle = "__" ~ module_name ~ "_" ~ sub_module_name ~ "_" ~ name;
+		if (mangle in functions) {
+			return functions[mangle];
+		}
+		return null;
+	}
+
 	Function add_function(string name) {
 		auto func = new Function();
 		// TODO mangle everything properly. but for now

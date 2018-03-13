@@ -28,9 +28,21 @@ class X64_Backend : Code_Generator_Backend {
 		}
 
 		// hack
+		// generate a main function for us to
+		// enter, this only works for single
+		// module programs atm because if 
+		// we add more modules then they will
+		// all have a main function generated
+
 		gen.code.emit(".global _main");
 		gen.code.emit("_main:");
-		gen.code.emitt("nop");
+		gen.code.emitt("pushq %rbp");
+		gen.code.emitt("movq %rsp, %rbp");
+		gen.code.emitt("call {}", mod.get_function("main").name);
+		gen.code.emitt("movl $0, %eax");
+		gen.code.emitt("popq %rbp");
+		gen.code.emitt("ret");
+
 		return gen.code;
 	}
 
