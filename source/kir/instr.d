@@ -243,7 +243,7 @@ class Function {
 	}
 
 	void dump() {
-		writeln(name, "():");
+		writeln(name, "(): #entry = ", blocks[0].name());
 		foreach (block; blocks) {
 			block.dump();
 		}

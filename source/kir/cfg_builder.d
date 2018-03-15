@@ -43,9 +43,6 @@ class CFG_Builder {
             bb.add_edge_to(if_true);
             bb.add_edge_to(if_false);
         }
-        else {
-            logger.Fatal("Unhandled instruction when building CFG ", to!string(instr));
-        }
     }
 
     Graph_Node!Basic_Block analyze_bb(Basic_Block bb) {
