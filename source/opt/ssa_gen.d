@@ -56,6 +56,7 @@ Value remove_trivial_phi(Phi p) {
 		same = new Undef();
 	}
 
+	// this is wrong
 	foreach (i, u; p.users) {
 		if (u == p) {
 			remove(p.users, i);	
