@@ -12,6 +12,9 @@ import opt.pass;
 
 import logger;
 
+// TODO
+// this is a work in progress!
+
 struct Definitions {
 	Value[string] values;
 	Phi[string] incomplete_phis;
@@ -26,7 +29,6 @@ void write_var(Basic_Block block, string name, Value val) {
 	if (block.name() !in bb_defs) {
 		bb_defs[block.name()] = Definitions();
 	}
-	writeln("- ssa: Storing ", to!string(val), " as ", name, " in bb ", block.name());
 	auto defs = bb_defs[block.name()];
 	defs.values[name] = val;
 }
@@ -36,7 +38,6 @@ void write_phi(Basic_Block block, string name, Phi phi) {
 		bb_defs[block.name()] = Definitions();
 	}
 
-	writeln("- ssa: Incomplete phi ", to!string(phi), " as ", name, " in bb ", block.name());
 	bb_defs[block.name()].incomplete_phis[name] = phi;	
 }
 
@@ -98,7 +99,6 @@ Value read_var(Basic_Block block, string name) {
 	if (block.name() in bb_defs) {
 		auto defs = bb_defs[block.name()];
 		if (name in defs.values) {
-			writeln("- ssa: Read value ", name, " from bb ", block.name());
 			return defs.values[name];
 		}
 	}
@@ -135,7 +135,6 @@ class SSA_Builder : Optimisation_Pass {
 			bb.read_value(store.val);
 		}
 		else {
-			logger.Fatal("- ssa: unhandled instruction ", to!string(instr));
 		}
 	}
 
