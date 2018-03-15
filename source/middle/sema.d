@@ -30,7 +30,7 @@ Semantic_Pass[] passes = [
 ];
 
 void log(Semantic_Pass pass, Log_Level level, string[] msg...) {
-	logger.Log(level, to!string(pass) ~ ": " ~ logger.join(msg));
+	logger.Log(level, (to!string(pass) ~ ": ") ~ msg);
 }
 
 struct Semantic_Analysis {

@@ -16,6 +16,7 @@ class Graph_Node(T) {
     }
 }
 
+// todo we could easily make this reusable.
 class Control_Flow_Graph {
     Graph_Node!Basic_Block[string] nodes;
 

@@ -102,7 +102,7 @@ int get_err_count() {
 	return num_logger_errors;
 }
 
-static void Log(Log_Level lvl, string str) {
+static void Log(Log_Level lvl, string[] str...) {
 	if (lvl == Log_Level.Error) {
 		num_logger_errors++;
 	}
@@ -135,15 +135,12 @@ static void Log(Log_Level lvl, string str) {
 	if (lvl != Log_Level.Verbose) {
 		out_stream.writef("%s: ", error_level);
 	}
-	out_stream.writeln(str);
-}
 
-static string join(string[] strings...) {
-	string s;
-	foreach (str; strings) {
-		s ~= str;
+	string result;
+	foreach (s; str) {
+		result ~= s;
 	}
-	return s;
+	out_stream.writeln(result);
 }
 
 static void Error(Token t, string msg) {
@@ -153,23 +150,23 @@ static void Error(Token t, string msg) {
 // TODO remove the lazy join things
 
 static void Error(string[] strings...) {
-	Log(Log_Level.Error, join(strings));
+	Log(Log_Level.Error, strings);
 }
 
 static void Warn(string[] strings...) {
-	Log(Log_Level.Warning, join(strings));
+	Log(Log_Level.Warning, strings);
 }
 
 static void Info(string[] strings...) {
-	Log(Log_Level.Info, join(strings));
+	Log(Log_Level.Info, strings);
 }
 
 static void Fatal(string[] strings...) {
-	Log(Log_Level.Fatal, join(strings));
+	Log(Log_Level.Fatal, strings);
 }
 
 static void Verbose(string[] strings...) {
-	Log(Log_Level.Verbose, join(strings));
+	Log(Log_Level.Verbose, strings);
 }
 
 // prints a verbose message in a nice big
@@ -179,6 +176,9 @@ static void VerboseHeader(string[] strings...) {
 		return;
 	}
 
-	string res = join(strings);
+	string res;
+	foreach (s; strings) {
+		res ~= s;
+	}
 	writeln("! ", colour.Bold(res));
 }
