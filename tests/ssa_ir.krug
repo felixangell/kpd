@@ -1,9 +1,29 @@
 func main() {
-	let x = 0;
+	let i s32 = 0;
+	let l s32 = 0;
+	let q s32 = 0;
+	let r s32  = 0;
 	loop {
-		if 5 + 3 == 2 {
-			x = 69;
+		let p s32 = 0;
+		if p {
+			let j s32 = i;
+			if q {
+				l = 2;
+			}
+			else {
+				l = 3;
+			}
+			k = k + 1;
 		}
+		else {
+			k = k + 2;
+		}
+		// print i j k l
+		loop {
+			if r {
+				l = l + 4;
+			}
+		}
+		i = i + 6;
 	}
-	let g = x + 2;
 }

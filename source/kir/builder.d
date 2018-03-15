@@ -177,9 +177,7 @@ class Kir_Builder : Top_Level_Node_Visitor {
 
 	// convert an AST type to a krug ir type
 	kt.Kir_Type get_type(Node t) {
-		if (t is null) {
-			assert(0);
-		}
+		assert(t !is null, "get_type null type!");
 
 		if (auto resolved = cast(Resolved_Type) t) {
 			return conv(resolved.type);

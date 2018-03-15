@@ -56,6 +56,9 @@ class Basic_Block {
 	}
 
 	Instruction last_instr() {
+		if (instructions.length == 0) {
+			return new NOP;
+		}
 		return instructions.back;
 	}
 
@@ -411,6 +414,12 @@ class UnaryOp : Basic_Instruction, Value {
 
 	override string toString() {
 		return op.lexeme ~ "(" ~ to!string(v) ~ ")";
+	}
+}
+
+class NOP : Basic_Instruction {
+	this() {
+		super(VOID_TYPE);
 	}
 }
 
