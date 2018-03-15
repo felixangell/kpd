@@ -55,6 +55,10 @@ class Basic_Block {
 		return "_bb" ~ to!string(id) ~ namespace;
 	}
 
+	Instruction last_instr() {
+		return instructions.back;
+	}
+
 	void dump() {
 		writeln(name(), ":");
 		foreach (instr; instructions) {
@@ -210,15 +214,12 @@ class Function {
 	Alloc[] locals;
 	
 	Basic_Block[] blocks;
+
 	Basic_Block curr_block;
 
 	Basic_Block push_block(string namespace = "") {
 		auto block = new Basic_Block(this);
 		block.namespace ~= namespace;
-		
-		// FIXME this isn't correct.
-		block.preds = blocks;
-
 		blocks ~= block;
 		curr_block = block;
 		return block;

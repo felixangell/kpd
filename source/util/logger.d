@@ -129,9 +129,8 @@ static void Log(Log_Level lvl, string str) {
 		break;
 	}
 
-	import std.uni : toLower;
-
-	auto error_level = colour.Colourize(col, toLower(to!string(lvl)));
+	string level_str = to!string(lvl);
+	auto error_level = colour.Colourize(col, level_str);
 
 	if (lvl != Log_Level.Verbose) {
 		out_stream.writef("%s: ", error_level);

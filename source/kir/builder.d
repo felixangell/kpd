@@ -40,10 +40,7 @@ string gen_temp() {
 // stupid hacky thing but it works!
 alias Block_Builder_Function = Label delegate(kir.instr.Function current_func,
 		ast.Block_Node block, Basic_Block b = null);
-
-/*
-https://pp.ipd.kit.edu/uploads/publikationen/braun13cc.pdf
-*/
+		
 class Kir_Builder : Top_Level_Node_Visitor {
 
 	Kir_Module ir_mod;

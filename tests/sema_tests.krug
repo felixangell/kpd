@@ -1,0 +1,12 @@
+// this is a test file
+// just so i can do some tests and see
+// what needs to be done and make some
+// issues for it!
+
+func type_check() s32 {
+    let b string = 32;
+}
+
+func main() {
+
+}

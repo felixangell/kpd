@@ -23,6 +23,9 @@ import diag.engine;
 import logger;
 import kargs.command;
 
+import kir.cfg;
+import kir.cfg_builder;
+
 import parse.parser;
 import ast;
 import logger;
@@ -182,6 +185,11 @@ class Build_Command : Command {
 				new IR_Verifier(mod);
 				krug_program ~= mod;
 			}
+		}
+
+		logger.VerboseHeader("Control flow analysis of Krug IR:");
+		foreach (mod; krug_program) {
+			build_graphs(mod);
 		}
 
 		logger.VerboseHeader("Optimisation Pass: ");
