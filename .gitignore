@@ -1,4 +1,5 @@
 .dub
+a.out
 *.o
 *.as
 docs.json
