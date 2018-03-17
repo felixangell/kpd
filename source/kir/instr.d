@@ -6,6 +6,7 @@ import std.string;
 import std.array : replicate;
 import std.range.primitives : back;
 
+import kir.cfg;
 import ast;
 import krug_module : Token;
 import kt;
@@ -35,10 +36,17 @@ interface Value {
 	Kir_Type get_type();
 }
 
-class Basic_Block {
-	Basic_Block[] preds;
+struct DomInfo {
+	Basic_Block idom;
+	Basic_Block[] children;
+	int pre, post;
+}
 
+class Basic_Block {
 	ulong id;
+	
+	uint index = 0;
+	DomInfo dom;
 
 	string namespace = "";
 
@@ -149,7 +157,7 @@ class Identifier : Basic_Value {
 	}
 
 	override string toString() {
-		return "$" ~ name ~ ":" ~ to!string(get_type());
+		return name ~ ":" ~ to!string(get_type());
 	}
 }
 
@@ -216,6 +224,8 @@ class Function {
 	string name;
 	Alloc[] locals;
 	
+	Control_Flow_Graph graph;
+
 	Basic_Block[] blocks;
 
 	Basic_Block curr_block;
@@ -296,7 +306,7 @@ class Alloc : Basic_Instruction, Value {
 	}
 
 	override string toString() {
-		return "%" ~ name ~ " = new " ~ to!string(type);
+		return name ~ " = new " ~ to!string(type);
 	}
 }
 
@@ -343,9 +353,9 @@ class Store : Basic_Instruction, Value {
 	override string toString() {
 		string addr = to!string(address);
 		if (auto alloc = cast(Alloc) address) {
-			addr = "%" ~ alloc.name;
+			addr = alloc.name;
 		}
-		return "store " ~ to!string(addr) ~ ", " ~ to!string(val);
+		return to!string(addr) ~ " = " ~ to!string(val);
 	}
 }
 

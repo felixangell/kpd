@@ -85,5 +85,6 @@ void build_graphs(Kir_Module mod) {
     foreach (func; mod.functions) {
         auto cfg_builder = new CFG_Builder(func);
         cfg_builder.build();
+        func.graph = cfg_builder.graph;
     }
 }

@@ -1,5 +1,7 @@
 module opt.opt_manager;
 
+import std.conv;
+
 import opt.pass;
 import opt.ssa_gen;
 
@@ -22,7 +24,9 @@ void optimise(Kir_Module[] program, int level) {
 
 	foreach (ref mod; program) {
 		foreach (ref pass; passes) {
+			logger.Verbose(" - Performing optimisation pass '", to!string(pass), "''");
 			pass.process(mod);
+			mod.dump();
 		}
 	}
 }

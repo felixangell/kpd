@@ -14,4 +14,8 @@ import opt.pass;
 class Constant_Prop : Optimisation_Pass {
 	void process(Kir_Module mod) {
 	}
+
+	override string toString() {
+		return "Constant Propagation";
+	}
 }
