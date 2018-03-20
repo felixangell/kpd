@@ -20,6 +20,7 @@ class Run_Command : Command {
 		StopWatch rt_timer;
 		rt_timer.start();
 
+		writeln("UNIMPLEMENTED!");
 		// TODO run the program here!
 
 		auto rt_dur = rt_timer.peek();
