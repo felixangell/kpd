@@ -1,6 +1,18 @@
 func main() {
-	let a s32 = 32 - 12;
-	let b s32 = 69;
-	let c s32 = a + b;
-	return c;
+	let i = 10;
+	if i == 10 {
+		i = 7;
+	}
+	if i == 7 {
+		i = i - 5;
+	}
+	return i;
 }
+
+/// .stdout
+/// hello world!
+/// 2 this is
+/// my output thing
+/// blah
+///
+/// asdfasdf

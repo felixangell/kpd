@@ -192,7 +192,10 @@ class Kir_Builder : Top_Level_Node_Visitor {
 			return new kt.Pointer_Type(get_type(ptr.base_type));
 		}
 
-		// todo Paths!
+		else if (auto path = cast(Path_Expression_Node) t) {
+			// FIXME
+			return get_type(path.values[$-1]);
+		}
 		else if (auto sym = cast(Symbol_Node) t) {
 			return get_sym_type(sym);
 		}
@@ -206,6 +209,14 @@ class Kir_Builder : Top_Level_Node_Visitor {
 				return VOID_TYPE;
 			}
 			return get_type(fn.return_type);
+		}
+		else if (auto bin = cast(Binary_Expression_Node) t) {
+			// FIXME
+			// the assumption here is based off
+			// the binary expression should have 
+			// the left and right hand expressions types
+			// unified from type inference
+			return get_type(bin.left);
 		}
 
 		logger.Error("Leaking unresolved type:\n\t", to!string(t), "\n\t", to!string(typeid(t)));

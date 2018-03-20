@@ -34,6 +34,7 @@ struct Block_Context {
 
 class X64_Generator {
 	X64_Code code;
+	Function curr_func;
 
 	Block_Context[] ctx;
 
@@ -93,6 +94,45 @@ class X64_Generator {
 		return "%eax, %eax # unimplemented get_val " ~ to!string(v);
 	}
 
+	void emit_cmp(Store s) {
+		auto bin = cast(BinaryOp) s.val;
+
+		// mov bin.left into eax
+		code.emitt("movl {}, %eax", get_val(bin.a));
+		
+		// cmp bin.right with eax
+		code.emitt("cmpl {}, %eax", get_val(bin.b));
+
+		switch (bin.op.lexeme) {
+		case ">":
+			code.emitt("setg %al");
+			break;
+		case "<":
+			code.emitt("set %al");
+			break;
+
+		case ">=":
+			code.emitt("setge %al");
+			break;
+		case "<=":
+			code.emitt("sete %al");
+			break;
+
+		case "==":
+			code.emitt("sete %al");
+			break;
+		case "!=":
+			code.emitt("setne %al");
+			break;
+
+		default:
+			assert(0, "unhandled op!");
+		}
+
+		code.emitt("movzb %al, %eax");
+		code.emitt("movl %eax, {}", get_val(s.address));
+	}
+
 	// a store where the value is
 	// a binary operator
 	// e.g.
@@ -107,11 +147,26 @@ class X64_Generator {
 
 		string instruction;
 		switch (bin.op.lexeme) {
+		// hm!
+		case ">":
+		case "<":
+		case ">=":
+		case "<=":
+		case "==":
+		case "!=":
+			return emit_cmp(s);
+
 		case "+":
 			instruction = "add";
 			break;
 		case "-":
 			instruction = "sub";
+			break;
+		case "/":
+			// TODO DIVISION!
+			assert(0);
+		case "*":
+			instruction = "imul";
 			break;
 		default:
 			logger.Fatal("Unhandled instr selection for binary op ", to!string(bin));
@@ -151,6 +206,12 @@ class X64_Generator {
 		code.emitt("ret");
 	}
 
+	void emit_if(If iff) {
+		string parent_name = curr_func.name ~ "_";
+		code.emitt("je {}", parent_name ~ iff.a.name);
+		code.emitt("jmp {}", parent_name ~ iff.b.name);
+	}
+
 	void emit_instr(Instruction i) {
 		if (auto alloc = cast(Alloc)i) {
 			auto addr = ctx.back.push_local(alloc.name, alloc.get_type().get_width());
@@ -161,6 +222,9 @@ class X64_Generator {
 		}
 		else if (auto store = cast(Store)i) {
 			emit_store(store);
+		}
+		else if (auto iff = cast(If)i) {
+			emit_if(iff);
 		}
 		else {
 			logger.Fatal("x64_gen: unhandled instruction ", to!string(typeid(cast(Basic_Instruction)i)), ":\n\t", to!string(i));
@@ -190,6 +254,8 @@ class X64_Generator {
 	}
 
 	void generate_func(Function func) {
+		curr_func = func;
+
 		code.emit("{}:", func.name);
 
 		code.emitt("pushq %rbp");

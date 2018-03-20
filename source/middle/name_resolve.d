@@ -294,6 +294,11 @@ class Name_Resolve_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 		else if (auto call = cast(ast.Call_Node) stat) {
 			analyze_call(call);
 		}
+		else if (auto ret = cast(ast.Return_Statement_Node) stat) {
+			if (ret.value !is null) {
+				analyze_expr(ret.value);
+			}
+		}
 		else {
 			logger.Warn("name_resolve: unhandled statement " ~ to!string(stat));
 		}
