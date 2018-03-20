@@ -1,0 +1,16 @@
+func main() {
+	if 1 == 2 {
+
+	} else {
+
+	}
+	loop {
+		break;
+	}
+	loop {
+		break;
+	}
+	loop {
+		break;
+	}
+}

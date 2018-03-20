@@ -27,6 +27,7 @@ class SSA_Builder : Optimisation_Pass {
 
 	void ssa_func(Function f) {
 		auto entry_bb_name = f.blocks[0].name();
+		
 		auto dom_tree = new Dominator_Tree().build(f);
 		foreach (k, doms; dom_tree) {
 			writeln("node ", k.bb_to_string(), " dominates:");

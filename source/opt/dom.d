@@ -21,6 +21,14 @@ class Dominator_Tree {
 
     BB_Node[][BB_Node] dom_tree;
 
+    BB_Node idom(BB_Node b) {
+        return dom_tree[b][0];
+    }
+
+    void df(BB_Node d) {
+        
+    }
+
     // dfs on the vertex to see what nodes are 
     // available.
     BB_Node[] dfs(BB_Node node) {
