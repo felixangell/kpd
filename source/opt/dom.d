@@ -25,8 +25,51 @@ class Dominator_Tree {
         return dom_tree[b][0];
     }
 
-    void df(BB_Node d) {
-        
+    /*
+        DF(d) = 
+            there exists a p
+                in the set of pred(n)
+            such that
+                d dominates p
+            and 
+                d does not sdom n
+
+        or in cytron, et al...
+
+        for all nodes b,
+            if len(b.edges) >= 2
+                foreach p; b.edges
+                    runner = p
+                    while runner != doms[b]
+                        runners df set ~= b
+                        runner = doms[runner]
+    */
+
+    // a dom b
+    bool dom(BB_Node a, BB_Node b) {
+        auto b_doms = dom_tree[b];
+        if (b_doms.canFind(a)) {
+            return true;
+        }
+        return false;
+    }
+
+    // a strictly dominates b
+    bool sdom(BB_Node a, BB_Node b) {
+        return a !is b && dom(a, b);
+    }
+
+    // the dominance frontier of 
+    // d, i dont think this is correct... 
+    BB_Node[] df(BB_Node d) {
+        BB_Node[] frontier;
+        foreach (p; d.edges) {
+            auto p_domtree = dom_tree[p];
+            if (sdom(d, p)) {
+                frontier ~= p;
+            }
+        }
+        return frontier;
     }
 
     // dfs on the vertex to see what nodes are 
