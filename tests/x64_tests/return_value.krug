@@ -1,0 +1,4 @@
+func main() {
+	let a s32 = 10 + 33;
+	return a;
+}

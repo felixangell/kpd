@@ -46,7 +46,7 @@ class X64_Backend : Code_Generator_Backend {
 			}			
 		}
 
-		gen.code.emitt("movl $0, %eax");
+		// gen.code.emitt("movl $0, %eax");
 		gen.code.emitt("popq %rbp");
 		gen.code.emitt("ret");
 
