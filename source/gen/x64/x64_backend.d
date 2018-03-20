@@ -38,7 +38,14 @@ class X64_Backend : Code_Generator_Backend {
 		gen.code.emit("_main:");
 		gen.code.emitt("pushq %rbp");
 		gen.code.emitt("movq %rsp, %rbp");
-		gen.code.emitt("call {}", mod.get_function("main").name);
+
+		{
+			auto main_func = mod.get_function("main");
+			if (main_func !is null) {
+				gen.code.emitt("call {}", main_func.name);
+			}			
+		}
+
 		gen.code.emitt("movl $0, %eax");
 		gen.code.emitt("popq %rbp");
 		gen.code.emitt("ret");
