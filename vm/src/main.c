@@ -224,6 +224,7 @@ bool kill_flag = false;
 static void
 interpret_instruction(struct Execution_Engine* engine, uint16_t op_code) {
 	static size_t last_call_return_addr = 0;
+	printf("interpreted opcode %s\n", OPCODE_NAMES[op_code]);
 
 	switch (op_code) {
 		case ENTR: {

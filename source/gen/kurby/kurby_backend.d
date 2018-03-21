@@ -8,6 +8,7 @@ import std.random;
 import std.conv;
 
 import kir.ir_mod;
+import kir.instr;
 
 import gen.backend;
 import gen.kurby.output;
@@ -19,9 +20,15 @@ import gen.kurby.opcode;
 extern (C) bool execute_program(size_t entry_addr, size_t instruction_count, ubyte* program);
 
 class Kurby_Backend : Code_Generator_Backend {
+	Function main_func;
+
 	Kurby_Byte_Code code_gen(Kir_Module mod) {
 		auto gen = new Kurby_Generator;
 		gen.generate_mod(mod);
+		auto f = mod.get_function("main");
+		if (f !is null) {
+			main_func = f;
+		}
 		return gen.code;
 	}
 
@@ -33,8 +40,8 @@ class Kurby_Backend : Code_Generator_Backend {
 			auto bc = cast(Kurby_Byte_Code) o;
 			final_program ~= bc.program;
 
-			if ("main" in bc.func_addr_reg) {
-				main_addr = bc.func_addr_reg["main"];
+			if (main_func.name in bc.func_addr_reg) {
+				main_addr = bc.func_addr_reg[main_func.name];
 			}
 		}
 
@@ -43,7 +50,7 @@ class Kurby_Backend : Code_Generator_Backend {
 			return;
 		}
 
-		logger.Verbose("Executing ", to!string(final_program.length), " instructions");
+		logger.Verbose("Executing ", to!string(final_program.length), " instructions from addr ", to!string(main_addr));
 		execute_program(main_addr, final_program.length, &final_program[0]);
 	}
 }

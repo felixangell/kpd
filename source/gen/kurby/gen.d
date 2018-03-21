@@ -23,6 +23,7 @@ T instanceof(T)(Object o) if (is(T == class)) {
 }
 
 class Kurby_Generator {
+	Kir_Module mod;
 	Kurby_Byte_Code code;
 
 	// todo
@@ -87,8 +88,9 @@ class Kurby_Generator {
 		case ">":
 			code.emit(encode(OP.GTRI));
 			break;
+
 		default:
-			assert(0, "unhandled expression!");
+			assert(0, "unhandled expression!" ~ to!string(b.op));
 		}
 	}
 
@@ -125,6 +127,11 @@ class Kurby_Generator {
 		rewrites[instr_addr] = label;
 	}
 
+	string[uint] func_call_rewrites;
+	void rewrite_call_later(uint call_addr, string func_name) {
+		func_call_rewrites[call_addr] = "__" ~ mod.module_name ~ "_" ~ mod.sub_module_name ~ "_" ~ func_name;
+	}
+
 	void emit_if(If i) {
 		emit_value(i.condition);
 
@@ -149,6 +156,14 @@ class Kurby_Generator {
 		code.emit(encode(OP.RET));
 	}
 
+	void emit_call(Call c) {
+		// fixme
+		if (auto iden = cast(Identifier) c.left) {
+			auto call_addr = code.emit(encode(OP.CALL, 0));
+			rewrite_call_later(call_addr, iden.name);
+		}
+	}
+
 	void gen_bb(Basic_Block bb) {
 		bb_label_addr[bb.name()] = code.program_index;
 
@@ -167,6 +182,9 @@ class Kurby_Generator {
 			}
 			else if (auto ret = cast(Return) instr) {
 				emit_ret(ret);
+			}
+			else if (auto c = cast(Call) instr) {
+				emit_call(c);
 			}
 			else {
 				logger.Fatal("Unhandled instruction ", to!string(instr));
@@ -191,10 +209,20 @@ class Kurby_Generator {
 			code.rewrite(instr_addr, encode(op, label_addr));
 		}
 
+		foreach (instr_addr, func_name; func_call_rewrites) {
+			assert(func_name in code.func_addr_reg);
+			
+			uint func_addr = code.func_addr_reg[func_name];
+
+			auto op = code.get_op(instr_addr);
+			code.rewrite(instr_addr, encode(op, func_addr));
+		}
+
 		code.emit(encode(OP.RET));
 	}
 
 	void generate_mod(Kir_Module mod) {
+		this.mod = mod;
 		// todo global variables.
 		foreach (ref name, func; mod.functions) {
 			gen_func(func);	
