@@ -1,9 +1,11 @@
-func do_stuff() {
-}
-
 func main() {
     do_stuff();
     do_stuff();
     do_stuff();
     do_stuff();
+}
+
+func blah() {}
+
+func do_stuff() {
 }
