@@ -1,0 +1,9 @@
+func main() {
+	let i = 32;
+	let b = i * 2 - 1;
+	let c = b + i + 3;
+	return i - c;
+}
+
+/// .stdout
+/// -66
