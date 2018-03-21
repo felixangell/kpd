@@ -10,9 +10,4 @@ func main() {
 }
 
 /// .stdout
-/// hello world!
-/// 2 this is
-/// my output thing
-/// blah
-///
-/// asdfasdf
+/// 2

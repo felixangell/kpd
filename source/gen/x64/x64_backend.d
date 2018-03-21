@@ -25,6 +25,12 @@ class X64_Backend : Code_Generator_Backend {
 			gen.code.emit(".macosx_version_min 10, 16");
 		}
 
+		// hack for printing out the return value of the main
+		// function!
+		gen.code.emit(`.section	__TEXT,__cstring,cstring_literals
+			L_.str:                                 ## @.str
+				.asciz	"%d\n"`);
+
 		gen.generate_mod(mod);
 
 		// hack
@@ -46,7 +52,16 @@ class X64_Backend : Code_Generator_Backend {
 			}			
 		}
 
-		// gen.code.emitt("movl $0, %eax");
+		// another hack to invoke a printf
+		// on the return value of the main
+		// function
+		gen.code.emitt(`
+			leaq	L_.str(%rip), %rdi
+			movl	%eax, %esi
+			movb	$0, %al
+			callq	_printf
+		`);
+
 		gen.code.emitt("popq %rbp");
 		gen.code.emitt("ret");
 
@@ -106,6 +121,7 @@ class X64_Backend : Code_Generator_Backend {
 			link_flags ~= "-macosx_version_min";
 			link_flags ~= "10.16";
 			link_flags ~= "-lsystem";
+			link_flags ~= "-lc";
 		}
 
 		auto linker_args = ["ld"] ~ link_flags ~ [obj_files, "-o", "a.out"];

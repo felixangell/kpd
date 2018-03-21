@@ -1,12 +1,19 @@
 package main
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 	"io/ioutil"
 	"log"
 	"os"
+	"os/exec"
+	"path/filepath"
+	"strconv"
 	"strings"
+	"syscall"
+
+	"github.com/sergi/go-diff/diffmatchpatch"
 )
 
 type Comment struct {
@@ -62,71 +69,151 @@ func (p *TestParser) consumeWhile(predicate func(r rune) bool) string {
 	return string(buffer)
 }
 
-func (p *TestParser) startsWith(val string) bool {
-	valueLen := uint(len(val))
-	if p.pos+valueLen > p.length() {
-		return false
-	}
-	return strings.HasSuffix(string(p.input[p.pos:p.pos+valueLen]), val)
-}
-
 func (p *TestParser) parseComment() *Comment {
-	p.expect("///")
-	// todo
+	contents := []rune{}
 
-	return &Comment{""}
+	for p.hasNext() {
+		if p.consume() >= ' ' {
+			break
+		}
+	}
+
+	for p.hasNext() {
+		curr := p.consume()
+		if curr == '\n' || curr == '\r' {
+			break
+		}
+		contents = append(contents, curr)
+	}
+
+	result := strings.TrimSpace(string(contents))
+	return &Comment{result}
 }
 
 func parseKrugProgram(input []rune) []*Comment {
-	parser := &TestParser{
+	p := &TestParser{
 		input: input,
 		pos:   0,
 	}
 
 	comments := []*Comment{}
-	for parser.hasNext() {
-		if parser.startsWith("///") {
-			comments = append(comments, parser.parseComment())
+
+	buffer := []rune{}
+	for p.hasNext() {
+		buffer = append(buffer, p.consume())
+
+		if string(buffer) == "///" {
+			comments = append(comments, p.parseComment())
+			buffer = []rune{}
 		}
-		parser.consume()
+
+		// reset buffer
+		if len(buffer) > 3 {
+			buffer = []rune{}
+		}
 	}
 
 	return comments
 }
 
-func testKrugProgram(filePath string) error {
+func testKrugProgram(filePath string) (bool, error) {
 	contents, err := ioutil.ReadFile(filePath)
 	if err != nil {
-		return errors.New("failed to load file '" + filePath + "'")
+		return true, errors.New("failed to load file '" + filePath + "'")
 	}
 
 	comments := parseKrugProgram([]rune(string(contents)))
 
-	stdout := []string{}
-	stderr := []string{}
+	stdout, stderr := "", ""
+	var target *string
 
-	var target *[]string
-	for _, c := range comments {
+	var expectedStatus int
+
+	for i, c := range comments {
 		if strings.Compare(c.contents, ".stdout") == 0 {
 			target = &stdout
 			continue
 		} else if strings.Compare(c.contents, ".stderr") == 0 {
 			target = &stderr
 			continue
+
+			// remove me this doesnt really work that well
+		} else if strings.Compare(c.contents, ".status") == 0 {
+			stat, err := strconv.Atoi(comments[i+1].contents)
+			if err != nil {
+				log.Println(err.Error())
+				continue
+			}
+			expectedStatus = stat
+			i += 2
+			continue
 		}
 
 		if target != nil {
-			fmt.Println("yo go tii '"+c.contents, "'")
-			*target = append(*target, c.contents)
+			*target = *target + c.contents + string('\n')
 		}
 	}
 
-	fmt.Println("STDOUT EXPECTING:")
-	for _, o := range stdout {
-		fmt.Println(o)
+	exe, err := os.Executable()
+	if err != nil {
+		return true, err
 	}
 
-	return nil
+	dir := filepath.Dir(exe)
+
+	binary, err := exec.LookPath(dir + "/krug")
+	if err != nil {
+		return true, err
+	}
+	args := []string{binary, "build", filePath}
+	exec.Command(binary, args...)
+
+	cmd := exec.Command(dir + "/a.out")
+
+	var stdoutBuff, stderrBuff bytes.Buffer
+	cmd.Stdout = &stdoutBuff
+	cmd.Stderr = &stderrBuff
+
+	if err := cmd.Wait(); err != nil {
+		if exiterr, ok := err.(*exec.ExitError); ok {
+			// The program has exited with an exit code != 0
+			// This works on both Unix and Windows. Although package
+			// syscall is generally platform dependent, WaitStatus is
+			// defined for both Unix and Windows and in both cases has
+			// an ExitStatus() method with the same signature.
+			if status, ok := exiterr.Sys().(syscall.WaitStatus); ok {
+				actualStatus := status.ExitStatus()
+				if actualStatus != expectedStatus {
+					log.Println("Expected exit status ", expectedStatus, " got ", actualStatus)
+				}
+			}
+		}
+	}
+
+	out := string(stdoutBuff.Bytes())
+
+	dmp := diffmatchpatch.New()
+	diffs := dmp.DiffMain(out, stdout, true)
+
+	if len(diffs) == 0 {
+		return false, nil
+	}
+
+	log.Println("'" + filePath + "' failed!")
+	log.Print("Expected")
+	for _, e := range strings.Split(stdout, "\n") {
+		fmt.Println("-", e)
+	}
+
+	log.Println("Actual")
+	for _, o := range out {
+		fmt.Println("-", o)
+	}
+
+	log.Println("Diff")
+	fmt.Println(dmp.DiffPrettyText(diffs))
+
+	return true, nil
 }
 
 func main() {
@@ -138,11 +225,15 @@ func main() {
 	}
 
 	for _, file := range filesToTest {
-		log.Print("Testing '" + file + "' ")
-		if err := testKrugProgram(file); err != nil {
-			log.Print("[-] - ", err.Error())
-		} else {
-			log.Print("[x]")
+		failed, err := testKrugProgram(file)
+		if err != nil {
+			log.Println("Tester failed!")
 		}
+
+		glyph := "x"
+		if failed {
+			glyph = "-"
+		}
+		log.Println("Tested '" + file + "' [" + glyph + "]")
 	}
 }
