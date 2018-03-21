@@ -1,0 +1,7 @@
+func main() {
+	let i = 3;
+	loop {
+		
+	}
+	return i;
+}

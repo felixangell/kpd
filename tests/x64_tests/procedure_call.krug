@@ -1,0 +1,13 @@
+func do_stuff() {
+    let a = 3;
+    let b = a + a;
+}
+
+func main() {
+    let j = 10;
+    while j != 0 {
+        do_stuff();
+        j = j - 1;
+    }
+    return j;
+}

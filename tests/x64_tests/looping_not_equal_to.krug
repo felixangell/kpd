@@ -1,0 +1,10 @@
+func main() {
+    let i = 10;
+    loop {
+        if i == 0 {
+            break;
+        }
+        i = i - 1;
+    }
+    return i;
+}

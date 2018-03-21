@@ -1,0 +1,11 @@
+func main() {
+	let a = 3 > 5;
+	let b = 5 > 3;
+	if b > 5 {
+		b = 32;
+	}
+	return a + b;
+}
+
+/// .stdout
+/// 32

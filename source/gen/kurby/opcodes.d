@@ -1,4 +1,4 @@
-module exec.instruction;
+module gen.kurby.opcode;
 
 import std.bitmanip;
 import std.conv;
@@ -127,7 +127,7 @@ static enum OP : ushort {
 	GOTO
 }
 
-struct Instruction {
+struct Encoded_Instruction {
 	OP id;
 
 	ubyte[] data;
@@ -149,7 +149,7 @@ struct Instruction {
 	}
 }
 
-static Instruction encode(OP, T...)(OP id, T values) {
+static Encoded_Instruction encode(OP, T...)(OP id, T values) {
 	import std.array;
 
 	auto buff = appender!(ubyte[])();
@@ -157,5 +157,5 @@ static Instruction encode(OP, T...)(OP id, T values) {
 	foreach (val; values) {
 		buff.append!T(val);
 	}
-	return Instruction(buff.data);
+	return Encoded_Instruction(buff.data);
 }

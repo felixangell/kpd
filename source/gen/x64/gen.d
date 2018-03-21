@@ -108,7 +108,7 @@ class X64_Generator {
 			code.emitt("setg %al");
 			break;
 		case "<":
-			code.emitt("set %al");
+			code.emitt("setb %al");
 			break;
 
 		case ">=":
@@ -212,6 +212,11 @@ class X64_Generator {
 		code.emitt("jmp {}", parent_name ~ iff.b.name);
 	}
 
+	void emit_jmp(Jump j) {
+		string parent_name = curr_func.name ~ "_";
+		code.emitt("jmp {}", parent_name ~ j.label.name);
+	}
+
 	void emit_instr(Instruction i) {
 		if (auto alloc = cast(Alloc)i) {
 			auto addr = ctx.back.push_local(alloc.name, alloc.get_type().get_width());
@@ -225,6 +230,9 @@ class X64_Generator {
 		}
 		else if (auto iff = cast(If)i) {
 			emit_if(iff);
+		}
+		else if (auto jmp = cast(Jump)i) {
+			emit_jmp(jmp);
 		}
 		else {
 			logger.Fatal("x64_gen: unhandled instruction ", to!string(typeid(cast(Basic_Instruction)i)), ":\n\t", to!string(i));

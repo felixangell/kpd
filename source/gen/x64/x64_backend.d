@@ -60,6 +60,7 @@ class X64_Backend : Code_Generator_Backend {
 			movl	%eax, %esi
 			movb	$0, %al
 			callq	_printf
+			movl 	$0, %eax
 		`);
 
 		gen.code.emitt("popq %rbp");

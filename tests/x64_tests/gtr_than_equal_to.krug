@@ -1,0 +1,16 @@
+func main() {
+    let a = 3;
+    if a >= 3 {
+        a = 4;
+    }
+    if a >= 5 {
+        a = 6;
+    }
+    if a > 5 {
+        a = 7;
+    }
+    return a;
+}
+
+/// .stdout
+/// 4

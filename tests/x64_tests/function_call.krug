@@ -1,0 +1,15 @@
+func min(a s32, b s32) s32 {
+    if a < b {
+        return a;
+    }
+    return b;
+}
+
+func main() {
+    let smaller = 3;
+    let larger = 33;
+    return min(larger, smaller);
+}
+
+/// .stdout
+/// 3

@@ -34,9 +34,6 @@ import kir.ir_mod;
 import kir.ir_verify;
 import kir.builder;
 
-import exec.instruction;
-import exec.exec_engine;
-
 import sema.analyzer;
 
 import opt.opt_manager;

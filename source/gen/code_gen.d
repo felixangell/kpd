@@ -6,6 +6,8 @@ import gen.backend;
 import gen.x64.backend;
 import gen.target;
 
+import gen.kurby.backend;
+
 import kir.ir_mod;
 
 import logger;
@@ -15,6 +17,9 @@ void generate_code(Target t, Kir_Module[] modules) {
 	final switch (t) {
 	case Target.X64:
 		backend = new X64_Backend;
+		break;
+	case Target.KURBY:
+		backend = new Kurby_Backend;
 		break;
 	}
 

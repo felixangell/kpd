@@ -1,0 +1,8 @@
+func main() {
+	let i = 3;
+	i = i * 2;
+	i = i + 1;
+	i = i + 2;
+	i = i * 2;
+	return i;
+}
