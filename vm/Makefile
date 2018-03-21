@@ -20,4 +20,4 @@ clean:
 	-rm $(CC_OBJ_FILES)
 	-rm $(OUT)
 
-.PHONY: cc default all
+.PHONY: cc default all lib

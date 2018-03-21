@@ -25,40 +25,22 @@ T instanceof(T)(Object o) if (is(T == class)) {
 class Kurby_Generator {
 	Kurby_Byte_Code code;
 
-	uint program_index = 0;
-	ubyte[] program;
-
-	uint[string] func_addr_reg;
-
 	this() {
-	}
-
-	uint emit(Encoded_Instruction instr) {
-		auto idx = program_index;
-		program_index += instr.data.length;
-		program ~= instr.data;
-		return idx;
-	}
-
-	void rewrite(uint index, Encoded_Instruction instr) {
-		foreach (idx, val; instr.data) {
-			program[index + idx] = val;
-		}
+		code = new Kurby_Byte_Code;
 	}
 
 	void gen_func(Function func) {
-		uint func_addr = program_index;
-		func_addr_reg[func.name] = func_addr;
+		uint func_addr = code.program_index;
+		code.func_addr_reg[func.name] = func_addr;
 		logger.Verbose("func '", to!string(func.name), "' at addr: ", to!string(func_addr));
 
-		emit(encode(OP.ENTR));
-		// TODO
-		emit(encode(OP.RET));
+		code.emit(encode(OP.ENTR));
+		
+		code.emit(encode(OP.RET));
 	}
 
 	void generate_mod(Kir_Module mod) {
 		// todo global variables.
-
 		foreach (ref name, func; mod.functions) {
 			gen_func(func);	
 		}

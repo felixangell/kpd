@@ -412,7 +412,7 @@ execute_program(size_t entry_addr, size_t program_size, uint8_t* program) {
 
 	printf("Executing %zd byte program\n", program_size);
 
-	do_tests();
+	// do_tests();
 
 	engine.thread->program_counter = entry_addr;
 	while (!kill_flag && engine.thread->program_counter < program_size) {

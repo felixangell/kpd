@@ -12,6 +12,7 @@ import kir.ir_mod;
 import gen.backend;
 import gen.kurby.output;
 import gen.kurby.generator;
+import gen.kurby.opcode;
 
 // this hooks into the virtual machine which
 // is separately implemented in C
@@ -25,6 +26,24 @@ class Kurby_Backend : Code_Generator_Backend {
 	}
 
 	void write(Generated_Output[] output) {
-		
+		ubyte[] final_program;
+		ulong main_addr = 0;
+
+		foreach (ref o; output) {
+			auto bc = cast(Kurby_Byte_Code) o;
+			final_program ~= bc.program;
+
+			if ("main" in bc.func_addr_reg) {
+				main_addr = bc.func_addr_reg["main"];
+			}
+		}
+
+		if (final_program.length == 0) {
+			logger.Verbose("Nothing to execute");
+			return;
+		}
+
+		logger.Verbose("Executing ", to!string(final_program.length), " instructions");
+		execute_program(main_addr, final_program.length, &final_program[0]);
 	}
 }
