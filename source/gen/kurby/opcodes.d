@@ -151,7 +151,6 @@ struct Encoded_Instruction {
 
 static Encoded_Instruction encode(OP, T...)(OP id, T values) {
 	import std.array;
-
 	auto buff = appender!(ubyte[])();
 	buff.append!ushort(cast(ushort)(id));
 	foreach (val; values) {

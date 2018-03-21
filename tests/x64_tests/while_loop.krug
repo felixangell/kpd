@@ -1,6 +1,6 @@
 func main() {
-    let j = 0;
-    while j != 0 {
+    let j = 10000;
+    while j > 0 {
         j = j - 1;
     }
     return j;

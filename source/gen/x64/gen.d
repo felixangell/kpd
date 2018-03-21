@@ -173,7 +173,7 @@ class X64_Generator {
 			break;
 		}
 
-		auto width_bytes = s.get_type().get_width() / 8;
+		auto width_bytes = s.get_type().get_width();
 		instruction ~= get_instr_suffix(width_bytes);
 
 		code.emitt("{} {}, %eax", instruction, get_val(bin.b));
