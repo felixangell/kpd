@@ -1,0 +1,14 @@
+func main() {
+	let i = 0;
+	loop {
+		if i == 3 {
+			i = 69;
+			break;			
+		}
+		i = i + 1;
+	}
+	return i;
+}
+
+/// .stdout
+/// 69

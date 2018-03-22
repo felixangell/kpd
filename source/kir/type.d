@@ -153,7 +153,14 @@ class Void_Type : Kir_Type {
 	}
 
 	uint get_width() {
-		return 0;
+		// TEMPORARY FIXME
+		// this is a hack to avoid some type inference
+		// spills in the x64 backend
+		// this WAS set to zero but this fucks up some
+		// of the codegen
+		// so to keep everything somewhat working im going
+		// to make void == 4 
+		return 4;
 	}
 
 	override string toString() {

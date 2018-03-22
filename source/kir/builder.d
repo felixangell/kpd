@@ -508,30 +508,45 @@ class Kir_Builder : Top_Level_Node_Visitor {
 	}
 
 	void analyze_loop_node(ast.Loop_Statement_Node loop) {
-		auto loop_body = new Label(push_bb());
-		last_looping_bb = loop_body;
-		build_block(curr_func, loop.block, loop_body.reference);
-
-		curr_func.add_instr(new Jump(loop_body));
+		auto entry = new Label(push_bb());
+		build_block(curr_func, loop.block, entry.reference);
+		curr_func.add_instr(new Jump(entry));
 
 		// jump must be the last instruction in it's block!
 		// so we need to push a basic block here.
-		push_bb();
+		auto exit = new Label(push_bb());
+
+		// re-write all of the jumps that
+		// are for break statements to jump to
+		// the exit basic block
+		foreach (k, v; break_rewrites) {
+			k.instructions[v] = new Jump(exit);
+			break_rewrites.remove(k);
+		}
+
+		// re-write all of the jumps that
+		// are for next statements to jump
+		// to the entry basic block
+		foreach (k, v; next_rewrites) {
+			k.instructions[v] = new Jump(entry);
+			next_rewrites.remove(k);
+		}
 	}
 
-	Label last_looping_bb;
+	// hack?
+	ulong[Basic_Block] break_rewrites;
+	ulong[Basic_Block] next_rewrites;
 
-	// note: the way this works is we will jump to the most 
-	// recent basic block of a looping statement?
-	// not sure if this will work!
 	void analyze_next_node(ast.Next_Statement_Node n) {
-		assert(last_looping_bb !is null);
-
-		curr_func.add_instr(new Jump(last_looping_bb));
+		auto jmp_addr = curr_func.curr_block.instructions.length;
+		curr_func.add_instr(new Jump(null));
+		next_rewrites[curr_func.curr_block] = jmp_addr;
 	}
 
 	void analyze_break_node(ast.Break_Statement_Node b) {
-		// TODO
+		auto jmp_addr = curr_func.curr_block.instructions.length;
+		curr_func.add_instr(new Jump(null));
+		break_rewrites[curr_func.curr_block] = jmp_addr;
 	}
 
 	void analyze_global(ast.Variable_Statement_Node var) {
@@ -558,17 +573,33 @@ class Kir_Builder : Top_Level_Node_Visitor {
 	}
 
 	void analyze_while_node(ast.While_Statement_Node loop) {
+		auto loop_check = new Label(push_bb());
 		Value v = build_expr(loop.condition);
-
 		If jmp = new If(v);
 		curr_func.add_instr(jmp);
 
 		auto loop_body = new Label(push_bb());
-		last_looping_bb = loop_body;
 		build_block(curr_func, loop.block, loop_body.reference);
+		curr_func.add_instr(new Jump(loop_check));
 
 		jmp.a = loop_body;
 		jmp.b = new Label(push_bb());
+
+		// re-write all of the jumps that
+		// are for break statements to jump to
+		// the exit basic block
+		foreach (k, v; break_rewrites) {
+			k.instructions[v] = new Jump(jmp.b);
+			break_rewrites.remove(k);
+		}
+
+		// re-write all of the jumps that
+		// are for next statements to jump
+		// to the entry basic block
+		foreach (k, v; next_rewrites) {
+			k.instructions[v] = new Jump(loop_check);
+			next_rewrites.remove(k);
+		}
 	}
 
 	override void visit_stat(ast.Statement_Node node) {

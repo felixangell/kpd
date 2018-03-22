@@ -1,0 +1,16 @@
+func main() {
+	let i = 100;
+	while i != 0 {
+		
+		if i == 32 {
+			i = 69;
+			break;
+		}
+
+		i = i - 1;
+	}
+	return i;
+}
+
+/// .stdout
+/// 69
