@@ -122,7 +122,7 @@ class X64_Generator {
 			code.emitt("setge %al");
 			break;
 		case "<=":
-			code.emitt("sete %al");
+			code.emitt("setle %al");
 			break;
 
 		case "==":

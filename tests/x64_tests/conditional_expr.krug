@@ -1,5 +1,6 @@
 func main() {
-	if 3 != 3 {
+	let a = 5;
+	if a <= 50 {
 		return 1;
 	}
 	return 0;
