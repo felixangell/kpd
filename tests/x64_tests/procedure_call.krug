@@ -3,6 +3,7 @@ func main() {
     do_stuff();
     do_stuff();
     do_stuff();
+	return 5;
 }
 
 func blah() {}

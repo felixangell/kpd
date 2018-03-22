@@ -103,6 +103,13 @@ class X64_Generator {
 		// cmp bin.right with eax
 		code.emitt("cmpl {}, %eax", get_val(bin.b));
 
+		// one opt i've noticed here is it seems to be
+		// cheaper instruction wise to emit a jump i.e.
+		// jn jne jle, etc. rather than doing the comparison
+		// and setting the AL register.
+		// but because we cant really do this reasily right now
+		// im doing it naively like so:
+
 		switch (bin.op.lexeme) {
 		case ">":
 			code.emitt("setg %al");
@@ -147,6 +154,7 @@ class X64_Generator {
 
 		string instruction;
 		switch (bin.op.lexeme) {
+
 		// hm!
 		case ">":
 		case "<":
@@ -208,6 +216,12 @@ class X64_Generator {
 
 	void emit_if(If iff) {
 		string parent_name = curr_func.name ~ "_";
+
+		// emit the condition and 
+		// check if it's true
+		string condish = get_val(iff.condition);
+		code.emitt("cmpb $1, {}", condish);
+
 		code.emitt("je {}", parent_name ~ iff.a.name);
 		code.emitt("jmp {}", parent_name ~ iff.b.name);
 	}
