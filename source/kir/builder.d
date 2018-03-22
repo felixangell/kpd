@@ -533,7 +533,13 @@ class Kir_Builder : Top_Level_Node_Visitor {
 		}
 	}
 
-	// hack?
+	// these maps keep track of the jump addresses
+	// for break and next statement instructions
+	// as well as what basic blocks they belong in
+	// once we have done generating the IR for 
+	// the while/loop construct, we then re-write
+	// all of these stored addresses to the correct
+	// labels
 	ulong[Basic_Block] break_rewrites;
 	ulong[Basic_Block] next_rewrites;
 

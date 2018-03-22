@@ -1,0 +1,15 @@
+type Person struct {
+	age uint,
+	eyebrow_count uint,
+};
+
+func main() {
+	// felix is a 19 year old 
+	// person with 3 eyebrows
+
+	let felix Person;
+	felix.age = 19;
+	felix.eyebrow_count = 3;
+	
+	return felix.age + felix.eyebrow_count;
+}

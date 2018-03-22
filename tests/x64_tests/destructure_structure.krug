@@ -1,0 +1,14 @@
+/// .skip
+
+type Person struct {
+	age uint,
+	eyebrow_count uint,
+};
+
+func main() {
+	let felix Person;
+	felix.age = 19;
+	felix.eyebrow_count = 3;
+
+	let {age, eyebrow_count} = felix;	
+}

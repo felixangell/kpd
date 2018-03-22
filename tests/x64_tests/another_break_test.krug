@@ -2,9 +2,14 @@ func main() {
 	let i = 100;
 	while i != 0 {
 		
+		if i == 69 {
+			i = 55;
+			break;
+		}
+
 		if i == 32 {
 			i = 69;
-			break;
+			next;
 		}
 
 		i = i - 1;
@@ -13,4 +18,4 @@ func main() {
 }
 
 /// .stdout
-/// 69
+/// 55

@@ -7,6 +7,7 @@ import std.process;
 import std.random;
 import std.conv;
 
+import cflags;
 import kir.ir_mod;
 
 import gen.backend;
@@ -125,7 +126,7 @@ class X64_Backend : Code_Generator_Backend {
 			link_flags ~= "-lc";
 		}
 
-		auto linker_args = ["ld"] ~ link_flags ~ [obj_files, "-o", "a.out"];
+		auto linker_args = ["ld"] ~ link_flags ~ [obj_files, "-o", OUT_NAME];
 		writeln("Running linker", linker_args);
 
 		auto ld_pid = execute(linker_args);

@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"log"
 	"os"
@@ -12,8 +13,7 @@ import (
 	"strconv"
 	"strings"
 	"syscall"
-
-	"github.com/sergi/go-diff/diffmatchpatch"
+	"time"
 )
 
 type Comment struct {
@@ -38,7 +38,7 @@ func (p *TestParser) length() uint {
 }
 
 func (p *TestParser) hasNext() bool {
-	return p.pos < p.length()-1
+	return p.pos < p.length()
 }
 
 func (p *TestParser) consume() rune {
@@ -80,14 +80,23 @@ func (p *TestParser) parseComment() *Comment {
 
 	for p.hasNext() {
 		curr := p.consume()
+		contents = append(contents, curr)
 		if curr == '\n' || curr == '\r' {
 			break
 		}
-		contents = append(contents, curr)
 	}
 
 	result := strings.TrimSpace(string(contents))
 	return &Comment{result}
+}
+
+type TestTask struct {
+	name       string
+	codeLength int
+	passed     bool
+	statusCode int
+	testedAt   time.Time
+	info       error
 }
 
 func parseKrugProgram(input []rune) []*Comment {
@@ -97,6 +106,11 @@ func parseKrugProgram(input []rune) []*Comment {
 	}
 
 	comments := []*Comment{}
+
+	// file is empty.
+	if p.length() == 0 {
+		return comments
+	}
 
 	buffer := []rune{}
 	for p.hasNext() {
@@ -116,10 +130,28 @@ func parseKrugProgram(input []rune) []*Comment {
 	return comments
 }
 
-func testKrugProgram(filePath string) (bool, error) {
+func testKrugProgram(filePath string) *TestTask {
 	contents, err := ioutil.ReadFile(filePath)
 	if err != nil {
-		return true, errors.New("failed to load file '" + filePath + "'")
+		return &TestTask{
+			filePath,
+			0,
+			false,
+			0,
+			time.Now(),
+			errors.New("failed to load file '" + filePath + "'"),
+		}
+	}
+
+	if len(contents) == 0 {
+		return &TestTask{
+			filePath,
+			0,
+			false,
+			0,
+			time.Now(),
+			errors.New("empty test file"),
+		}
 	}
 
 	comments := parseKrugProgram([]rune(string(contents)))
@@ -136,8 +168,15 @@ func testKrugProgram(filePath string) (bool, error) {
 		} else if strings.Compare(c.contents, ".stderr") == 0 {
 			target = &stderr
 			continue
-
-			// remove me this doesnt really work that well
+		} else if strings.Compare(c.contents, ".skip") == 0 {
+			return &TestTask{
+				filePath,
+				len(contents),
+				false,
+				0,
+				time.Now(),
+				errors.New(".skip"),
+			}
 		} else if strings.Compare(c.contents, ".status") == 0 {
 			stat, err := strconv.Atoi(comments[i+1].contents)
 			if err != nil {
@@ -150,39 +189,98 @@ func testKrugProgram(filePath string) (bool, error) {
 		}
 
 		if target != nil {
-			*target = *target + c.contents + string('\n')
+			*target = *target + c.contents + "\n"
 		}
 	}
 
+	// get the cwd
 	exe, err := os.Executable()
 	if err != nil {
-		return true, err
+		return &TestTask{
+			filePath,
+			len(contents),
+			false,
+			0,
+			time.Now(),
+			err,
+		}
 	}
-
 	dir := filepath.Dir(exe)
 
+	// look for the krug compiler
+	// binary in the cwd
 	binary, err := exec.LookPath(dir + "/krug")
 	if err != nil {
-		return true, err
+		return &TestTask{
+			filePath,
+			len(contents),
+			false,
+			0,
+			time.Now(),
+			err,
+		}
 	}
-	args := []string{binary, "build", filePath}
-	exec.Command(binary, args...)
 
-	cmd := exec.Command(dir + "/a.out")
+	outputExecutable := strings.TrimSuffix(filePath, filepath.Ext(filePath)) + ".out"
+	args := []string{"b", filePath, "--out", outputExecutable}
 
-	var stdoutBuff, stderrBuff bytes.Buffer
-	cmd.Stdout = &stdoutBuff
-	cmd.Stderr = &stderrBuff
+	compilerCommand := exec.Command(binary, args...)
+	showTestRunnerOutput := false
+	if showTestRunnerOutput {
+		compilerCommand.Stdout = os.Stdout
+		compilerCommand.Stderr = os.Stdout
+	}
 
-	if err := cmd.Wait(); err != nil {
+	if err := compilerCommand.Start(); err != nil {
+		return &TestTask{
+			filePath,
+			len(contents),
+			false,
+			0,
+			time.Now(),
+			errors.New("compiler invoke error"),
+		}
+	}
+
+	if err := compilerCommand.Wait(); err != nil {
+		return &TestTask{
+			filePath,
+			len(contents),
+			false,
+			0,
+			time.Now(),
+			errors.New("compiler wait() error"),
+		}
+	}
+
+	runProgramCommand := exec.Command(fmt.Sprintf("%s", filepath.Join(dir, outputExecutable)))
+	defer os.Remove(outputExecutable)
+
+	outBuff := new(bytes.Buffer)
+	if showTestRunnerOutput {
+		runProgramCommand.Stdout = io.MultiWriter(outBuff, os.Stdout)
+		runProgramCommand.Stderr = io.MultiWriter(outBuff, os.Stdout)
+	} else {
+		runProgramCommand.Stderr = outBuff
+		runProgramCommand.Stderr = outBuff
+	}
+
+	if err := runProgramCommand.Start(); err != nil {
+		return &TestTask{
+			filePath,
+			len(contents),
+			false,
+			0,
+			time.Now(),
+			errors.New("runtime error"),
+		}
+	}
+
+	var actualStatus int
+	if err := runProgramCommand.Wait(); err != nil {
 		if exiterr, ok := err.(*exec.ExitError); ok {
-			// The program has exited with an exit code != 0
-			// This works on both Unix and Windows. Although package
-			// syscall is generally platform dependent, WaitStatus is
-			// defined for both Unix and Windows and in both cases has
-			// an ExitStatus() method with the same signature.
 			if status, ok := exiterr.Sys().(syscall.WaitStatus); ok {
-				actualStatus := status.ExitStatus()
+				actualStatus = status.ExitStatus()
 				if actualStatus != expectedStatus {
 					log.Println("Expected exit status ", expectedStatus, " got ", actualStatus)
 				}
@@ -190,13 +288,28 @@ func testKrugProgram(filePath string) (bool, error) {
 		}
 	}
 
-	out := string(stdoutBuff.Bytes())
+	// dont check outputs
+	if len(stdout) == 0 && len(stderr) == 0 {
+		return &TestTask{
+			filePath,
+			len(contents),
+			true,
+			actualStatus,
+			time.Now(),
+			nil,
+		}
+	}
 
-	dmp := diffmatchpatch.New()
-	diffs := dmp.DiffMain(out, stdout, true)
-
-	if len(diffs) == 0 {
-		return false, nil
+	out := outBuff.String()
+	if strings.Compare(out, stdout) == 0 {
+		return &TestTask{
+			filePath,
+			len(contents),
+			true,
+			actualStatus,
+			time.Now(),
+			nil,
+		}
 	}
 
 	log.Println("'" + filePath + "' failed!")
@@ -206,14 +319,18 @@ func testKrugProgram(filePath string) (bool, error) {
 	}
 
 	log.Println("Actual")
-	for _, o := range out {
+	for _, o := range strings.Split(out, "\n") {
 		fmt.Println("-", o)
 	}
 
-	log.Println("Diff")
-	fmt.Println(dmp.DiffPrettyText(diffs))
-
-	return true, nil
+	return &TestTask{
+		filePath,
+		len(contents),
+		false,
+		actualStatus,
+		time.Now(),
+		nil,
+	}
 }
 
 func main() {
@@ -225,15 +342,6 @@ func main() {
 	}
 
 	for _, file := range filesToTest {
-		failed, err := testKrugProgram(file)
-		if err != nil {
-			log.Println("Tester failed!")
-		}
-
-		glyph := "x"
-		if failed {
-			glyph = "-"
-		}
-		log.Println("Tested '" + file + "' [" + glyph + "]")
+		testKrugProgram(file)
 	}
 }

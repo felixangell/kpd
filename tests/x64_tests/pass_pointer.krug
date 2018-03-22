@@ -1,0 +1,9 @@
+func harmless_func(input *s32) {
+	@input = @input * @input;
+}
+
+func main() {
+	let precious_number = 32;
+	harmless_func(&precious_number);
+	return precious_number;
+}
