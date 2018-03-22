@@ -231,6 +231,69 @@ class X64_Generator {
 		code.emitt("jmp {}", parent_name ~ j.label.name);
 	}
 
+	void emit_call(Call c) {
+		// x86_64 calling convention...
+		// following the System V AMD64 ABI conv
+		// https://en.wikipedia.org/wiki/X86_calling_conventions
+
+		/*
+			The first six integer or pointer arguments are passed in registers RDI, RSI, RDX, RCX, R8, R9 
+			(R10 is used as a static chain pointer in case of nested functions...), 
+
+			while XMM0, XMM1, XMM2, XMM3, XMM4, XMM5, XMM6 and XMM7 are used for certain floating point arguments.
+
+			..., additional arguments are passed on the stack. 
+			Integral return values up to 64 bits in size are stored in RAX 
+			while values up to 128 bit are stored in RAX and RDX. 
+
+			Floating-point return values are similarly stored in XMM0 and XMM1.
+		*/
+
+		string[] registers = [
+			"di", "si", "dx", "cx", "r8", "r9"
+		];
+
+		foreach (i, arg; c.args) {
+			if (i < registers.length) {
+				auto w = arg.get_type().get_width();
+				auto suffix = get_instr_suffix(w);
+
+				string reg = registers[i];
+				if (i < 4) {
+					switch (w) {
+					case 8:
+						reg = "r" ~ reg;
+						break;
+					default:
+						reg = "e" ~ reg;
+						break;
+					}
+				}
+
+				// move the value into the register
+				string val = get_val(arg);
+
+				code.emitt("mov{} {}, %{}", suffix, val, reg);
+			}
+			else {
+				// move the value via. the stack
+			}
+		}
+
+		if (auto iden = cast(Identifier) c.left) {
+			// nasty hack!
+			string call_name = iden.name;
+			if (call_name == "printf") {
+				call_name = "_" ~ call_name;
+			}
+
+			code.emitt("call {}", call_name);
+		}
+		else {
+			logger.Fatal("unhandled invoke lefthand ! ", to!string(c.left), " for ", to!string(c));
+		}
+	}
+
 	void emit_instr(Instruction i) {
 		if (auto alloc = cast(Alloc)i) {
 			auto addr = ctx.back.push_local(alloc.name, alloc.get_type().get_width());
@@ -247,6 +310,9 @@ class X64_Generator {
 		}
 		else if (auto jmp = cast(Jump)i) {
 			emit_jmp(jmp);
+		}
+		else if (auto c = cast(Call)i) {
+			emit_call(c);
 		}
 		else {
 			logger.Fatal("x64_gen: unhandled instruction ", to!string(typeid(cast(Basic_Instruction)i)), ":\n\t", to!string(i));

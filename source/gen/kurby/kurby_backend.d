@@ -7,6 +7,8 @@ import std.process;
 import std.random;
 import std.conv;
 
+import logger;
+
 import kir.ir_mod;
 import kir.instr;
 

@@ -1,0 +1,22 @@
+type Foo enum {
+	Label,
+	Tagged { x s32, y s32 },
+	Tagged { x s32, y s32 },
+	Tagged { x s32, y s32 },
+	Tagged { x s32, y s32 },
+	Anonymous (s32, s32),
+	Anonymous (s32, s32),
+	Anonymous (s32, s32),
+	Anonymous (s32, s32),
+	Anonymous (s32, s32),
+	Foo,
+	Bar,
+	Baz,
+};
+
+func main() {
+	let a (s32, s32);
+	let b (s32, bool, s64);
+	let c (bool, bool, bool);
+	let g (bool, bool, *bool);
+}

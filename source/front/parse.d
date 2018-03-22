@@ -128,11 +128,15 @@ class Parser : Compilation_Phase {
 		}
 	}
 
-	ast.Structure_Type_Node parse_structure_type() {
-		if (!peek().cmp(keyword.Structure)) {
-			return null;
+	ast.Structure_Type_Node parse_structure_type(bool with_keyword = true) {
+		// bit of a hack!
+		if (with_keyword) {
+			if (!peek().cmp(keyword.Structure)) {
+				return null;
+			}
+			expect(keyword.Structure);
 		}
-		expect(keyword.Structure);
+
 		expect("{");
 
 		auto structure_type_node = new Structure_Type_Node;
@@ -277,8 +281,44 @@ class Parser : Compilation_Phase {
 		return union_type_node;
 	}
 
-	ast.Type_Node parse_enum_type() {
-		assert(0); // TODO:
+	ast.Tagged_Union_Type_Node parse_enum_type() {
+		if (!peek().cmp(keyword.Enum)) {
+			return null;
+		}
+		expect(keyword.Enum);
+
+		auto tagged_union = new Tagged_Union_Type_Node;
+
+		expect("{");
+		for (int i = 0; has_next() && !peek().cmp("}"); i++) {
+			auto name = expect(Token_Type.Identifier);
+			Type_Node type = null;
+			switch (peek().lexeme) {
+			case "{":
+				type = parse_structure_type(false);
+				break;
+			case "(":
+				type = parse_tuple_type();
+				break;
+			default:
+				break;
+			}
+
+			tagged_union.add_field(name, type);
+
+			if (!peek().cmp("}")) {
+				expect(",");
+			}
+			else {
+				// allow a trailing comma.
+				if (peek().cmp(",")) {
+					consume();
+				}
+			}
+		}
+		expect("}");
+
+		return tagged_union;
 	}
 
 	ast.Pointer_Type_Node parse_pointer_type() {

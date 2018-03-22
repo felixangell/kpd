@@ -506,6 +506,15 @@ class Type_Path_Node : Type_Node {
 // runtime/stdlib
 class Tuple_Type_Node : Type_Node {
 	Type_Node[] types;
+
+	override string toString() {
+		string res;
+		foreach (i, v; types) {
+			if (i > 0) res ~= ',';
+			res ~= to!string(v);
+		}
+		return '(' ~ res ~ ')';
+	}
 }
 
 class Array_Type_Node : Type_Node {
@@ -665,7 +674,42 @@ public:
 	}
 }
 
-// TODO tagged union node
+class Tagged_Union_Field {
+	Token identifier;
+
+	// optional, restricted to
+	// struct or tuple
+	Type_Node type;
+
+	this(Token identifier, Type_Node type) {
+		this.identifier = identifier;
+		this.type = type;
+	}
+
+	override string toString() {
+		return to!string(identifier) ~ " " ~ to!string(type);
+	}
+}
+
+class Tagged_Union_Type_Node : Type_Node {
+public:
+	Tagged_Union_Field[] fields;
+
+	void add_field(Token identifier, Type_Node t = null) {
+		fields ~= new Tagged_Union_Field(identifier, t);
+	}
+
+	override string toString() {
+		string field_str;
+		foreach (i, v; fields) {
+			if (i > 0) {
+				field_str ~= ",\n";
+			}
+			field_str ~= to!string(v);
+		}
+		return "enum { " ~ field_str ~ " }";
+	}
+}
 
 // GENERIC STUFF
 

@@ -8,7 +8,8 @@ func min(a s32, b s32) s32 {
 func main() {
     let smaller = 3;
     let larger = 33;
-    return min(larger, smaller);
+    let c = min(larger, smaller);
+    return c;
 }
 
 /// .stdout
