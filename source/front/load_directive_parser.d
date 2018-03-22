@@ -72,11 +72,9 @@ Load_Directive[] collect_deps(ref Token[] toks) {
 			continue;
 		}
 
-		// we dont have to expect a #
-		// because curr has already consumed it
-
-		Token directive_name = parser.expect(Token_Type.Identifier);
-		if (!directive_name.cmp("load")) {
+		// if it's not a load directive we
+		// don't care!
+		if (!parser.consume().cmp("load")) {
 			continue;
 		}
 

@@ -237,6 +237,14 @@ class Kir_Builder : Top_Level_Node_Visitor {
 	// 2. any instruction that is the target of a jump is a leader.
 	// 3. any instruction that follows a jump is a leader.
 	override void analyze_function_node(ast.Function_Node func) {
+		// func proto.
+		if (func.func_body is null) {
+			// TODO: ir_mod add a constant value
+			// which is a value -> function ptr that
+			// matches the ast functions prototype?
+			return;
+		}
+
 		curr_func = ir_mod.add_function(func.name.lexeme);
 
 		// only generate the bb0 params block
@@ -250,9 +258,7 @@ class Kir_Builder : Top_Level_Node_Visitor {
 			}
 		}
 
-		if (func.func_body !is null) {
-			build_block(curr_func, func.func_body);
-		}
+		build_block(curr_func, func.func_body);
 
 		// if there are no instructions in the last basic
 		// block add a return

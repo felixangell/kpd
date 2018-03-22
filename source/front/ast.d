@@ -21,9 +21,40 @@ interface Semicolon_Stat {
 
 alias AST = ast.Node[];
 
-class Node {}
+class Node {
+	Directives dirs;
+}
 
 class Statement_Node : Node {
+}
+
+// examples...
+// #{inline(always)}
+// #{repr(align="4")}
+
+// attribute_value = identifier [ "=" (string | identifier) ]
+class Attribute_Value {
+	Token name;
+	Token value; // optional value
+
+	this(Token name) {
+		this.name = name;
+	}
+}
+
+// attribute = identifier [ "(" { attribute_value } ")" ]
+class Attribute {
+	Token name;
+	Attribute_Value[] values;
+
+	this(Token name) {
+		this.name = name;
+	}
+}
+
+// directive = "#" "{" { [","] attribute } "}"
+class Directives {
+	Attribute[] attribs;
 }
 
 // "let" "{" { iden "," } "}" "=" Expr

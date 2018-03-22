@@ -256,9 +256,15 @@ class Function {
 	}
 
 	void dump() {
-		writeln(name, "(): #entry = ", blocks[0].name());
-		foreach (block; blocks) {
-			block.dump();
+		write(name, "():");
+
+		if (blocks.length > 0) {
+			writeln(" #entry = ", blocks[0].name());
+			foreach (block; blocks) {
+				block.dump();
+			}
+		} else {
+			writeln;
 		}
 	}
 }

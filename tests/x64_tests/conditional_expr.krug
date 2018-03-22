@@ -1,7 +1,16 @@
+func attrib_test();
+
+#{no_mangle, c_symbol, variadic}
+func printf(fmt *u8) s32;
+
 func main() {
-	let a = 5;
-	if a <= 50 {
-		return 1;
-	}
-	return 0;
+    let j = 0;
+    while j > 0 {
+	    printf("hello, world! how are you? %d", j);
+        j = j - 1;
+    }
+    return j;
 }
+
+/// .stdout
+/// 0

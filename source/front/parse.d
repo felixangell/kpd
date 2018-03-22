@@ -90,40 +90,36 @@ class Parser : Compilation_Phase {
 		return consume();
 	}
 
-	// TODO: this should be done better!
-	void skip_dir() {
-		expect(keyword.Directive_Symbol);
+	// skips a module load
+	// #load, etc. these are handled elsewhere
+	// and are disposed from the AST.
+	void skip_module_load() {
+		auto name = expect(keyword.Load_Directive);
+		expect(Token_Type.Identifier);
 
-		auto name = expect(Token_Type.Identifier);
-		switch (name.lexeme) {
-		case keyword.Load_Directive:
-			expect(Token_Type.Identifier);
-
-			// module_access
-			if (!peek().cmp("::")) {
-				break;
-			}
-			consume();
-
-			// not accessing a variety of
-			// symbols, just one so expect
-			// a single symbol and DIP
-			if (!peek().cmp("{")) {
-				expect(Token_Type.Identifier);
-				break;
-			}
-
-			expect("{");
-			for (int idx; !peek().cmp("}"); idx++) {
-				if (idx > 0)
-					expect(",");
-				consume();
-			}
-			expect("}");
-			break;
-		default:
-			break;
+		// module_access
+		if (!peek().cmp("::")) {
+			return;
 		}
+		consume();
+
+		// not accessing a variety of
+		// symbols, just one so expect
+		// a single symbol and DIP
+		if (!peek().cmp("{")) {
+			expect(Token_Type.Identifier);
+			return;
+		}
+
+		expect("{");
+		for (int idx; !peek().cmp("}"); idx++) {
+			if (idx > 0) {
+				expect(",");
+			}
+
+			consume();
+		}
+		expect("}");
 	}
 
 	void recovery_skip(string value) {
@@ -1259,23 +1255,84 @@ class Parser : Compilation_Phase {
 		return func;
 	}
 
+	Directives parse_directives() {
+		expect(keyword.Directive_Symbol);
+
+		auto dir = new Directives;
+
+		auto curr = peek();
+		if (curr.cmp(keyword.Load_Directive)) {
+			skip_module_load();
+			return dir;
+		}
+
+		// illegal, throw some error!
+		if (!curr.cmp("{")) {
+			return dir;
+		}
+		expect("{");
+
+		for (int j = 0; has_next() && !peek().cmp("}"); j++) {
+			if (j > 0) {
+				expect(",");
+			}
+
+			auto attrib = new Attribute(expect(Token_Type.Identifier));
+			if (peek().cmp("(")) {
+				consume();
+
+				for (int i = 0; has_next() && !peek.cmp(")"); i++) {
+					if (i > 0) {
+						expect(",");
+					}
+
+					auto val = new Attribute_Value(expect(Token_Type.Identifier));
+					if (peek.cmp("=")) {
+						consume();
+						val.value = consume();
+					}
+
+					attrib.values ~= val;
+				}
+				expect(")");
+			}
+
+			dir.attribs ~= attrib;
+		}
+		expect("}");
+
+		return dir;
+	}
+
 	ast.Node parse_node() {
 		Token tok = peek();
+
+		Directives dirs = null;
+		if (tok.cmp(keyword.Directive_Symbol)) {
+			dirs = parse_directives();
+		}
+
+		Node result = null;
+
 		switch (tok.lexeme) {
 		case keyword.Type:
-			return parse_named_type();
+			result = parse_named_type();
+			break;
 		case keyword.Function:
-			return parse_func();
-		case keyword.Directive_Symbol:
-			skip_dir();
+			result = parse_func();
 			break;
 		case keyword.Let:
-			return parse_let();
+			result = parse_let();
+			break;
 		default:
 			logger.Verbose("unhandled top level node parse_node " ~ to!string(peek()));
-			break;
+			return null;
 		}
-		return null;
+
+		// attach the directives we
+		// parsed before the node to the node
+		result.dirs = dirs;
+		return result;
 	}
 
 	Token peek(uint offs = 0) {
