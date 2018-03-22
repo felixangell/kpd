@@ -1,5 +1,5 @@
 type Person struct {
-	age uint,
+	age us32,
 };
 
 func main() {

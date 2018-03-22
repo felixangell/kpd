@@ -4,7 +4,7 @@ func strings() {
 	c = "hello ";
 }
 
-func integers() {
+func s32egers() {
 	let x = 3333;
 	let y = -3123;
 
@@ -30,7 +30,7 @@ func arrays() {
 
 }
 
-func pointers() {
+func pos32ers() {
 	let d *s32;
 }
 

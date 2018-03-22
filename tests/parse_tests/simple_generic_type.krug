@@ -15,6 +15,6 @@ func main() {
 	let blah !A struct { v A };
 	let people !string Hash_Set;
 
-	add_stuff!int(5, 6);
+	add_stuff!s32(5, 6);
 	add_stuff!(f64)(3, 4);
 }

@@ -2,14 +2,14 @@
 
 type foo_str struct {
 	name string,
-	name int,	
+	name s32,	
 };
 
 func foo() {
 	
 }
 
-let goo int;
+let goo s32;
 
 func main() {
 	let foo f64 = 3;

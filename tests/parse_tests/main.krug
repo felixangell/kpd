@@ -1,8 +1,8 @@
 type SDL_Window struct {};
 
 type Foo struct {
-	name int,
-	blah uint,
+	name s32,
+	blah us32,
 };
 
 /*
@@ -17,7 +17,7 @@ let a_global_var = 3;
 func say_apple() {
 	let foo = 5;
 	let bar = 3.141;
-	let baz uint = 69;
+	let baz us32 = 69;
 	let is_krug_the_greatest = true;
 	let foopa = "hello world";
 	let blah = 'a';

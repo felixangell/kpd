@@ -6,7 +6,7 @@ type Person struct {
 	age string,
 };
 
-func say_apple(count int) {
+func say_apple(count s32) {
 		
 }
 

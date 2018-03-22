@@ -1,9 +1,9 @@
 let a = 69;
 
-func add(a int, b int) {
+func add(a s32, b s32) {
 	// todo make this throw an error
 	// params arent being inserted
-	// into the symtable/scope properly.
+	// s32o the symtable/scope properly.
 	let a = 3;
 }
 

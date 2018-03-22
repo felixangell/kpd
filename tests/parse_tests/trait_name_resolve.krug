@@ -22,7 +22,7 @@ func (f Frog) speak() {
 
 func speak!(T: Animal)(animal T) {
 	// todo this does not resolve
-	// params are not introduced into the symbol table?
+	// params are not s32roduced s32o the symbol table?
 	animal.speak();
 }
 

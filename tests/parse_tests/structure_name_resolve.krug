@@ -1,11 +1,11 @@
 type Foo struct {
 	greeting string,
-	thingy uint,
+	thingy us32,
 };
 
 type Person struct {
 	name string,
-	age uint,
+	age us32,
 	blah Foo,
 };
 

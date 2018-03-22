@@ -1,4 +1,4 @@
-func printf(fmt *u8);
+func prs32f(fmt *u8);
 
 func main() {
 	let a = true || !false;
@@ -6,7 +6,7 @@ func main() {
 
 	let i s64 = 0;
 	while i < 100 {
-		printf("Hello, World! %d\n", i);
+		prs32f("Hello, World! %d\n", i);
 		i = i + 1;
 	}
 }

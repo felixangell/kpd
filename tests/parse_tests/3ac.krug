@@ -1,16 +1,14 @@
-// FIXME param a and variable a
-// are not causing a symbol conflict!
-func sqrt(a int, b int) int {
-	let a = 3;
-	let z = 5;
+func sqrt(a s32, b s32) s32 {
+	let aa = 3;
+	let zz = 5;
 	let asfsdf = 444123;
 	return 4;
 }
 
 func main() {
-	let b int = 15;
-	let a int = 3;
-	let c int = 24;
+	let b s32 = 15;
+	let a s32 = 3;
+	let c s32 = 24;
 
 	loop {
 		c = c + 2;

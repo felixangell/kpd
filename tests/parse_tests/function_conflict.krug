@@ -1,4 +1,4 @@
-func add() int {
+func add() s32 {
 	
 }
 

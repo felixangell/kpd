@@ -1,17 +1,17 @@
 type Stuff struct {
 	struct_field_a string,
-	struct_field_a int,
-	struct_field_b int,
-	struct_field_c int,
+	struct_field_a s32,
+	struct_field_b s32,
+	struct_field_c s32,
 	struct_field_c f64,
 	struct_field_d f64,	
 };
 
 type Stuff union {
 	union_field_a string,
-	union_field_a int,
-	union_field_b int,
-	union_field_c int,
+	union_field_a s32,
+	union_field_b s32,
+	union_field_c s32,
 	union_field_c f64,
 	union_field_d f64,	
 };

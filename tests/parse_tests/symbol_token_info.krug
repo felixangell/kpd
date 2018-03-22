@@ -6,7 +6,7 @@ func done() {
 	
 }
 
-func main() int {
+func main() s32 {
 	let foo = 3;
 	while foo > 0 {
 		foo = foo - 1;

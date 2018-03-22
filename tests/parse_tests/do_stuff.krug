@@ -1,12 +1,12 @@
 type Dimension struct {
-	width uint,
-	height uint,
+	width us32,
+	height us32,
 };
 
 type Game_Window struct {
 	title string,
-	x uint,
-	y uint,
+	x us32,
+	y us32,
 	size Dimension,
 };
 

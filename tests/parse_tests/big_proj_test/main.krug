@@ -2,9 +2,9 @@
 #load utils::math
 #load gfx::{colour, context}
 
-type Foo int;
+type Foo s32;
 
-func blah() int;
+func blah() s32;
 
 func foo();
 
@@ -17,25 +17,25 @@ type rgb_colour (u8, u8, u8);
     */
 */
 
-type integer_array [int];
-type ref_integer_array &[int];
+type s32eger_array [s32];
+type ref_s32eger_array &[s32];
 type float_array [f32];
 
 type blah_struct struct {
     left struct {
-        a int,
-        b int,
+        a s32,
+        b s32,
     },
     right struct {
-        a int,
-        b int
+        a s32,
+        b s32
     },
-    printer_thing func(a int, b int) int,
+    prs32er_thing func(a s32, b s32) s32,
 };
 
 type data_block struct {
     data *void,
-    length uint,
+    length us32,
 };
 
 type some_trait trait {
@@ -43,7 +43,7 @@ type some_trait trait {
     render func(vsync bool) void,
 };
 
-func another_blah() int {
+func another_blah() s32 {
     {
         {
             {
@@ -66,34 +66,34 @@ func another_blah() int {
     }
 }
 
-func (i *int) func_ptr() {
+func (i *s32) func_ptr() {
     
 }
 
-func (i int) func_on_primitive() {
+func (i s32) func_on_primitive() {
     
 }
 
 type foo_bar struct {
-    foo int,
-    baz int,
-    boo uint
+    foo s32,
+    baz s32,
+    boo us32
 };
 
 type foo_struct struct {
-	foo int,
+	foo s32,
 };
 
 func add() void {
 	
 }
 
-func main(mut a int, b int) int {
+func main(mut a s32, b s32) s32 {
 	32 + 32;
 
     let person_data struct {
         name *u8,
-        age uint,
+        age us32,
     };
 
     let mut {a, b} = person_data;
@@ -108,18 +108,18 @@ func main(mut a int, b int) int {
 	let x = 69 - 69 / 32 << 5;
 	let y = 22 + -33333 * 59595;
 	let z;
-	let foo int;
+	let foo s32;
 
-	let baz uint;
+	let baz us32;
 
     let testing union {
-        a int,
-        b int,
-        c uint,
+        a s32,
+        b s32,
+        c us32,
     };
 
     let x_y = baz;
-    let blah int;
+    let blah s32;
     blah.func_on_primitive()[5 : 123];
 
     if 1 == 1 {
