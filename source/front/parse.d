@@ -2,6 +2,7 @@ module parse.parser;
 
 import std.stdio;
 import std.conv;
+import std.range.primitives : back;
 
 import grammar;
 import krug_module;
@@ -31,9 +32,28 @@ static this() {
 	EOF_TOKEN = new Token("<EOF>", Token_Type.EOF);
 }
 
+// a stack that keeps track of
+// the branches (if, else if, else)
+// for error checks
+class Branch_Tracker {
+	Branch_Tracker parent;
+	ast.Statement_Node[] buffer;
+
+	this() {
+		this.parent = null;
+	}
+
+	this(Branch_Tracker parent) {
+		this.parent = parent;
+	}
+}
+
 class Parser : Compilation_Phase {
 	Token[] toks;
 	uint pos = 0;
+
+	// when we enter a new scope this is cleared.
+	Branch_Tracker curr_branch_ctx;
 
 	this(Token[] toks) {
 		this.toks = toks;
@@ -1115,28 +1135,49 @@ class Parser : Compilation_Phase {
 			logger.Error(peek(), "expected block after if, found:");
 		}
 
-		return new If_Statement_Node(cond, block);
+		auto iff = new If_Statement_Node(cond, block);
+		curr_branch_ctx.buffer ~= iff;
+		return iff;
 	}
 
 	ast.Else_Statement_Node parse_else() {
 		if (!peek().cmp(keyword.Else)) {
 			return null;
 		}
-		expect(keyword.Else);
+		auto start = expect(keyword.Else);
 
 		auto block = parse_block();
 		if (block is null) {
 			logger.Error(peek(), "expected block after else, found:");
 		}
 
-		return new Else_Statement_Node(block);
+		// else if must have an if or an else if
+		// before it
+		if (curr_branch_ctx !is null) {
+			if (curr_branch_ctx.buffer.length == 0) {
+				logger.Error(start, "else must follow an if or an else if statement.");
+			}
+			else {
+				// check that the last statement
+				// was either an else if or an if
+				auto last = curr_branch_ctx.buffer.back;
+				if (!(cast(If_Statement_Node)last || cast(Else_If_Statement_Node)last)) {
+					logger.Error(start, "else must follow an if or an else if statement.");
+				}
+			}
+		}
+
+		auto e = new Else_Statement_Node(block);
+		curr_branch_ctx.buffer ~= e;
+		return e;
 	}
 
 	ast.Else_If_Statement_Node parse_elif() {
 		if (!peek().cmp(keyword.Else) && !peek(1).cmp(keyword.If)) {
 			return null;
 		}
-		expect(["else", "if"]);
+		auto start = expect(["else", "if"]);
+
 		auto cond = parse_expr();
 		if (cond is null) {
 			logger.Error(peek(), "expected condition for else-if-construct, found:");
@@ -1145,6 +1186,22 @@ class Parser : Compilation_Phase {
 		auto block = parse_block();
 		if (block is null) {
 			logger.Error(peek(), "expected block for else-if-construct, found:");
+		}
+
+		// else if must have an if or an else if
+		// before it
+		if (curr_branch_ctx !is null) {
+			if (curr_branch_ctx.buffer.length == 0) {
+				logger.Error(start[0], "else if must follow an if or an else if statement.");
+			}
+			else {
+				// check that the last statement
+				// was either an else if or an if
+				auto last = curr_branch_ctx.buffer.back;
+				if (!(cast(If_Statement_Node)last || cast(Else_If_Statement_Node)last)) {
+					logger.Error(start[0], "else if must follow an if or an else if statement.");
+				}
+			}
 		}
 
 		return new Else_If_Statement_Node(cond, block);
@@ -1200,6 +1257,9 @@ class Parser : Compilation_Phase {
 		}
 		expect("{");
 
+		auto prev = curr_branch_ctx;
+		curr_branch_ctx = new Branch_Tracker(prev);
+
 		Block_Node block = new Block_Node();
 		for (int i = 0; has_next() && !peek().cmp("}"); i++) {
 			Statement_Node stat = parse_stat();
@@ -1211,6 +1271,12 @@ class Parser : Compilation_Phase {
 			if (cast(Semicolon_Stat) stat) {
 				expect(";");
 			}
+		}
+
+		// restore the previous branch
+		// we were tracking
+		if (curr_branch_ctx.parent !is null) {
+			curr_branch_ctx = curr_branch_ctx.parent;
 		}
 
 		expect("}");
