@@ -259,35 +259,56 @@ class X64_Generator {
 			while values up to 128 bit are stored in RAX and RDX. 
 
 			Floating-point return values are similarly stored in XMM0 and XMM1.
+
+			should be stack aligned on 16 byte boundary.
 		*/
 
 		string[] registers = [
-			"di", "si", "dx", "cx", "8", "9"
+			"di", "si", "dx", "cx", "r8", "r9"
 		];
 
-		foreach (i, arg; c.args) {
-			if (i < registers.length) {
-				auto w = arg.get_type().get_width();
-				auto suffix = "q";
+		int stack_alloc_amount = 0;
 
-				string reg = "r" ~ registers[i];
+		// PLACEHOLDER value here, we subtract 0 from the
+		// RSP but we later on MODIFY THIS to however much
+		// bytes we allocated (aligned to a 16 byte boundary).
+		// this is why we store the address which this instruction
+		// was written to
+		uint alloc_instr_addr = code.emitt("subq $0, %rsp");
 
-				// HACK FIXME
-				string instr = "mov";
-				if (auto ptr = cast(Pointer_Type) arg.get_type()) {
-					instr = "lea";
-				}
+		import std.algorithm.comparison : min, max;
 
-				// move the value into the register
-				string val = get_val(arg);
-				code.emitt("{}{} {}, %{}", instr, suffix, val, reg);
+		foreach (i, arg; c.args[0..min(c.args.length,registers.length)]) {
+			auto w = arg.get_type().get_width();
+			auto suffix = "q";
+
+			string reg;
+			if (i >= 4) {
+				reg = registers[i] ~ (suffix == "l" ? "d" : "");
+			} else {
+				reg = (suffix == "q" ? "r" : "e") ~ registers[i];
 			}
-			else {
+
+			// HACK FIXME
+			string instr = "mov";
+			if (auto ptr = cast(Pointer_Type) arg.get_type()) {
+				instr = "lea";
+			}
+
+			// move the value into the register
+			string val = get_val(arg);
+			code.emitt("{}{} {}, %{}", instr, suffix, val, reg);
+		}
+
+		if (c.args.length >= registers.length) {
+			foreach_reverse (i, arg; c.args[registers.length..$]) {
 				// move the value via. the stack
 				string val = get_val(arg);
-				// TODO
+				// FIXME
+				stack_alloc_amount += 8;
+				code.emitt("pushq {}", get_val(arg));
 			}
-		}
+		}		
 
 		if (auto iden = cast(Identifier) c.left) {
 			// nasty hack!
@@ -304,6 +325,13 @@ class X64_Generator {
 		else {
 			logger.Fatal("unhandled invoke lefthand ! ", to!string(c.left), " for ", to!string(c));
 		}
+
+		// we want to make sure it's aligned
+		// to a 16 byte boundary
+		stack_alloc_amount = align_to(stack_alloc_amount, 16);
+
+		code.emitt_at(alloc_instr_addr, "subq ${}, %rsp", to!string(stack_alloc_amount));
+		code.emitt("addq ${}, %rsp", to!string(stack_alloc_amount));
 	}
 
 	void emit_instr(Instruction i) {
@@ -375,4 +403,9 @@ class X64_Generator {
 			emit_ret(new Return(VOID_TYPE));
 		}
 	}
+}
+
+static int align_to(int n, int m) {
+    int rem = n % m;
+    return (rem == 0) ? n : n - rem + m;
 }

@@ -4,7 +4,13 @@
 // the x64 system v abi func call spec
 
 func printf();
+func foo() {
+	
+}
 
 func main() {
-	printf(c"%d %d %d %d %d %d %d %d %d %d\n", 1, 2, 3, 4, 5);
+	foo(1, 2, 3, 4, 5);
+	foo(1, 2, 3, 4, 5, 6, 7);
+	printf(c"%d %d %d %d %d %d %d %d %d %d\n", 1, 2, 3, 4, 5,
+	6, 7, 8, 9, 10);
 }

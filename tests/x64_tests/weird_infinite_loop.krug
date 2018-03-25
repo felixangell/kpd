@@ -1,0 +1,8 @@
+func printf();
+
+func main() {
+	// if we comment out line
+	// 6 its fine, otherwise it loops endlessly.
+	printf(c"Hello, How are you %s %d age?!\n", c"- foo bar - ", 69);
+	printf(c"foo %d %d %d %d %d %d %d\n", 1, 2, 3, 4, 5, 6, 7);
+}

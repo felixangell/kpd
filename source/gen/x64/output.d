@@ -9,22 +9,48 @@ import kt;
 import kir.instr;
 
 class X64_Code : Generated_Output {
-	string assembly_code;
+	string[] _assembly_code;
+	uint index = 0;
 
 	this() {
-		assembly_code = "";
+		_assembly_code = [];
+
+		// fixme arbitrary value
+		_assembly_code.length += 32;
 	}
 
-	this(string assembly_code) {
-		this.assembly_code = assembly_code;
+
+	string assembly_code() {
+		string res;
+		foreach (line; _assembly_code[0..index]) {
+			res ~= line ~ '\n';
+		}
+		return res;
 	}
 
-	void emit(string fmt, string[] s...) {
-		assembly_code ~= sfmt(fmt, s) ~ '\n';
+	private void resize() {
+		if (index >= _assembly_code.length) {
+			_assembly_code.length *= 2;
+		}
 	}
 
-	void emitt(string fmt, string[] s...) {
-		assembly_code ~= '\t' ~ sfmt(fmt, s) ~ '\n';
+	uint emit(string fmt, string[] s...) {
+		resize();
+		uint emit_addr = index++;
+		_assembly_code[emit_addr] = sfmt(fmt, s);
+		return emit_addr;
+	}
+
+	void emitt_at(uint index, string fmt, string[] s...) {
+		resize();
+		_assembly_code[index] = '\t' ~ sfmt(fmt, s);
+	}
+
+	uint emitt(string fmt, string[] s...) {
+		resize();
+		uint emit_addr = index++;
+		emitt_at(emit_addr, fmt, s);
+		return emit_addr;
 	}
 
 	// FIXME
