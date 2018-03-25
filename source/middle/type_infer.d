@@ -91,7 +91,7 @@ class Type_Infer_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 	}
 
 	override string toString() const {
-		return "top-level-type-decl-pass";
+		return "type-infer-pass";
 	}
 
 }

@@ -177,9 +177,10 @@ struct Type_Inferrer {
 	Type_Environment e;
 
 	Type get_type(string name, Type_Variable[string] generics) {
-		if (name in e.data) {
-			logger.Verbose("Found '", name, "', type is ", to!string(e.data[name]));
-			return fresh(e.data[name], generics);
+		auto t = e.lookup_type(name);
+		if (t !is null) {
+			logger.Verbose("Found '", name, "', type is ", to!string(t));
+			return fresh(t, generics);
 		}
 
 		logger.Error("Couldn't find type '", name, "' in environment:");

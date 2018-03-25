@@ -145,14 +145,24 @@ class Return_Statement_Node : Statement_Node, Semicolon_Stat {
 	this(Expression_Node value) {
 		this.value = value;
 	}
+
+	override string toString() {
+		return "ret " ~ to!string(value);
+	}
 }
 
 // break ";"
 class Break_Statement_Node : Statement_Node, Semicolon_Stat {
+	override string toString() {
+		return "break";
+	}
 }
 
 // next ";"
 class Next_Statement_Node : Statement_Node, Semicolon_Stat {
+	override string toString() {
+		return "next";
+	}
 }
 
 // yield Expression ";"
@@ -161,6 +171,10 @@ class Yield_Statement_Node : Statement_Node, Semicolon_Stat {
 
 	this(Expression_Node value) {
 		this.value = value;
+	}
+
+	override string toString() {
+		return "yield";
 	}
 }
 

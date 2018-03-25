@@ -41,11 +41,11 @@ class Top_Level_Node_Visitor : AST_Visitor {
 			block.sym_table = push_sym_table();
 		}
 
-		logger.Verbose(" - RESTORING SYMBOL TABLE ", to!string(block.sym_table.id));
+		logger.Verbose("Restored symbol table ", to!string(block.sym_table.id), " entries:");
 		foreach (entry; block.sym_table.symbols.byKeyValue()) {
-			logger.Verbose("   -> ", entry.key);
+			logger.Verbose("- ", entry.key);
 		}
-		logger.Verbose(".");
+		logger.Verbose("");
 
 		curr_sym_table = block.sym_table;
 
