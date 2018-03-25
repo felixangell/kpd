@@ -1,0 +1,9 @@
+let x = 32;
+
+func main() {
+	let y = x + x;
+	return y;
+}
+
+/// .stdout
+/// 64

@@ -556,7 +556,16 @@ class Kir_Builder : Top_Level_Node_Visitor {
 	}
 
 	void analyze_global(ast.Variable_Statement_Node var) {
+		// TODO what if there is no value assigned?
+		// TODO make sure it's allocated... we can't really
+		// introduce temporaries as a global...
 
+		if (var.value is null) {
+			assert("global no value unhandled");
+		}
+
+		Value v = build_expr(var.value);
+		ir_mod.constants[var.twine.lexeme] = v;
 	}
 
 	override void analyze_let_node(ast.Variable_Statement_Node var) {

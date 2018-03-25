@@ -23,16 +23,18 @@ struct Block_Context {
 		return addr_ptr;
 	}
 
+	// FIXME
+	// return -1 if the name is not a local.
 	long get_addr(string name) {
 		if (name !in locals) {
-			// TODO handle this properly!
-			assert(0, "oh fuck!");
+			return -1;
 		}
 		return locals[name];
 	}
 }
 
 class X64_Generator {
+	Kir_Module mod;
 	X64_Code code;
 	Function curr_func;
 
@@ -88,7 +90,19 @@ class X64_Generator {
 		}
 		else if (auto r = cast(Identifier) v) {
 			long addr = ctx.back.get_addr(r.name);
-			return to!string(addr) ~ "(%rsp)";
+			if (addr != -1) {
+				return to!string(addr) ~ "(%rsp)";				
+			}
+
+			// look for the value in the globals.
+			// if it is, it's a label so we can just spit
+			// out the name?
+			if (r.name in mod.constants) {
+				// FIXME
+				return "" ~ r.name ~ "(%rip)";
+			}
+
+			return "error!";
 		}
 
 		return "%eax, %eax # unimplemented get_val " ~ to!string(v);
@@ -327,6 +341,8 @@ class X64_Generator {
 	}
 
 	void generate_mod(Kir_Module mod) {
+		this.mod = mod;
+
 		code.emit(".data");
 
 		// TODO these arent populated
