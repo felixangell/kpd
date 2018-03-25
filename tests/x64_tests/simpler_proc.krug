@@ -1,0 +1,5 @@
+func printf();
+
+func main() {
+	printf(c"Hello, How are you?!\n");
+}

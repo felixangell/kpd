@@ -49,11 +49,6 @@ class X64_Generator {
 	}
 
 	string get_instr_suffix(uint width) {
-		// temporary!
-		if (1 == 2 - 1) {
-			return "l";
-		}
-
 		switch (width) {
 		case 1: return "b";
 		case 2: return "s";
@@ -103,6 +98,9 @@ class X64_Generator {
 			}
 
 			return "error!";
+		}
+		else if (auto c = cast(Constant_Reference) v) {
+			return c.name ~ "(%rip)";
 		}
 
 		return "%eax, %eax # unimplemented get_val " ~ to!string(v);
@@ -284,10 +282,15 @@ class X64_Generator {
 					}
 				}
 
+				// HACK FIXME
+				string instr = "mov";
+				if (auto ptr = cast(Pointer_Type) arg.get_type()) {
+					instr = "lea";
+				}
+
 				// move the value into the register
 				string val = get_val(arg);
-
-				code.emitt("mov{} {}, %{}", suffix, val, reg);
+				code.emitt("{}{} {}, %{}", instr, suffix, val, reg);
 			}
 			else {
 				// move the value via. the stack
@@ -299,6 +302,9 @@ class X64_Generator {
 			string call_name = iden.name;
 			if (call_name == "printf") {
 				call_name = "_" ~ call_name;
+			} else {
+				// shitty mangle
+				call_name = "__" ~ mod.module_name ~ "_" ~ mod.sub_module_name ~ "_" ~ call_name;
 			}
 
 			code.emitt("call {}", call_name);

@@ -19,6 +19,7 @@ enum Token_Type {
 	Floating_Point_Literal,
 	Integer_Literal,
 	String,
+	CString,
 	Rune,
 	Symbol,
 	Discard,

@@ -110,6 +110,9 @@ class Kir_Builder : Top_Level_Node_Visitor {
 		if (auto to = cast(Type_Operator) t) {
 			return conv_type_op(to);
 		}
+		else if (auto ptr = cast(Pointer) t) {
+			return new Pointer_Type(conv(ptr.base));
+		}
 
 		logger.Fatal("kir_builder: unhandled type conversion from\t", to!string(t));
 		assert(0);
@@ -418,13 +421,26 @@ class Kir_Builder : Top_Level_Node_Visitor {
 		return const_temp_name;
 	}
 
+	// FIXME this is a bit funky!
 	Value build_string_const(String_Constant_Node str) {
+		// generate a constant 
+		// as well as a reference to the
+		// constant
 		string const_ref = add_constant(new Constant(new Pointer_Type(get_uint(8)), str.value));
+		auto string_data_ptr = new Constant_Reference(new Pointer_Type(get_uint(8)), const_ref);
 
+		// c-style string is simply a raw unsigned
+		// 8 bit integer pointer
+		if (str.type == String_Type.C_STYLE) {
+			return string_data_ptr;
+		}
+
+		// TODO we assume its pascal here..
+		// pascal type is the pointer as well as the length of
+		// the array as a struct.
 		auto val = new Composite(STRING_TYPE);
 		val.add_value(new Constant(get_uint(64), to!string(str.value.length)));
-		val.add_value(new Constant_Reference(new Pointer_Type(get_uint(8)), const_ref));
-
+		val.add_value(string_data_ptr);
 		return val;
 	}
 

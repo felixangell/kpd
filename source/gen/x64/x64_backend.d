@@ -26,12 +26,6 @@ class X64_Backend : Code_Generator_Backend {
 			gen.code.emit(".macosx_version_min 10, 16");
 		}
 
-		// HACK for printing out the return value of the main
-		// function!
-		gen.code.emit(".section	__TEXT,__cstring,cstring_literals");
-		gen.code.emit("L_.str:");
-		gen.code.emit(`.asciz "%d\n"`);
-
 		gen.generate_mod(mod);
 
 		// hack
@@ -52,15 +46,6 @@ class X64_Backend : Code_Generator_Backend {
 				gen.code.emitt("call {}", main_func.name);
 			}			
 		}
-
-		// HACK: another hack to invoke a printf
-		// on the return value of the main
-		// function
-		gen.code.emitt("leaq L_.str(%rip), %rdi");
-		gen.code.emitt("movl %eax, %esi");
-		gen.code.emitt("movb $0, %al");
-		gen.code.emitt("callq _printf");
-		gen.code.emitt("movl $0, %eax");
 
 		gen.code.emitt("popq %rbp");
 		gen.code.emitt("ret");

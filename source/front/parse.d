@@ -666,6 +666,10 @@ class Parser : Compilation_Phase {
 		switch (curr.type) {
 		case Token_Type.String:
 			return new String_Constant_Node(consume());
+		case Token_Type.CString:
+			auto str = new String_Constant_Node(consume());
+			str.type = String_Type.C_STYLE;
+			return str;
 		case Token_Type.Rune:
 			return new Rune_Constant_Node(consume());
 		case Token_Type.Floating_Point_Literal:

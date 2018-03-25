@@ -235,7 +235,14 @@ class Constant_Node(T) : Expression_Node {
 	}
 }
 
+static enum String_Type {
+	C_STYLE,
+	PASCAL_STYLE,
+};
+
 class String_Constant_Node : Constant_Node!string {
+	String_Type type = String_Type.PASCAL_STYLE;
+
 	this(Token tok) {
 		super(tok, tok.lexeme);
 	}

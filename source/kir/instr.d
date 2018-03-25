@@ -20,9 +20,13 @@ kt.Void_Type VOID_TYPE;
 // struct { u64, [u8] };
 kt.Structure_Type STRING_TYPE;
 
+// *u8
+kt.Pointer_Type CSTRING_TYPE;
+
 static this() {
 	VOID_TYPE = new Void_Type();
 	STRING_TYPE = new kt.Structure_Type(get_uint(64), new Pointer_Type(get_uint(8)));
+	CSTRING_TYPE = new kt.Pointer_Type(get_uint(8));
 }
 
 interface Instruction {

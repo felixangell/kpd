@@ -306,7 +306,10 @@ struct Type_Inferrer {
 		else if (cast(Boolean_Constant_Node) node) {
 			return prim_type("bool");
 		}
-		else if (cast(String_Constant_Node) node) {
+		else if (auto str = cast(String_Constant_Node) node) {
+			if (str.type == String_Type.C_STYLE) {
+				return new Pointer(prim_type("u8"));
+			}
 			return prim_type("string");
 		}
 		else if (cast(Rune_Constant_Node) node) {

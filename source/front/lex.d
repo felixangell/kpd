@@ -246,6 +246,10 @@ class Lexer : Compilation_Phase {
 			// as c"foo bar baz".
 			if (curr == 'c' && peek(1) == '"') {
 				dchar prefix = consume();
+				recognized_token = recognize_str();
+				// modify the type to a CSTRING
+				recognized_token.type = Token_Type.CString;
+
 			} // identifier, cannot start with underscore
 			else if (isAlpha(curr)) {
 				recognized_token = recognize_identifier(true);
