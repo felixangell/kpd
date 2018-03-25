@@ -262,25 +262,15 @@ class X64_Generator {
 		*/
 
 		string[] registers = [
-			"di", "si", "dx", "cx", "r8", "r9"
+			"di", "si", "dx", "cx", "8", "9"
 		];
 
 		foreach (i, arg; c.args) {
 			if (i < registers.length) {
 				auto w = arg.get_type().get_width();
-				auto suffix = get_instr_suffix(w);
+				auto suffix = "q";
 
-				string reg = registers[i];
-				if (i < 4) {
-					switch (w) {
-					case 8:
-						reg = "r" ~ reg;
-						break;
-					default:
-						reg = "e" ~ reg;
-						break;
-					}
-				}
+				string reg = "r" ~ registers[i];
 
 				// HACK FIXME
 				string instr = "mov";
@@ -294,6 +284,8 @@ class X64_Generator {
 			}
 			else {
 				// move the value via. the stack
+				string val = get_val(arg);
+				// TODO
 			}
 		}
 

@@ -82,13 +82,8 @@ class Basic_Block {
 				code_sample = "; " ~ code_sample;
 			}
 
-			auto ir_code = to!string(instr).strip();
-
-			enum margin = 50;
-			auto space_pad = replicate(" ", (margin - ir_code.length));
-
-			enum tab_size = 4;
-			writeln(replicate(" ", tab_size), ir_code, space_pad ~ code_sample);
+			string ir_code = to!string(instr).strip();
+			writefln("   %-80s%-80s", ir_code, code_sample);
 		}
 	}
 

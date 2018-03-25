@@ -1,0 +1,10 @@
+// test to see if the x64 generator
+// will spit out arguments to the stack
+// after we use up all the registers for
+// the x64 system v abi func call spec
+
+func printf();
+
+func main() {
+	printf(c"%d %d %d %d %d %d %d %d %d %d\n", 1, 2, 3, 4, 5);
+}

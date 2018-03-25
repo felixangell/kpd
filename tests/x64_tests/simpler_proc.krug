@@ -1,5 +1,5 @@
 func printf();
 
 func main() {
-	printf(c"Hello, How are you?!\n");
+	printf(c"Hello, How are you %s %d age?!\n", c"- foo bar - ", 69);
 }
