@@ -32,6 +32,13 @@ string mangle_join(T...)(T values...) {
 
 // M(module) + M(submodule) + M(func_name) + M(func_args...)
 string mangle(Function f) {
+	// even though this will probably have the
+	// no_mangle attribute, we still mangle it
+	if (f.has_attribute("c_func")) {
+		// i think this is right?
+		return "_" ~ f.name;
+	}
+
 	if (f.has_attribute("no_mangle")) {
 		return f.name;
 	}

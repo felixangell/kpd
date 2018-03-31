@@ -427,6 +427,10 @@ class X64_Generator {
 
 		code.emit(".text");
 		foreach (ref name, func; mod.functions) {
+			setup_func_proto(func);
+		}
+
+		foreach (ref name, func; mod.functions) {
 			generate_func(func);
 		}
 	}
@@ -438,14 +442,7 @@ class X64_Generator {
 		curr = new_ctx;
 	}
 
-	void generate_func(Function func) {
-		curr_func = func;
-
-		code.emit("{}:", mangle(func));
-
-		code.emitt("pushq %rbp");
-		code.emitt("movq %rsp, %rbp");
-
+	void setup_func_proto(Function func) {
 		push_block_ctx(func);
 
 		// push all of the param allocs
@@ -457,6 +454,21 @@ class X64_Generator {
 				curr.push_local("__arg_" ~ to!string(i), arg.get_type().get_width());
 			}
 		}
+	}
+
+	void generate_func(Function func) {
+		curr_func = func;
+		
+		if (func.has_attribute("c_func")) {
+			return;
+		}
+
+		curr = ctx[mangle(func)];
+
+		code.emit("{}:", mangle(func));
+
+		code.emitt("pushq %rbp");
+		code.emitt("movq %rsp, %rbp");
 
 		foreach (ref bb; func.blocks) {
 			emit_bb(bb);

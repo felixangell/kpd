@@ -1,4 +1,6 @@
-#{no_mangle}
+#{c_func}
+func printf();
+
 func foopa() {
 	
 }
@@ -7,4 +9,5 @@ func main() {
 	let a = 3;
 	let b = a;
 	foopa();
+	printf(c"Hey how are you?!");
 }
