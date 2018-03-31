@@ -1,7 +1,9 @@
 module gen.x64.mangler;
 
 import std.conv : to;
+import std.traits : isInstanceOf;
 
+import kt;
 import kir.instr;
 
 // NOTE
@@ -30,6 +32,36 @@ string mangle_join(T...)(T values...) {
 	return res;
 }
 
+string mangle(Kir_Type t) {
+	if (cast(Integer_Type) t) {
+		return "s" ~ to!string(t.get_width() * 8);
+	}
+	else if (cast(Floating_Type) t) {
+		return "f" ~ to!string(t.get_width() * 8);
+	}
+	else if (auto ptr = cast(Pointer_Type) t) {
+		return "p" ~ mangle(ptr.base);
+	}
+	else if (auto arr = cast(Array_Type) t) {
+		return "A" ~ mangle(arr.base);
+	}
+
+	return "unhandled_" ~ to!string(t);
+}
+
+string mangle(Alloc alloc) {
+	return mangle(alloc.get_type());
+}
+
+string mangle(Alloc[] allocs...) {
+	string result;
+	foreach (i, alloc; allocs) {
+		if (i > 0) result ~= "_";
+		result ~= mangle(alloc);
+	}
+	return result;
+}
+
 // M(module) + M(submodule) + M(func_name) + M(func_args...)
 string mangle(Function f) {
 	// even though this will probably have the
@@ -43,10 +75,11 @@ string mangle(Function f) {
 		return f.name;
 	}
 	
-	return "__" ~ mangle_join!(string, string, string)(
+	return "__" ~ mangle_join!(string, string, string, Alloc[])(
 		f.parent_mod.module_name,
 		f.parent_mod.sub_module_name,
 		f.name,
+		f.params,
 	);
 }
 

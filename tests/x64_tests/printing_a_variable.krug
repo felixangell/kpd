@@ -1,0 +1,7 @@
+#{c_func}
+func printf();
+
+func main() {
+	let g = 32 + 4;
+	printf(c"g = %d\n", g);
+}

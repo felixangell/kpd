@@ -1,4 +1,6 @@
+#{c_func}
 func printf();
+
 func foo() {
 		
 }
@@ -8,4 +10,6 @@ func main() {
 
 	// this call below causes a seg fault!
 	foo(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11);
+
+	printf(c"Hello, world, how, are, you!?");
 }

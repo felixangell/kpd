@@ -98,6 +98,19 @@ class Type_Operator : Type {
 	}
 }
 
+class Array : Type {
+	Type base;
+
+	this(Type base, Type[] args = []) {
+		super("arr", args);
+		this.base = base;
+	}
+
+	override string toString() const {
+		return "arr " ~ to!string(base);
+	}
+}
+
 class Pointer : Type {
 	Type base;
 

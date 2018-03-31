@@ -342,8 +342,14 @@ struct Type_Inferrer {
 		else if (cast(Rune_Constant_Node) node) {
 			return prim_type("rune");
 		}
+		else if (auto ptr = cast(Pointer_Type_Node) node) {
+			return new Pointer(analyze(ptr.base_type, e, generics));
+		}
+		else if (auto arr = cast(Array_Type_Node) node) {
+			return new Array(analyze(arr.base_type, e, generics));
+		}
 
-		logger.Fatal("infer: unhandled node " ~ to!string(node));
+		logger.Fatal("infer: unhandled node " ~ to!string(node) ~ " ... " ~ to!string(typeid(node)));
 		assert(0);
 	}
 }

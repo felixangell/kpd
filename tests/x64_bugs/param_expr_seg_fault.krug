@@ -7,5 +7,8 @@ func add(a s64, b s64, c s64, d s64, e s64, f s64, g s64, h s64) s64 {
 
 func main() {
 	add(0, 0, 0, 0, 0, 0, 5, 10);
+	let a = 5;
+	let c = 10;
+	let ac = a + c;
 	printf(c"hello, world %d", ac);
 }
