@@ -34,14 +34,16 @@ Nothing is in working order, but some tests might run!
 Make sure you have `dub` installed as well as a D compiler,
 I'm using `dmd`.
 
-	$ git clone http://github.com/felixangell/krug
-	$ cd krug
-	$ make
-  $
-	$ ./krug b tests/x64_tests/fib.krug
-  $ ./a.out
-  $
-	$ ./krug e E0001 				# explain error message 1
+```bash
+$ git clone http://github.com/felixangell/krug
+$ cd krug
+$ make
+$
+$ ./krug b tests/x64_tests/fib.krug
+$ ./a.out
+$
+$ ./krug e E0001 				# explain error message 1
+```
 
 ## future plans
 The idea of this language is to keep the features and syntax
