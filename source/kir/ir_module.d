@@ -2,7 +2,7 @@ module kir.ir_mod;
 
 import std.conv;
 import std.stdio;
-import std.container.array : back;
+import std.container.array;
 
 import colour;
 import kir.instr;

@@ -3,7 +3,7 @@ CC_OBJ_FILES := $(patsubst %.c,%.o,$(CC_SRC_FILES))
 OUT := krugvm.a
 
 CC := clang
-CC_FLAGS := -Wall -Wextra -g3 -std=c99
+CC_FLAGS := -Wall -Wextra -g3 -std=c99 -Wno-unused-function
 
 default: $(OUT)
 

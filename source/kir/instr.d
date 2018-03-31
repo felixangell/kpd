@@ -4,7 +4,7 @@ import std.stdio;
 import std.conv;
 import std.string;
 import std.array : replicate;
-import std.range.primitives : back;
+import std.range.primitives;
 
 import kir.cfg;
 import ast;

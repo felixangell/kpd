@@ -1,7 +1,7 @@
 name "krug"
 description "krug compiler"
 
-dependency "emsi_containers" version="~>0.6"
+dependency "emsi_containers" version="~>0.7"
 dflags "-dip1000"
 
 lflags "$PACKAGE_DIR/vm/krugvm.a" "-lcollectc"

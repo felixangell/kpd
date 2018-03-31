@@ -3,7 +3,7 @@ module gen.kurby.generator;
 import std.stdio;
 import std.conv;
 import std.format;
-import std.container.array : back;
+import std.container.array;
 
 import ast;
 import logger;

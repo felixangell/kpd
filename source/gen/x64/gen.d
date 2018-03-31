@@ -3,7 +3,8 @@ module gen.x64.generator;
 import std.stdio;
 import std.conv;
 import std.format;
-import std.container.array : back;
+import std.container.array;
+import std.range.primitives;
 
 import logger;
 
