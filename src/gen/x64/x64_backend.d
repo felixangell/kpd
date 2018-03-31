@@ -13,6 +13,7 @@ import kir.ir_mod;
 import gen.backend;
 import gen.x64.output;
 import gen.x64.generator;
+import gen.x64.mangler;
 
 /*
 	the x64 backend generates x86_64 assembly. 
@@ -43,7 +44,7 @@ class X64_Backend : Code_Generator_Backend {
 		{
 			auto main_func = mod.get_function("main");
 			if (main_func !is null) {
-				gen.code.emitt("call {}", main_func.name);
+				gen.code.emitt("call {}", mangle(main_func));
 			}			
 		}
 

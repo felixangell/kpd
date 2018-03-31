@@ -1353,10 +1353,10 @@ class Parser : Compilation_Phase {
 		return func;
 	}
 
-	Directives parse_directives() {
+	Attribute[string] parse_directives() {
 		expect(keyword.Directive_Symbol);
 
-		auto dir = new Directives;
+		Attribute[string] dir;
 
 		auto curr = peek();
 		if (curr.cmp(keyword.Load_Directive)) {
@@ -1395,7 +1395,8 @@ class Parser : Compilation_Phase {
 				expect(")");
 			}
 
-			dir.attribs ~= attrib;
+			logger.Verbose("--- Parsed attribute ", attrib.name.lexeme);
+			dir[attrib.name.lexeme] = attrib;
 		}
 		expect("}");
 
@@ -1403,16 +1404,14 @@ class Parser : Compilation_Phase {
 	}
 
 	ast.Node parse_node() {
-		Token tok = peek();
-
-		Directives dirs = null;
-		if (tok.cmp(keyword.Directive_Symbol)) {
+		Attribute[string] dirs = null;
+		if (peek().cmp(keyword.Directive_Symbol)) {
 			dirs = parse_directives();
 		}
 
 		Node result = null;
 
-		switch (tok.lexeme) {
+		switch (peek().lexeme) {
 		case keyword.Type:
 			result = parse_named_type();
 			break;
@@ -1429,7 +1428,7 @@ class Parser : Compilation_Phase {
 
 		// attach the directives we
 		// parsed before the node to the node
-		result.dirs = dirs;
+		result.attribs = dirs;
 		return result;
 	}
 

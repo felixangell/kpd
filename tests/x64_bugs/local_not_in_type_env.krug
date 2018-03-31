@@ -1,0 +1,26 @@
+func add(a s64, b s64, c s64, d s64, e s64, f s64, g s64, h s64) s64 {
+	let result = g + h;
+	return result;
+}
+
+func main() {
+	add(0, 0, 0, 0, 0, 0, 5, 10);
+}
+
+/*
+	Error: Couldn't find type 'g' in environment:
+	core.exception.AssertError@src/middle/infer.d(192): Assertion failure
+	----------------
+	0   krug                                0x0000000108208f19 object.Throwable.TraceInfo core.runtime.defaultTraceHandler(void*) + 137
+	1   krug                                0x000000010822385a _d_createTrace + 58
+	2   krug                                0x00000001082244ce _d_throw_exception + 158
+	3   krug                                0x0000000108206577 _d_assert + 135
+	4   krug                                0x00000001080bf325 sema.type.Type sema.infer.Type_Inferrer.get_type(immutable(char)[], sema.type.Type_Variable[immutable(char)[]]) + 597
+	5   krug                                0x00000001080bf4e4 sema.type.Type sema.infer.Type_Inferrer.get_symbol_type(immutable(char)[], sema.type.Type_Variable[immutable(char)[]]) + 36
+	6   krug                                0x00000001080bf791 sema.type.Type sema.infer.Type_Inferrer.analyze(ast.Node, sema.infer.Type_Environment, sema.type.Type_Variable[immutable(char)[]]) + 465
+	7   krug                                0x00000001080bf593 sema.type.Type sema.infer.Type_Inferrer.analyze_path(ast.Path_Expression_Node, sema.type.Type_Variable[immutable(char)[]]) + 83
+	8   krug                                0x00000001080bf9d2 sema.type.Type sema.infer.Type_Inferrer.analyze(ast.Node, sema.infer.Type_Environment, sema.type.Type_Variable[immutable(char)[]]) + 1042
+	9   krug                                0x00000001080bf6d2 sema.type.Type sema.infer.Type_Inferrer.analyze(ast.Node, sema.infer.Type_Environment, sema.type.Type_Variable[immutable(char)[]]) + 274
+	10  krug                                0x00000001080c009a sema.type.Type sema.infer.Type_Inferrer.analyze_variable(ast.Variable_Statement_Node, sema.type.Type_Variable[immutable(char)[]]) + 90
+	11  krug 
+*/

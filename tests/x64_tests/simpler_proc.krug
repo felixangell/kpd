@@ -1,3 +1,4 @@
+#{no_mangle}
 func printf();
 
 func main() {

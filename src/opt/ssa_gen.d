@@ -100,6 +100,11 @@ void dump_graph(Control_Flow_Graph g) {
 class SSA_Builder : Optimisation_Pass {
 
 	void ssa_func(Function f) {
+		// prototype, NOOP!
+		if (f.blocks.length == 0) {
+			return;
+		}
+
 		auto entry_bb_name = f.blocks[0].name();
 
 		auto dom_tree_builder = new Dominator_Tree();

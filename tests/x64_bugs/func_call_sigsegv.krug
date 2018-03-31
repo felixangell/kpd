@@ -1,0 +1,11 @@
+func printf();
+func foo() {
+		
+}
+
+func main() {
+	foo(1, 2, 3, 4, 5);
+
+	// this call below causes a seg fault!
+	foo(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11);
+}

@@ -5,6 +5,7 @@ import std.stdio;
 import std.container.array;
 
 import colour;
+import kt;
 import kir.instr;
 
 class Kir_Module {
@@ -33,18 +34,14 @@ class Kir_Module {
 	}
 
 	Function get_function(string name) {
-		string mangle = "__" ~ module_name ~ "_" ~ sub_module_name ~ "_" ~ name;
-		if (mangle in functions) {
-			return functions[mangle];
+		if ((name in functions) !is null) {
+			return functions[name];
 		}
 		return null;
 	}
 
-	Function add_function(string name) {
-		auto func = new Function();
-		// TODO mangle everything properly. but for now
-		// this should work
-		func.name = "__" ~ module_name ~ "_" ~ sub_module_name ~ "_" ~ name;
+	Function add_function(string name, Kir_Type type = VOID_TYPE) {
+		auto func = new Function(name, type, this);
 		functions[func.name] = func;
 		recent_func = func;
 		return func;

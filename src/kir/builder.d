@@ -240,26 +240,34 @@ class Kir_Builder : Top_Level_Node_Visitor {
 	// 2. any instruction that is the target of a jump is a leader.
 	// 3. any instruction that follows a jump is a leader.
 	override void analyze_function_node(ast.Function_Node func) {
-		// func proto.
-		if (func.func_body is null) {
-			// TODO: ir_mod add a constant value
-			// which is a value -> function ptr that
-			// matches the ast functions prototype?
-			return;
+		Kir_Type return_type = VOID_TYPE;
+		if (func.return_type !is null) {
+			return_type = get_type(func.return_type);
+		}
+		curr_func = ir_mod.add_function(func.name.lexeme, return_type);
+
+		writeln("ATTRIBS FOR FUNC ", func.name);
+		foreach (name; func.attribs.byKey) {
+			writeln(" - ", name);
 		}
 
-		curr_func = ir_mod.add_function(func.name.lexeme);
+		curr_func.set_attributes(func.attribs);
+
+		// this is kinda hacky.
+		bool is_proto = func.func_body is null;
 
 		// only generate the bb0 params block
 		// if we have params on this function
-		if (func.params.length > 0) {
-			push_bb();
+		if (!is_proto) push_bb();
 
-			// alloc all the params
-			foreach (p; func.params) {
-				curr_func.add_alloc(new Alloc(get_type(p.type), p.twine.lexeme));
-			}
+		// alloc all the params
+		foreach (p; func.params) {
+			auto param_alloc = new Alloc(get_type(p.type), p.twine.lexeme);
+			if (!is_proto) curr_func.add_alloc(param_alloc);
+			curr_func.params ~= param_alloc;
 		}
+
+		if (is_proto) return;
 
 		build_block(curr_func, func.func_body);
 

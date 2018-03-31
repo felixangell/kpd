@@ -5,29 +5,46 @@ import std.conv;
 import std.format;
 import std.container.array;
 import std.range.primitives;
+import std.algorithm.searching : countUntil;
 
 import logger;
 
 import gen.x64.output;
+import gen.x64.mangler;
 
 import kt;
 import kir.ir_mod;
 import kir.instr;
 
-struct Block_Context {
+class Block_Context {
+	Function parent;
+
 	long addr_ptr = 0;
 	long[string] locals;
 
-	long push_local(string name, int width) {
-		addr_ptr -= width;
-		locals[name] = addr_ptr;
+	this(Function parent) {
+		this.parent = parent;
+	}
+
+	long size() {
 		return addr_ptr;
+	}
+
+	long push_local(string name, int width) {
+		long alloc_addr = addr_ptr;
+		locals[name] = alloc_addr;
+		addr_ptr += width;
+		return alloc_addr;
 	}
 
 	// FIXME
 	// return -1 if the name is not a local.
 	long get_addr(string name) {
 		if (name !in locals) {
+			writeln("NO LOCAL '", name, "' in '", parent.name, "'!");
+			foreach (k, v; locals) {
+				writeln(k, " => ", v);
+			}
 			return -1;
 		}
 		return locals[name];
@@ -39,14 +56,20 @@ class X64_Generator {
 	X64_Code code;
 	Function curr_func;
 
-	Block_Context[] ctx;
+	Block_Context[string] ctx;
+	Block_Context curr;
 
 	this() {
 		code = new X64_Code;
 	}
 
+	// gets the address of the given
+	// alloc in the current block context
 	long get_alloc_addr(Alloc a) {
-		return ctx.back.get_addr(a.name);
+		return curr.get_addr(a.name);
+	}
+	long get_alloc_addr_by_name(string name) {
+		return curr.get_addr(name);
 	}
 
 	string get_instr_suffix(uint width) {
@@ -85,7 +108,23 @@ class X64_Generator {
 			return to!string(addr) ~ "(%rsp)";
 		}
 		else if (auto r = cast(Identifier) v) {
-			long addr = ctx.back.get_addr(r.name);
+			// first check if this is a param
+			auto index = curr.parent.params.countUntil!("a.name == b")(r.name);
+			if (index != -1) {
+				// VERY IMPORTANT NOTE:
+				// we have to offset the index by 
+				// the registers
+				// because we only store arguments after
+				// len(registers) in the locals
+				// because normally
+				// we look up args(i) where i < 6 
+				// by registers[i]!
+				auto arg_index = index - registers.length;
+				auto addr = curr.get_addr("__arg_" ~ to!string(arg_index));
+				return to!string(addr) ~ "(%rsp)";
+			}
+
+			long addr = get_alloc_addr_by_name(r.name);
 			if (addr != -1) {
 				return to!string(addr) ~ "(%rsp)";				
 			}
@@ -244,6 +283,10 @@ class X64_Generator {
 		code.emitt("jmp {}", parent_name ~ j.label.name);
 	}
 
+	static string[] registers = [
+		"di", "si", "dx", "cx", "r8", "r9"
+	];
+
 	void emit_call(Call c) {
 		// x86_64 calling convention...
 		// following the System V AMD64 ABI conv
@@ -264,12 +307,6 @@ class X64_Generator {
 			should be stack aligned on 16 byte boundary.
 		*/
 
-		string[] registers = [
-			"di", "si", "dx", "cx", "r8", "r9"
-		];
-
-		int stack_alloc_amount = 0;
-
 		// PLACEHOLDER value here, we subtract 0 from the
 		// RSP but we later on MODIFY THIS to however much
 		// bytes we allocated (aligned to a 16 byte boundary).
@@ -278,6 +315,31 @@ class X64_Generator {
 		uint alloc_instr_addr = code.emitt("subq $0, %rsp");
 
 		import std.algorithm.comparison : min, max;
+
+		string call_name = ";\n hlt"; // lol FIXME
+		if (auto iden = cast(Identifier) c.left) {
+			// since this is just a stand alone name
+			// its probably going to be a function
+			// registered in THIS module, so lets
+			// look it up and see if it exists.
+			auto func = mod.functions[iden.name];
+			call_name = mangle(func);
+		}
+		else {
+			logger.Fatal("unhandled invoke lefthand ! ", to!string(c.left), " for ", to!string(c));
+		}
+
+		if ((call_name in ctx) is null) {
+			logger.Verbose("Call context for '", call_name, "' does not exist!");
+			foreach (k, v; ctx) {
+				logger.Verbose(k, " => ", to!string(v));
+			}
+			assert(0);
+		}
+
+		// the locals context for the function
+		// we're calling.
+		Block_Context call_frame_ctx = ctx[call_name];
 
 		foreach (i, arg; c.args[0..min(c.args.length,registers.length)]) {
 			auto w = arg.get_type().get_width();
@@ -305,39 +367,24 @@ class X64_Generator {
 			foreach_reverse (i, arg; c.args[registers.length..$]) {
 				// move the value via. the stack
 				string val = get_val(arg);
-				// FIXME
-				stack_alloc_amount += 8;
-				code.emitt("pushq {}", get_val(arg));
+				long addr = call_frame_ctx.get_addr("__arg_" ~ to!string(i));
+				code.emitt("movq {}, {}(%rsp)", get_val(arg), to!string(addr));
 			}
 		}		
 
-		if (auto iden = cast(Identifier) c.left) {
-			// nasty hack!
-			string call_name = iden.name;
-			if (call_name == "printf") {
-				call_name = "_" ~ call_name;
-			} else {
-				// shitty mangle
-				call_name = "__" ~ mod.module_name ~ "_" ~ mod.sub_module_name ~ "_" ~ call_name;
-			}
-
-			code.emitt("call {}", call_name);
-		}
-		else {
-			logger.Fatal("unhandled invoke lefthand ! ", to!string(c.left), " for ", to!string(c));
-		}
+		code.emitt("call {}", call_name);
 
 		// we want to make sure it's aligned
 		// to a 16 byte boundary
-		stack_alloc_amount = align_to(stack_alloc_amount, 16);
+		// stack_alloc_amount = align_to(stack_alloc_amount, 16);
 
-		code.emitt_at(alloc_instr_addr, "subq ${}, %rsp", to!string(stack_alloc_amount));
-		code.emitt("addq ${}, %rsp", to!string(stack_alloc_amount));
+		code.emitt_at(alloc_instr_addr, "subq ${}, %rsp", to!string(call_frame_ctx.size()));
+		code.emitt("addq ${}, %rsp", to!string(call_frame_ctx.size()));
 	}
 
 	void emit_instr(Instruction i) {
 		if (auto alloc = cast(Alloc)i) {
-			auto addr = ctx.back.push_local(alloc.name, alloc.get_type().get_width());
+			auto addr = curr.push_local(alloc.name, alloc.get_type().get_width());
 			logger.Verbose("Emitting local ", to!string(alloc), " at addr ", to!string(addr), "(%rsp)");
 		}
 		else if (auto ret = cast(Return)i) {
@@ -361,7 +408,7 @@ class X64_Generator {
 	}
 
 	void emit_bb(Basic_Block bb) {
-		code.emit("{}:", bb.parent.name ~ "_" ~ bb.name());
+		code.emit("{}:", mangle(bb));
 		foreach (instr; bb.instructions) {
 			emit_instr(instr);
 		}
@@ -384,15 +431,32 @@ class X64_Generator {
 		}
 	}
 
+	void push_block_ctx(Function func) {
+		auto new_ctx = new Block_Context(func);
+		logger.Verbose("Pushing local context for func '", func.name, "'");
+		ctx[mangle(func)] = new_ctx;
+		curr = new_ctx;
+	}
+
 	void generate_func(Function func) {
 		curr_func = func;
 
-		code.emit("{}:", func.name);
+		code.emit("{}:", mangle(func));
 
 		code.emitt("pushq %rbp");
 		code.emitt("movq %rsp, %rbp");
 
-		ctx ~= Block_Context();
+		push_block_ctx(func);
+
+		// push all of the param allocs
+		// into the current block context
+		// we mangle the names to __arg_N
+		// where N is the index of the argument.
+		if (func.params.length >= registers.length) {
+			foreach_reverse (i, arg; func.params[registers.length..$]) {
+				curr.push_local("__arg_" ~ to!string(i), arg.get_type().get_width());
+			}
+		}
 
 		foreach (ref bb; func.blocks) {
 			emit_bb(bb);

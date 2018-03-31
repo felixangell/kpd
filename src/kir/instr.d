@@ -6,6 +6,7 @@ import std.string;
 import std.array : replicate;
 import std.range.primitives;
 
+import kir.ir_mod;
 import kir.cfg;
 import ast;
 import krug_module : Token;
@@ -32,6 +33,19 @@ static this() {
 interface Instruction {
 	Kir_Type get_type();
 
+	// TODO do we need this on _Every_
+	// instruction? probably not, later
+	// look at cases where this is necessary
+	// and change accordingly. I feel like
+	// this should only be necessary on
+	// functions for now, but...
+
+	// user annotations i.e.
+	// #{no_mangle}
+	Attribute[string] get_attributes();
+	void set_attributes(Attribute[string] a);
+	bool has_attribute(string s);
+
 	void set_code(string s);
 	string get_code();
 }
@@ -40,62 +54,21 @@ interface Value {
 	Kir_Type get_type();
 }
 
-struct DomInfo {
-	Basic_Block idom;
-	Basic_Block[] children;
-	int pre, post;
-}
-
-class Basic_Block {
-	ulong id;
-	
-	uint index = 0;
-	DomInfo dom;
-
-	string namespace = "";
-
-	Instruction[] instructions;
-	Function parent;
-
-	this(Function parent) {
-		this.parent = parent;
-		this.id = parent.blocks.length;
-	}
-
-	// todo dlang get thingy?
-	string name() {
-		return "_bb" ~ to!string(id) ~ namespace;
-	}
-
-	Instruction last_instr() {
-		if (instructions.length == 0) {
-			return new NOP;
-		}
-		return instructions.back;
-	}
-
-	void dump() {
-		writeln(name(), ":");
-		foreach (instr; instructions) {
-			auto code_sample = instr.get_code();
-			if (code_sample != "") {
-				code_sample = "; " ~ code_sample;
-			}
-
-			string ir_code = to!string(instr).strip();
-			writefln("   %-80s%-80s", ir_code, code_sample);
-		}
-	}
-
-	Instruction add_instr(Instruction instr) {
-		instructions ~= instr;
-		return instr;
-	}
-}
-
 class Basic_Instruction : Instruction {
 	protected Kir_Type type;
 	protected string code;
+	protected Attribute[string] dirs;
+
+	void set_attributes(Attribute[string] dirs) {
+		this.dirs = dirs;
+	}
+	Attribute[string] get_attributes() {
+		return dirs;
+	}
+
+	bool has_attribute(string name) {
+		return (name in dirs) !is null;
+	}
 
 	this(Kir_Type type) {
 		this.type = type;
@@ -131,6 +104,59 @@ class Basic_Value : Value {
 
 	Kir_Type get_type() {
 		return type;
+	}
+}
+
+struct DomInfo {
+	Basic_Block idom;
+	Basic_Block[] children;
+	int pre, post;
+}
+
+class Basic_Block {
+	ulong id;
+	
+	uint index = 0;
+	DomInfo dom;
+
+	string namespace = "";
+
+	Instruction[] instructions;
+	Function parent;
+
+	this(Function parent) {
+		this.parent = parent;
+		this.id = parent.blocks.length;
+	}
+
+	// todo dlang get thingy?
+	string name() {
+		return "bb" ~ to!string(id) ~ namespace;
+	}
+
+	Instruction last_instr() {
+		if (instructions.length == 0) {
+			return new NOP;
+		}
+		return instructions.back;
+	}
+
+	void dump() {
+		writeln(name(), ":");
+		foreach (instr; instructions) {
+			auto code_sample = instr.get_code();
+			if (code_sample != "") {
+				code_sample = "; " ~ code_sample;
+			}
+
+			string ir_code = to!string(instr).strip();
+			writefln("   %-80s%-80s", ir_code, code_sample);
+		}
+	}
+
+	Instruction add_instr(Instruction instr) {
+		instructions ~= instr;
+		return instr;
 	}
 }
 
@@ -219,15 +245,24 @@ class Constant : Basic_Value {
 	}
 }
 
-class Function {
+class Function : Basic_Instruction {
+	Kir_Module parent_mod;
+
 	string name;
 	Alloc[] locals;
+	Alloc[] params;
 	
 	Control_Flow_Graph graph;
 
 	Basic_Block[] blocks;
 
 	Basic_Block curr_block;
+
+	this(string name, Kir_Type return_type, Kir_Module parent) {
+		super(return_type);
+		this.name = name;
+		this.parent_mod = parent;
+	}
 
 	Basic_Block push_block(string namespace = "") {
 		auto block = new Basic_Block(this);
@@ -247,6 +282,9 @@ class Function {
 	}
 
 	Instruction last_instr() {
+		if (curr_block is null || curr_block.instructions.length == 0) {
+			return new NOP;
+		}
 		return curr_block.instructions.back;
 	}
 

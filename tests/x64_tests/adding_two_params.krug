@@ -1,0 +1,10 @@
+func printf();
+
+func add(a s64, b s64, c s64, d s64, e s64, f s64, g s64, h s64) s64 {
+	return g + h;
+}
+
+func main() {
+	add(0, 0, 0, 0, 0, 0, 5, 10);
+	printf(c"hello, world %d", 32);
+}
