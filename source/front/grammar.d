@@ -2,25 +2,23 @@ module grammar;
 
 import std.string;
 import std.uni;
-import containers.hashset;
-import containers.hashmap;
 
-static HashSet!string EXPRESSION_KEYWORDS;
-static HashSet!string BINARY_OPERATORS;
-static HashSet!string RELATIONAL_OPERATORS;
-static HashSet!string ADD_OPERATORS;
-static HashSet!string MUL_OPERATORS;
-static HashSet!string UNARY_OPERATORS;
-static HashSet!string SYMBOLS;
-static HashSet!string KEYWORDS;
+static bool[string] EXPRESSION_KEYWORDS;
+static bool[string] BINARY_OPERATORS;
+static bool[string] RELATIONAL_OPERATORS;
+static bool[string] ADD_OPERATORS;
+static bool[string] MUL_OPERATORS;
+static bool[string] UNARY_OPERATORS;
+static bool[string] SYMBOLS;
+static bool[string] KEYWORDS;
 
-static HashMap!(string, uint) OPERATOR_PRECEDENCE;
+static uint[string] OPERATOR_PRECEDENCE;
 
 // ???
 template populate_hash_set(T) {
 	void insert(HashSet, T...)(ref HashSet set, T values) {
 		foreach (val; values) {
-			set.insert(val);
+			set[val] = true;
 		}
 	}
 }
@@ -93,7 +91,7 @@ static this() {
 }
 
 static int get_op_prec(string s) {
-	if (s in OPERATOR_PRECEDENCE) {
+	if ((s in OPERATOR_PRECEDENCE) !is null) {
 		return OPERATOR_PRECEDENCE[s];
 	}
 	// TODO:?
@@ -101,24 +99,24 @@ static int get_op_prec(string s) {
 }
 
 static bool is_binary_op(string s) {
-	return BINARY_OPERATORS.contains(s) || is_rel_op(s) || is_add_op(s) || is_mul_op(
+	return (s in BINARY_OPERATORS) !is null || is_rel_op(s) || is_add_op(s) || is_mul_op(
 			s);
 }
 
 static bool is_rel_op(string s) {
-	return RELATIONAL_OPERATORS.contains(s);
+	return (s in RELATIONAL_OPERATORS) !is null;
 }
 
 static bool is_add_op(string s) {
-	return ADD_OPERATORS.contains(s);
+	return (s in ADD_OPERATORS) !is null;
 }
 
 static bool is_mul_op(string s) {
-	return MUL_OPERATORS.contains(s);
+	return (s in MUL_OPERATORS) !is null;
 }
 
 static bool is_unary_op(string s) {
-	return UNARY_OPERATORS.contains(s);
+	return (s in UNARY_OPERATORS) !is null;
 }
 
 auto is_identifier = (dchar c) => isAlpha(c) || isNumber(c) || c == '_';

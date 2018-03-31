@@ -8,7 +8,6 @@ import std.file;
 import std.path;
 import std.string : lastIndexOf;
 
-import containers.hashset;
 import lex.lexer;
 import parse.load_directive_parser;
 import ast;
@@ -87,7 +86,7 @@ struct Krug_Project {
 
 		graph.register_module(mod);
 
-		foreach (ref file; mod.file_cache) {
+		foreach (ref file; mod.file_cache.byKey) {
 			if (!file.endsWith(".krug")) {
 				continue;
 			}

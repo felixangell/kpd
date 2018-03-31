@@ -10,23 +10,11 @@ import compilation_phase;
 import ast;
 import keyword;
 
-import containers.hashset;
 import logger;
 import colour;
 import sema.type : PRIMITIVE_TYPES;
 
 static Token EOF_TOKEN;
-
-// ???
-// this is copied twice and can probably
-// be removed.
-template populate_hash_set(T) {
-	void insert(HashSet, T...)(ref HashSet set, T values) {
-		foreach (val; values) {
-			set.insert(val);
-		}
-	}
-}
 
 static this() {
 	EOF_TOKEN = new Token("<EOF>", Token_Type.EOF);

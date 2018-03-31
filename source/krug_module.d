@@ -7,7 +7,6 @@ import std.conv;
 import std.path;
 import std.string;
 
-import containers.hashset;
 import ast;
 import sema.symbol;
 
@@ -85,7 +84,7 @@ alias Token_Stream = Token[];
 // module is like a SOA for sub modules
 class Module {
 	string path, name;
-	HashSet!string file_cache;
+	bool[string] file_cache;
 
 	// this looks messy but modules are
 	// structured as SOA
@@ -129,7 +128,7 @@ class Module {
 
 		// check that the sub-module exists, it's
 		// easier to append the krug extension on at this point
-		return file_cache.contains(name ~ ".krug");
+		return *((name ~ ".krug") in file_cache);
 	}
 
 	Source_File load_source_file(string name) {
@@ -143,11 +142,11 @@ class Module {
 }
 
 // lists file and directories
-HashSet!string list_dir(string pathname) {
-	HashSet!string dirs = HashSet!string();
+bool[string] list_dir(string pathname) {
+	bool[string] dirs;
 	foreach (file; std.file.dirEntries(pathname, SpanMode.shallow)) {
 		if (file.isFile || file.isDir) {
-			dirs.insert(std.path.baseName(file.name));
+			dirs[std.path.baseName(file.name)] = true;
 		}
 	}
 	return dirs;

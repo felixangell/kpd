@@ -5,7 +5,6 @@ import std.range.primitives : popBack, back;
 
 import krug_module;
 import dependency_scanner;
-import containers : HashSet;
 
 // uses tarjans algorithm to get the strongly
 // connected components in our dependency graph.
@@ -14,7 +13,7 @@ alias SCC = Module[];
 
 struct Tarjan {
 	Module[] visited;
-	HashSet!string stack;
+	bool[string] stack;
 	int index = 0;
 }
 
@@ -41,7 +40,7 @@ SCC strong_connect(ref Tarjan t, Module m) {
 	t.index += 1;
 
 	t.visited ~= m;
-	t.stack.put(m.path);
+	t.stack[m.path] = true;
 
 	Module[string] neighbours = m.edges;
 	if (neighbours !is null) {
@@ -51,7 +50,7 @@ SCC strong_connect(ref Tarjan t, Module m) {
 				t.strong_connect(n);
 				m.low_link = min(m.low_link, n.low_link);
 			}
-			else if (t.stack.contains(n.path)) {
+			else if (*(n.path in t.stack)) {
 				m.low_link = min(m.low_link, n.index);
 			}
 		}
