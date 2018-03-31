@@ -231,6 +231,28 @@ struct Type_Inferrer {
 		assert(0);
 	}
 
+	// NOTE: we set the type to a prim_type("void")
+	// if it is null, i.e. specifying a type after
+	// the function is optional during parsing as
+	// we assume it is void. THIS part of the compiler
+	// is where we actually set it to be void!
+	Type analyze_func(ast.Function_Node node, Type_Variable[string] generics) {
+		Type ret_type = prim_type("void");
+		if (node.return_type !is null) {
+			ret_type = analyze(node.return_type, e, generics);
+		}
+
+		Type[] args;
+
+		// TODO function receiver.
+		foreach (i, param; node.params) {
+			auto param_type = analyze(param.type, e, generics);
+			args ~= param_type;
+		}
+
+		return new Function(ret_type, args);
+	}
+
 	Type analyze_variable(Variable_Statement_Node node, Type_Variable[string] generics) {
 		if (node.type !is null) {
 			// resolve the type we're given.
@@ -252,7 +274,12 @@ struct Type_Inferrer {
 	Type analyze(ast.Node node, Type_Environment e, Type_Variable[string] generics) {
 		this.e = e;
 
-		if (auto prim = cast(Primitive_Type_Node) node) {
+		// TODO analyzing function _TYPE_ nodes.
+
+		if (auto func = cast(Function_Node) node) {
+			return analyze_func(func, generics);
+		}
+		else if (auto prim = cast(Primitive_Type_Node) node) {
 			return analyze_primitive(prim, generics);
 		}
 		else if (auto var = cast(Variable_Statement_Node) node) {

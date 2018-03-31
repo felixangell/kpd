@@ -5,7 +5,7 @@
 
 func printf();
 func foo() {
-	
+		
 }
 
 func main() {

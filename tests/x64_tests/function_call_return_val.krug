@@ -1,0 +1,11 @@
+func min(a s32, b s32) s32 {
+	if a > b {
+		return a;
+	}
+	return b;
+}
+
+func main() {
+	let g = min(5, 6);
+	return g;
+}
