@@ -1,4 +1,4 @@
-D_FLAGS := -cache=krug_cache/ -dip1000 -march=x86-64 -d-debug -g -w -c
+D_FLAGS := -cache=krug_cache/ -dip1000 -march=x86-64 -d-debug -g -w
 D_COMPILER := ldc2
 D_SOURCES := $(shell find src -type f -name '*.d')
 D_OBJ_FILES := $(patsubst %.d,%.o,$(D_SOURCES))
@@ -22,7 +22,7 @@ $(VM_OUT): $(VM_CC_OBJ_FILES)
 	ar -cvq $(VM_OUT) $(VM_CC_OBJ_FILES)
 
 $(KRUG_OUT): $(VM_OUT) $(D_SOURCES)
-	$(D_COMPILER) $(D_FLAGS) -of$(KRUG_OUT) $(LD_FLAGS) $(D_SOURCES)
+	$(D_COMPILER) -of$@ $(D_FLAGS) $(LD_FLAGS) $(D_SOURCES)
 	
 clean:
 	-rm $(VM_CC_OBJ_FILES)
