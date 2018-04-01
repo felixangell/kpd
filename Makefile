@@ -1,4 +1,4 @@
-D_FLAGS := -dip1000 -march=x86-64 -d-debug -g -w -c
+D_FLAGS := -cache=krug_cache/ -dip1000 -march=x86-64 -d-debug -g -w -c
 D_COMPILER := ldc2
 D_SOURCES := $(shell find src -type f -name '*.d')
 D_OBJ_FILES := $(patsubst %.d,%.o,$(D_SOURCES))
