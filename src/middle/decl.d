@@ -161,17 +161,18 @@ class Declaration_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 			return;
 		}
 
-		visit_block(node.func_body, delegate() {
+		visit_block(node.func_body, delegate(Symbol_Table curr_stab) {
 			// introduce recv (if applicable) into func body symbol table
 			if (node.func_recv !is null) {
-				curr_sym_table.register_sym(new Symbol(node.func_recv, node.func_recv.twine.lexeme));
+				curr_stab.register_sym(new Symbol(node.func_recv, node.func_recv.twine.lexeme));
 			}
 
 			// introduce parameters into function body symbol table
 			foreach (param; node.params) {
-				auto conflicting_param = curr_sym_table.register_sym(new Symbol(param, param.twine));
+				auto conflicting_param = curr_stab.register_sym(new Symbol(param, param.twine));
 				if (conflicting_param) {
 					Diagnostic_Engine.throw_error(SYMBOL_CONFLICT, param.twine, conflicting_param.tok);
+					continue;
 				}
 			}
 		});

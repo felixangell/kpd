@@ -53,9 +53,16 @@ class Type_Infer_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 	override void analyze_function_node(ast.Function_Node node) {
 		// some functions have no body!
 		// these are prototype functions
-		if (node.func_body !is null) {
-			visit_block(node.func_body);
+		if (node.func_body is null) {
+			return;
 		}
+
+		visit_block(node.func_body, delegate(Symbol_Table stab) {
+			foreach (p; node.params) {
+				auto p_type = inferrer.analyze(p.type, stab.env);
+				stab.env.register_type(p.twine.lexeme, p_type);	
+			}
+		});
 	}
 
 	override void visit_stat(ast.Statement_Node stat) {
@@ -79,7 +86,6 @@ class Type_Infer_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 			return;
 		}
 
-		// current = mod.scopes[sub_mod_name];
 		curr_sym_table = mod.sym_tables[sub_mod_name];
 
 		auto ast = mod.as_trees[sub_mod_name];

@@ -221,6 +221,9 @@ class Kir_Builder : Top_Level_Node_Visitor {
 			// unified from type inference
 			return get_type(bin.left);
 		}
+		else if (auto param = cast(Function_Parameter) t) {
+			return get_type(param.type);
+		}
 
 		logger.Error("Leaking unresolved type:\n\t", to!string(t), "\n\t", to!string(typeid(t)));
 

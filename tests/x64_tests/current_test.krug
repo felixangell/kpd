@@ -1,0 +1,61 @@
+#{c_func}
+func printf();
+
+// felix's todo list
+// - structures
+// - pointers
+// - arrays
+// - array indexing
+// - tuples
+// - destructuring
+// - match
+// - function calls
+// - address of
+// - de-reference
+// - for loops
+// - while loops
+// - len builtin
+// - sizeof builtin
+// - traits
+// - generics
+// - type checking
+//   - function call (arguments match, length, variadic?)
+//	 - binary operators
+//   - unary operators
+//   - if statement is boolean expr
+//   - while loop condition is boolean expr
+//   - for condition is boolean
+//   - return type
+//   - array indexing
+
+func and(a bool, b bool) bool {
+	let z = a;
+	return a && b;
+}
+
+func main() {
+	let g = and(true, true);
+}
+
+/*
+func add(a s32, b s32) s32 {
+	return a + b;
+}
+
+func main() {
+	let a = 3;
+	if a == 3 {
+		a = 4;
+	}
+	a = 3;
+
+	while a != 0 {
+		a = a - 1;
+	}
+
+	let g = add(1, 2);
+
+	printf(c"a is %d\n", a);
+	printf(c"g is %d\n", g);
+}
+*/

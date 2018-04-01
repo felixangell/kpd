@@ -32,7 +32,12 @@ class Top_Level_Node_Visitor : AST_Visitor {
 		return old;
 	}
 
-	void visit_block(ast.Block_Node block, void delegate() stuff = null) {
+	// stuff
+	// TODO rename stuff to something better
+	// the stuff delegate will run _Before_ we leave
+	// the symbol table, as well as _Before_ we visit
+	// any of the block statements.
+	void visit_block(ast.Block_Node block, void delegate(Symbol_Table curr_stab) stuff = null) {
 		// this should ONLY happen on the first pass...
 		// maybe have a check to throw an error if 
 		// this occurs after the decl pass.
@@ -45,9 +50,16 @@ class Top_Level_Node_Visitor : AST_Visitor {
 		foreach (entry; block.sym_table.symbols.byKeyValue()) {
 			logger.Verbose("- ", entry.key);
 		}
+		foreach (entry; block.sym_table.env.data.byKeyValue()) {
+			logger.Verbose("* ", entry.key);
+		}
 		logger.Verbose("");
 
 		curr_sym_table = block.sym_table;
+
+		if (stuff !is null) {
+			stuff(curr_sym_table);
+		}
 
 		foreach (stat; block.statements) {
 			if (stat is null) {
@@ -62,10 +74,6 @@ class Top_Level_Node_Visitor : AST_Visitor {
 			else {
 				visit_stat(stat);
 			}
-		}
-
-		if (stuff !is null) {
-			stuff();
 		}
 
 		leave_sym_table();
