@@ -9,7 +9,7 @@ import ast;
 import diag.engine;
 import compiler_error;
 
-import sema.analyzer : Semantic_Pass;
+import sema.analyzer;
 import sema.infer : Type_Environment;
 import sema.symbol;
 import sema.visitor;
@@ -64,7 +64,7 @@ class Declaration_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 			visit_block(if_stat.block);
 		}
 		else {
-			logger.Warn("decl: Unhandled statement " ~ to!string(stat));
+			this.log(Log_Level.Warning, "decl: Unhandled statement " ~ to!string(stat));
 		}
 	}
 
@@ -120,7 +120,7 @@ class Declaration_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 			return mangle_word("ptr") ~ "_" ~ mangle_type(ptr.base_type);
 		}
 
-		logger.Verbose("mangle_type: unhandled type node ", to!string(t));
+		this.log(Log_Level.Verbose, "mangle_type: unhandled type node ", to!string(t));
 		assert(0);
 	}
 
@@ -196,7 +196,7 @@ class Declaration_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 		assert(mod !is null);
 
 		if (sub_mod_name !in mod.as_trees) {
-			logger.Error("couldn't find the AST for " ~ sub_mod_name ~ " in module " ~ mod.name ~ " ...");
+			this.log(Log_Level.Error, "couldn't find the AST for " ~ sub_mod_name ~ " in module " ~ mod.name ~ " ...");
 			return;
 		}
 

@@ -6,7 +6,7 @@ import std.stdio;
 import logger;
 import ast;
 import sema.visitor;
-import sema.analyzer : Semantic_Pass;
+import sema.analyzer;
 import sema.symbol;
 import diag.engine;
 import sema.type;
@@ -50,14 +50,14 @@ class Name_Resolve_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 		for (Symbol_Table s = t; s !is null; s = s.outer) {
 
 			static if (NAME_RESOLVE_DEBUG) {
-				logger.Verbose("LOOKING FOR ", name, " in:");
+				this.log(Log_Level.Verbose, "LOOKING FOR ", name, " in:");
 				s.dump_values();
 			}
 
 			if (name in s.symbols) {
 				auto val = s.symbols[name];
 				static if (NAME_RESOLVE_DEBUG) {
-					logger.Verbose("LOCATED SYMBOL ", name, " . ", to!string(val));
+					this.log(Log_Level.Verbose, "LOCATED SYMBOL ", name, " . ", to!string(val));
 				}
 				return val;
 			}
@@ -128,13 +128,13 @@ class Name_Resolve_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 			return resolve_type(ptr.base_type);
 		}
 
-		logger.Verbose("unhandled type node ", to!string(t));
+		this.log(Log_Level.Error, "unhandled type node ", to!string(t));
 		return null;
 	}
 
 	Symbol_Table resolve_via(Symbol_Value s) {
 		if (s.reference is null) {
-			logger.Verbose("Symbol '", to!string(s), "' has no reference to an AST node, can't resolve it to a symbol table!");
+			this.log(Log_Level.Error, "Symbol '", to!string(s), "' has no reference to an AST node, can't resolve it to a symbol table!");
 			return null;
 		}
 
@@ -248,7 +248,7 @@ class Name_Resolve_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 			// NOOP
 		}
 		else {
-			logger.Warn("name_resolve: unhandled node " ~ to!string(expr));
+			this.log(Log_Level.Error, "name_resolve: unhandled node " ~ to!string(expr));
 		}
 	}
 
@@ -304,7 +304,7 @@ class Name_Resolve_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 			}
 		}
 		else {
-			logger.Warn("name_resolve: unhandled statement " ~ to!string(stat));
+			this.log(Log_Level.Error, "unhandled statement " ~ to!string(stat));
 		}
 	}
 
@@ -313,7 +313,7 @@ class Name_Resolve_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 		this.mod = mod;
 
 		if (sub_mod_name !in mod.as_trees) {
-			logger.Error("couldn't find the AST for " ~ sub_mod_name ~
+			this.log(Log_Level.Error, "couldn't find the AST for " ~ sub_mod_name ~
 					" in module " ~ mod.name ~ " ...");
 			return;
 		}

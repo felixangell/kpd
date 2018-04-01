@@ -6,7 +6,7 @@ import std.stdio;
 import logger;
 import ast;
 import sema.visitor;
-import sema.analyzer : Semantic_Pass;
+import sema.analyzer;
 import sema.symbol;
 import diag.engine;
 import sema.type;
@@ -43,7 +43,7 @@ class Type_Infer_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 		curr_sym_table.env.register_type(var.twine.lexeme, inferred_type);
 
 		var.type = new Resolved_Type(var.type, inferred_type);
-		logger.Verbose("-- (", to!string(var), ") : ", to!string(inferred_type));
+		this.log(Log_Level.Verbose, "-- (", to!string(var), ") : ", to!string(inferred_type));
 	}
 
 	void analyze_while_loop(ast.While_Statement_Node loop) {
@@ -73,7 +73,7 @@ class Type_Infer_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 			analyze_while_loop(loop);
 		}
 		else {
-			logger.Fatal("type_infer: unhandled statement " ~ to!string(stat));
+			this.log(Log_Level.Error, "type_infer: unhandled statement " ~ to!string(stat));
 		}
 	}
 
@@ -82,7 +82,7 @@ class Type_Infer_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 		this.mod = mod;
 
 		if (sub_mod_name !in mod.as_trees) {
-			logger.Error("couldn't find the AST for " ~ sub_mod_name ~ " in module " ~ mod.name ~ " ...");
+			this.log(Log_Level.Error, "couldn't find the AST for " ~ sub_mod_name ~ " in module " ~ mod.name ~ " ...");
 			return;
 		}
 

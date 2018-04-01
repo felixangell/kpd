@@ -44,7 +44,7 @@ class Top_Level_Type_Decl_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 		this.mod = mod;
 
 		if (sub_mod_name !in mod.as_trees) {
-			logger.Error("couldn't find the AST for " ~ sub_mod_name ~ " in module " ~ mod.name ~ " ...");
+			this.log(Log_Level.Error, "couldn't find the AST for " ~ sub_mod_name ~ " in module " ~ mod.name ~ " ...");
 			return;
 		}
 
