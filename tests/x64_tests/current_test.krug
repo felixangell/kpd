@@ -33,9 +33,22 @@ func and(a bool, b bool) bool {
 	return a && b;
 }
 
-func main() {
-	let g = and(true, true);
+func min(a s32, b s32) s32 {
+    if a < b {
+        return a;
+    }
+    return b;
 }
+
+func main() {
+    let smaller = 3;
+    let larger = 33;
+    let c = min(larger, smaller);
+    return c;
+}
+
+/// .stdout
+/// 3
 
 /*
 func add(a s32, b s32) s32 {

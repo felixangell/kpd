@@ -110,14 +110,14 @@ class X64_Generator {
 		else if (auto r = cast(Identifier) v) {
 			// first check if this is a param
 			auto index = curr.parent.params.countUntil!("a.name == b")(r.name);
-			if (index != -1) {
+			if (index != -1 && index >= registers.length) {
 				// VERY IMPORTANT NOTE:
 				// we have to offset the index by 
 				// the registers
 				// because we only store arguments after
 				// len(registers) in the locals
 				// because normally
-				// we look up args(i) where i < 6 
+				// we look up args(i) where i > 6 
 				// by registers[i]!
 				auto arg_index = index - registers.length;
 				auto addr = curr.get_addr("__arg_" ~ to!string(arg_index));

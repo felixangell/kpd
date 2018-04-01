@@ -169,7 +169,7 @@ class Kir_Builder : Top_Level_Node_Visitor {
 		if (sym.resolved_symbol is null) {
 			logger.Fatal("Unresolved symbol node leaking! ", to!string(sym));
 			return VOID_TYPE;
-		}		
+		}
 
 		if (auto sym_val = cast(Symbol_Value) sym.resolved_symbol) {
 			return get_type(sym_val.reference);

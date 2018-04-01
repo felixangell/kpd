@@ -29,7 +29,7 @@ import colour;
 class Type_Environment {
 	Type_Environment parent;
 
-	this(Type_Environment parent) {
+	this(Type_Environment parent = null) {
 		this.parent = parent;
 
 		// an optimisation.. we store all of the 
@@ -42,10 +42,6 @@ class Type_Environment {
 		// a boolean type!
 		register_type("true", prim_type("bool"));
 		register_type("false", prim_type("bool"));
-	}
-
-	this() {
-		this(null);
 	}
 
 	Type[string] data;
@@ -66,7 +62,10 @@ class Type_Environment {
 	// or add -> [int, int] : int
 	void register_type(string key, Type t) {
 		logger.Verbose("Registering type ", key, " : ", to!string(t));
-		assert(key !in data);
+		if ((key in data)) {
+			logger.Verbose("Type ", key, " has already been registered!?");
+			assert(0);
+		}
 		data[key] = t;
 	}
 }

@@ -276,6 +276,10 @@ class Name_Resolve_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 
 	void analyze_call(ast.Call_Node call) {
 		analyze_expr(call.left);
+		
+		foreach (a; call.args) {
+			analyze_expr(a);
+		}
 	}
 
 	override void visit_stat(ast.Statement_Node stat) {
