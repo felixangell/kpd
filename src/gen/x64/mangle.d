@@ -62,6 +62,10 @@ string mangle(Alloc[] allocs...) {
 	return result;
 }
 
+string mangle(Label l) {
+	return mangle(l.reference);
+}
+
 // M(module) + M(submodule) + M(func_name) + M(func_args...)
 string mangle(Function f) {
 	// even though this will probably have the

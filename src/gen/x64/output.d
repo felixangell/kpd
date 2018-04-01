@@ -2,11 +2,14 @@ module gen.x64.output;
 
 import std.stdio;
 import std.conv;
+import std.array : replicate;
 
 import logger;
 import gen.backend;
 import kt;
 import kir.instr;
+
+enum TAB_SIZE = 4;
 
 class X64_Code : Generated_Output {
 	string[] _assembly_code;
@@ -43,7 +46,7 @@ class X64_Code : Generated_Output {
 
 	void emitt_at(uint index, string fmt, string[] s...) {
 		resize();
-		_assembly_code[index] = '\t' ~ sfmt(fmt, s);
+		_assembly_code[index] = replicate(" ", TAB_SIZE) ~ sfmt(fmt, s);
 	}
 
 	uint emitt(string fmt, string[] s...) {

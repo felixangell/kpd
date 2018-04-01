@@ -267,20 +267,17 @@ class X64_Generator {
 	}
 
 	void emit_if(If iff) {
-		string parent_name = curr_func.name ~ "_";
-
 		// emit the condition and 
 		// check if it's true
 		string condish = get_val(iff.condition);
 		code.emitt("cmpb $1, {}", condish);
 
-		code.emitt("je {}", parent_name ~ iff.a.name);
-		code.emitt("jmp {}", parent_name ~ iff.b.name);
+		code.emitt("je {}", mangle(iff.a));
+		code.emitt("jmp {}", mangle(iff.b));
 	}
 
 	void emit_jmp(Jump j) {
-		string parent_name = curr_func.name ~ "_";
-		code.emitt("jmp {}", parent_name ~ j.label.name);
+		code.emitt("jmp {}", mangle(j.label));
 	}
 
 	static string[] registers = [
