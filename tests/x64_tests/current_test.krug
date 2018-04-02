@@ -2,5 +2,13 @@
 func printf() s32;
 
 func main() {
-	printf(c"Hello, World... how are you!\n");
+	let stdout u32 = 32;
+
+	let i = 10;
+	while i != 0 {
+		printf(c"Hello, World... how are you! %d\n", i);
+		i = i - 1;
+	}
+
+	return i;
 }

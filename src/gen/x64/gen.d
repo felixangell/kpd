@@ -427,6 +427,7 @@ class X64_Generator {
 			}
 		}		
 
+		code.emitt("xor %rax, %rax");
 		code.emitt("call {}", call_name);
 	}
 
