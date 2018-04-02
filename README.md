@@ -1,5 +1,6 @@
 # krug
-Krug is a compiled programming language that compiles to x64 assembly.
+Krug is a compiled programming language that compiles to x64 assembly. Currently
+the prime targets are OS X and Linux.
 
 ## how it works
 here's a brief overview of how the compiler works (so far):

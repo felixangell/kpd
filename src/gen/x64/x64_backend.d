@@ -14,6 +14,7 @@ import gen.backend;
 import gen.x64.output;
 import gen.x64.generator;
 import gen.x64.mangler;
+import gen.x64.link;
 
 /*
 	the x64 backend generates x86_64 assembly. 
@@ -89,7 +90,12 @@ class X64_Backend : Code_Generator_Backend {
 			as_files ~= temp_file;
 			temp_file.close();
 
-			writeln(x64_code.assembly_code);
+			foreach (i, line; x64_code._assembly_code) {
+				if (line.length == 0) {
+					continue;
+				}
+				writeln(i, ":    ", line);
+			}
 		}
 
 		string[] obj_file_paths;
@@ -111,31 +117,7 @@ class X64_Backend : Code_Generator_Backend {
 			obj_file_paths ~= obj_file_path;
 		}
 
-		// run the linker!
-
-		string obj_files;
-		foreach (i, obj; obj_file_paths) {
-			if (i > 0) obj_files ~= " ";
-			obj_files ~= obj;
-		}
-
-		string[] link_flags;
-		version (OSX) {
-			link_flags ~= "-macosx_version_min";
-			link_flags ~= "10.16";
-			link_flags ~= "-lsystem";
-			link_flags ~= "-lc";
-		}
-
-		auto linker_args = ["ld"] ~ link_flags ~ [obj_files, "-o", OUT_NAME];
-		writeln("Running linker", linker_args);
-
-		auto ld_pid = execute(linker_args);
-		if (ld_pid.status != 0) {
-			writeln("Linker failed:\n", ld_pid.output);
-		} else {
-			writeln("Linker notes:\n", ld_pid.output);
-		}
+		link_objs(obj_file_paths, OUT_NAME);
 
 		// delete object files and assembly files
 		foreach (as_file; as_files) {

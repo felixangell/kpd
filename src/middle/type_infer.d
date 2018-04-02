@@ -72,6 +72,10 @@ class Type_Infer_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 		auto ret_type = inferrer.analyze(ret.value, curr_sym_table.env);	
 	}
 
+	void analyze_call(ast.Call_Node call) {
+		// TODO
+	}
+
 	override void analyze_function_node(ast.Function_Node node) {
 		// some functions have no body!
 		// these are prototype functions
@@ -99,6 +103,9 @@ class Type_Infer_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 		}
 		else if (auto ret = cast(ast.Return_Statement_Node) stat) {
 			analyze_ret(ret);
+		}
+		else if (auto call = cast(ast.Call_Node) stat) {
+			analyze_call(call);
 		}
 		else {
 			this.log(Log_Level.Error, "unhandled statement " ~ to!string(stat));

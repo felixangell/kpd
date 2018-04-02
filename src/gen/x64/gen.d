@@ -111,8 +111,16 @@ class X64_Generator {
 			// first check if this is a param
 			auto index = curr.parent.params.countUntil!("a.name == b")(r.name);
 			if (index != -1) {
+				auto param = curr.parent.params[index];
 				if (index < registers.length) {
-					return "%" ~ registers[index];
+					// TODO get the type here.
+					// for now just load the 64 bit reg
+					string suff = get_instr_suffix(param.get_type().get_width());
+					string which_reg = "r";
+					if (suff == "l") which_reg = "e";
+					// TOOD
+
+					return "%" ~ which_reg ~ registers[index];
 				}
 
 				// VERY IMPORTANT NOTE:
