@@ -1,98 +1,10 @@
 #{c_func}
 func printf();
 
-// felix's todo list
-// - structures
-// - pointers
-// - arrays
-// - array indexing
-// - tuples
-// - destructuring
-// - match
-// - function calls
-// - address of
-// - de-reference
-// - for loops
-// - while loops
-// - len builtin
-// - sizeof builtin
-// - traits
-// - generics
-// - type checking
-//   - function call (arguments match, length, variadic?)
-//	 - binary operators
-//   - unary operators
-//   - if statement is boolean expr
-//   - while loop condition is boolean expr
-//   - for condition is boolean
-//   - return type
-//   - array indexing
-
-// TYPE CHECK TIME
 func add(a s32, b s32) s32 {
 	return a + b;
 }
 
 func main() {
-	if 1 = 1 {
-
-	}
-
-	if add(3, 2) {
-
-	}
-	if main() {
-
-	}
-	if "string" {
-
-	}
+	add(5, 2);
 }
-
-/*
-func and(a bool, b bool) bool {
-	let z = a;
-	return a && b;
-}
-
-func min(a s32, b s32) s32 {
-    if a < b {
-        return a;
-    }
-    return b;
-}
-
-let global_var = 32;
-
-func main() {
-    let j = global_var - global_var;
-    while j != global_var {
-        j = j + 1;
-    }
-    return j;
-}
-
-/// .stdout
-/// 3
-
-func add(a s32, b s32) s32 {
-	return a + b;
-}
-
-func main() {
-	let a = 3;
-	if a == 3 {
-		a = 4;
-	}
-	a = 3;
-
-	while a != 0 {
-		a = a - 1;
-	}
-
-	let g = add(1, 2);
-
-	printf(c"a is %d\n", a);
-	printf(c"g is %d\n", g);
-}
-*/

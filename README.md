@@ -7,7 +7,7 @@ here's a brief overview of how the compiler works (so far):
 - krug lexes and half parses the main.krug file passed in;
 - then the load directives are parsed, the compiler builds a 
   dependency graph for the entire program based on what the main
-  file loads;
+  file loads
 - the dependency graph is checked to ensure it is acyclic
 - the graph is then sorted to make resolution easier (i.e. ordered
   such that all symbols should be known when encountered)
@@ -20,13 +20,14 @@ here's a brief overview of how the compiler works (so far):
   * types are then inferred
 - then these trees are translated into "Krug IR" or KIR;
   * (TODO) make this an SSA based IR
-- (TODO) KIR can then be translated into bytecode for the krugvm
-- (TODO) or into x86_64 assembly?
-- bytecode -> asm? (probably not the bytecode is stack based so
-  this would be quite bad assembly)
-
-As for what happens with KIR, I'm not quite sure. Right now it's looking
-like it will mostly translate into bytecode for the krug vm.
+  * optimisation passes (hand in hand w SSA)
+- (1: run command) the compiler can generate bytecode from the krug IR
+  for the krug virtual machine which is then executed straight
+  after.
+- **(2: build command)** the compiler generates x64 assembly from the krug
+  ir. this is then assembled into object files and linked together.
+  _note: this is the current focus is getting a feature complete x64
+  code generator_
 
 ## try it out
 Nothing is in working order, but some tests might run!

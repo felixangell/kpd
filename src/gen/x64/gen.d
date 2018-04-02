@@ -110,7 +110,11 @@ class X64_Generator {
 		else if (auto r = cast(Identifier) v) {
 			// first check if this is a param
 			auto index = curr.parent.params.countUntil!("a.name == b")(r.name);
-			if (index != -1 && index >= registers.length) {
+			if (index != -1) {
+				if (index < registers.length) {
+					return "%" ~ registers[index];
+				}
+
 				// VERY IMPORTANT NOTE:
 				// we have to offset the index by 
 				// the registers

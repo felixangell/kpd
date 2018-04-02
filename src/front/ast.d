@@ -9,6 +9,7 @@ import diag.engine;
 
 import logger;
 import colour;
+import kt;
 import sema.type : Type;
 import sema.symbol;
 import krug_module;
@@ -16,8 +17,7 @@ import krug_module;
 // binding of an expression to a token
 alias Binding = Tuple!(Token, "twine", Expression_Node, "value");
 
-interface Semicolon_Stat {
-}
+interface Semicolon_Stat {}
 
 alias AST = ast.Node[];
 

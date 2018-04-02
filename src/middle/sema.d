@@ -26,7 +26,12 @@ Semantic_Pass[] passes = [
 	// declare the types in the top level.
 	new Top_Level_Type_Decl_Pass,
 
+	// infer the types
+	// some simple type checks are
+	// done here..!
 	new Type_Infer_Pass,
+
+	// type checking!
 ];
 
 void log(Semantic_Pass pass, Log_Level level, string[] msg...) {

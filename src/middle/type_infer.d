@@ -14,6 +14,17 @@ import sema.infer;
 import krug_module;
 import compiler_error;
 
+// quick hack for 
+// simple type comparisons
+private bool cmp_type(Type t, string name) {
+	if (auto to = cast(Type_Operator) t) {
+		if (to.types.length == 0 && t.name == name) {
+			return true;
+		}
+	}
+	return false;
+}
+
 class Type_Infer_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 	Module mod;
 	Type_Inferrer inferrer;
@@ -47,7 +58,18 @@ class Type_Infer_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 	}
 
 	void analyze_while_loop(ast.While_Statement_Node loop) {
-		auto infer = inferrer.analyze(loop.condition, curr_sym_table.env);
+		auto while_type = inferrer.analyze(loop.condition, curr_sym_table.env);
+	}
+
+	void analyze_iff(ast.If_Statement_Node iff) {
+		auto if_type = inferrer.analyze(iff.condition, curr_sym_table.env);
+	}
+
+	void analyze_ret(ast.Return_Statement_Node ret) {
+		if (ret.value is null) {
+			return;
+		}
+		auto ret_type = inferrer.analyze(ret.value, curr_sym_table.env);	
 	}
 
 	override void analyze_function_node(ast.Function_Node node) {
@@ -72,8 +94,14 @@ class Type_Infer_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 		else if (auto loop = cast(ast.While_Statement_Node) stat) {
 			analyze_while_loop(loop);
 		}
+		else if (auto iff = cast(ast.If_Statement_Node) stat) {
+			analyze_iff(iff);
+		}
+		else if (auto ret = cast(ast.Return_Statement_Node) stat) {
+			analyze_ret(ret);
+		}
 		else {
-			this.log(Log_Level.Error, "type_infer: unhandled statement " ~ to!string(stat));
+			this.log(Log_Level.Error, "unhandled statement " ~ to!string(stat));
 		}
 	}
 
