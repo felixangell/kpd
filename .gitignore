@@ -15,6 +15,7 @@ krug.dll
 krug.a
 krug.lib
 krug-test-*
+main
 *.exe
 *.o
 *.obj
