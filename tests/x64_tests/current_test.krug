@@ -2,22 +2,5 @@
 func printf() s32;
 
 func main() {
-	let stdout u32 = 32;
-
-	let i = 10;
-	while i != 0 {
-		if i == 3 {
-			printf(c"It's three!\n");
-			i = i - 1;
-			next;
-		}
-
-		printf(c"Hello, World... how are you! %d\n", i);
-		if i > 5 {
-			printf(c"Woah no way %d!\n", i);
-		}
-		i = i - 1;
-	}
-
-	return i;
+	let i [s32; 100];
 }

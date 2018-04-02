@@ -138,6 +138,7 @@ void unify(Type a, Type b) {
 		else if (auto opb = cast(Type_Operator) pb) {
 			if (cmp(opa.name, opb.name) || opa.types.length != opb.types.length) {
 				logger.Error("Type mismatch between types ", to!string(a), " and ", to!string(b));
+				assert(0);
 			}
 
 			foreach (idx, t; opa.types) {
@@ -205,6 +206,17 @@ struct Type_Inferrer {
 
 		logger.Error("unhandled symbol lookup ", sym_name);
 		return null;
+	}
+
+	Type analyze_cast(Cast_Expression_Node c, Type_Variable[string] generics) {
+		Type t = analyze(c.type, e, generics);
+		Type val = analyze(c.left, e, generics);
+		// TODO
+		// check if we can cast from val -> t
+		// throw errors etc...
+		// or we should maybe do this later in type checks?
+		// also we nee a way to get around this if we wanted to
+		return t;
 	}
 
 	// TODO this needs to be done properly...
@@ -317,7 +329,7 @@ struct Type_Inferrer {
 			return analyze(unary.value, e, generics);
 		}
 		else if (auto cast_expr = cast(ast.Cast_Expression_Node) node) {
-			return analyze(cast_expr.left, e, generics);
+			return analyze_cast(cast_expr, generics);
 		}
 		else if (auto call = cast(ast.Call_Node) node) {
 			return analyze_call(call, generics);

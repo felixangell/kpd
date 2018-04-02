@@ -377,8 +377,19 @@ class Parser : Compilation_Phase {
 			logger.Error(peek(), "expected type in array type: ");
 			recovery_skip("]");
 		}
+		auto a = new Array_Type_Node(type);
+
+		if (peek().cmp(";")) {
+			consume();
+			a.value = parse_expr();
+			if (a.value is null) {
+				logger.Error(peek(), "expected array length: ");
+				recovery_skip("]");
+			}
+		}
+
 		expect("]");
-		return new Array_Type_Node(type);
+		return a;
 	}
 
 	ast.Slice_Type_Node parse_slice_type() {
@@ -827,9 +838,9 @@ class Parser : Compilation_Phase {
 
 			ast.Expression_Node right = null;
 			if (operator.lexeme == "as") {
-				auto path = parse_type_path();
-				// TODO err check
-				left = new Cast_Expression_Node(left, path);
+				auto type = parse_type();
+				// handle errors...
+				left = new Cast_Expression_Node(left, type);
 				continue;
 			} 
 			else {

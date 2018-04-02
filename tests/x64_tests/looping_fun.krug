@@ -1,0 +1,34 @@
+#{c_func}
+func printf() s32;
+
+func go_away() s32 {
+	let j s32 = 0;
+	while j < 2_147_483_647 {
+		j = j + 1;
+	}
+	return j;
+}
+
+func main() {
+	let stdout u32 = 32;
+
+	let i = 10;
+	while i != 0 {
+		if i == 3 {
+			let come_back s32 = go_away();
+			printf(c"j was %lu\n", come_back);
+
+			printf(c"It's three!\n");
+			i = i - 1;
+			next;
+		}
+
+		printf(c"Hello, World... how are you! %d\n", i);
+		if i > 5 {
+			printf(c"Woah no way %d!\n", i);
+		}
+		i = i - 1;
+	}
+
+	return i;
+}

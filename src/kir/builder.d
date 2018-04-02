@@ -189,7 +189,9 @@ class Kir_Builder : Top_Level_Node_Visitor {
 			return conv_prim_type(prim);
 		}
 		else if (auto arr = cast(Array_Type_Node) t) {
-			return new kt.Array_Type(get_type(arr.base_type));
+			// TODO: make sure the array length
+			// is a compile time constant and evaluate it here.
+			return new kt.Array_Type(get_type(arr.base_type), 69);
 		}
 		else if (auto ptr = cast(Pointer_Type_Node) t) {
 			return new kt.Pointer_Type(get_type(ptr.base_type));

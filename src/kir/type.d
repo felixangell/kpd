@@ -47,9 +47,11 @@ Integer_Type get_uint(uint width) {
 
 class Array_Type : Kir_Type {
 	Kir_Type base;
+	size_t len;
 
-	this(Kir_Type base) {
+	this(Kir_Type base, size_t len) {
 		this.base = base;
+		this.len = len;
 	}
 
 	uint get_width() {
@@ -66,7 +68,7 @@ class Array_Type : Kir_Type {
 	}
 
 	override string toString() {
-		return "[" ~ to!string(base) ~ "]";
+		return "[" ~ to!string(base) ~ "; " ~ to!string(len) ~ "]";
 	}
 }
 

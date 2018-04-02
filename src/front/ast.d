@@ -211,15 +211,15 @@ class Variable_Statement_Node : Statement_Node, Semicolon_Stat {
 
 class Cast_Expression_Node : Expression_Node {
 	Expression_Node left;
-	Type_Path_Node type_path;
+	Type_Node type;
 
-	this(Expression_Node left, Type_Path_Node type_path) {
+	this(Expression_Node left, Type_Node type) {
 		this.left = left;
-		this.type_path = type_path;
+		this.type = type;
 	}
 
 	override string toString() {
-		return "(" ~ to!string(left) ~ "#" ~ to!string(type_path) ~ ")";
+		return "(" ~ to!string(left) ~ "#" ~ to!string(type) ~ ")";
 	}
 }
 

@@ -127,8 +127,13 @@ class Name_Resolve_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 		else if (auto ptr = cast(Pointer_Type_Node) t) {
 			return resolve_type(ptr.base_type);
 		}
+		else if (auto prim = cast(Primitive_Type_Node) t) {
+			// all dandy. 
+			// (the parser should have caught this)
+			return null;
+		}
 
-		this.log(Log_Level.Error, "unhandled type node ", to!string(t));
+		this.log(Log_Level.Error, "unhandled type node ", to!string(t), to!string(typeid(t)));
 		return null;
 	}
 
@@ -238,6 +243,9 @@ class Name_Resolve_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 		else if (auto unary = cast(ast.Unary_Expression_Node) expr) {
 			analyze_unary_unary(unary);
 		}
+		else if (auto c = cast(ast.Cast_Expression_Node) expr) {
+			resolve_type(c.type);
+		}
 		else if (cast(ast.Integer_Constant_Node) expr) {
 			// NOOP
 		}
@@ -248,7 +256,7 @@ class Name_Resolve_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 			// NOOP
 		}
 		else {
-			this.log(Log_Level.Error, "name_resolve: unhandled node " ~ to!string(expr));
+			this.log(Log_Level.Error, "name_resolve: unhandled node " ~ to!string(expr) ~ "..." ~ to!string(typeid(expr)));
 		}
 	}
 
