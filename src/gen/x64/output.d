@@ -9,6 +9,8 @@ import gen.backend;
 import kt;
 import kir.instr;
 
+import gen.x64.formatter;
+
 enum TAB_SIZE = 4;
 
 class X64_Code : Generated_Output {
@@ -70,22 +72,4 @@ class X64_Code : Generated_Output {
 		emit("{}", sfmt("push{}", instr_width));
 		emit("{}", p);
 	}
-}
-
-// really shitty sprintf type thing
-// that isnt really type safe and doesnt
-// handle a lot of edge cases if any!
-string sfmt(string fmt, string[] s...) {
-	string output;
-	wchar[] format = to!(wchar[])(fmt);
-	int repl_count = 0;
-	for (int i = 0; i < format.length; i++) {
-		if (format[i] == '{' && format[i + 1] == '}') {
-			output ~= s[repl_count++];
-			i++;
-			continue;
-		}
-		output ~= format[i];
-	}
-	return output;
 }
