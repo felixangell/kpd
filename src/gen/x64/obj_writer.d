@@ -47,8 +47,12 @@ enum X64_Register : ubyte {
 
 enum X64_Instruction {
 	ADD     = 0x01,
+	SUB 	= 0x28,
 	MOV     = 0x89,
 	RET     = 0xc3,
+
+	PUSH 	= 0x50,
+	POP 	= 0x58,
 
 	// .. 
 
@@ -164,7 +168,7 @@ class Object_Writer {
 		return *(cast(ubyte*)&s);
 	}
 
-	ubyte encode_disp8(ubyte value){
+	ubyte encode_disp8(ulong value){
 		assert(value <= 0xff);
 		return cast(ubyte) value;
 	}
@@ -180,11 +184,23 @@ class Object_Writer {
 	}
 
 	void add_reg_reg(X64_Register src, X64_Register dest) {
-
+		write_asm("mov {}, {}", to!string(src), to!string(dest));
+		
+		ubyte[3] encoded_instr;
+		encoded_instr[0] = encode_rex(true, 0, 0, 0);
+		encoded_instr[1] = X64_Instruction.ADD;
+		encoded_instr[2] = encode_modrm(3, dest, src);
+		object_file ~= encoded_instr;
 	}
 
 	void sub_reg_reg(X64_Register src, X64_Register dest) {
+		write_asm("mov {}, {}", to!string(src), to!string(dest));
 		
+		ubyte[3] encoded_instr;
+		encoded_instr[0] = encode_rex(true, 0, 0, 0);
+		encoded_instr[1] = X64_Instruction.SUB;
+		encoded_instr[2] = encode_modrm(3, dest, src);
+		object_file ~= encoded_instr;
 	}
 
 	void ret() {
@@ -199,18 +215,31 @@ class Object_Writer {
 	}
 
 	// sub $x, reg
-	void sub_val_reg(string value, X64_Register reg) {
-		write_asm("reg ${}, {}", value, to!string(reg));
+	void sub_val_reg(X64_Register reg, ulong value){
+		ubyte[4] encoded_instr;
+		encoded_instr[0] = encode_rex(1, 0, 0, 0);
+		encoded_instr[1] = X64_Instruction.SUB;
+		encoded_instr[2] = encode_modrm(3, reg, X64_Register.BP);
+		encoded_instr[3] = encode_disp8(value);
+		object_file ~= encoded_instr;
 	}
 
 	// push reg
 	void push_reg(X64_Register reg) {
 		write_asm("push {}", to!string(reg));
+		// FIXME 
+		// this seems to work for the 64 bit registers
+		// so that does it for now.
+		object_file ~= cast(ubyte)(X64_Instruction.PUSH + reg);
 	}
 
 	// pop reg
 	void pop_reg(X64_Register reg) {
 		write_asm("pop {}", to!string(reg));
+		// FIXME 
+		// this seems to work for the 64 bit registers
+		// so that does it for now.
+		object_file ~= cast(ubyte)(X64_Instruction.POP + reg);
 	}
 
 	void call(string addr) {
@@ -226,11 +255,51 @@ class Object_Writer {
 unittest {
 	import std.stdio;
 
-	auto writer = new Object_Writer;
-	writer.mov_reg_reg(X64_Register.AX, X64_Register.DI);
-	foreach (c; writer.object_file) {
-		writef("%2x ", c);
+	void test_mov_reg_reg() {
+		auto writer = new Object_Writer;
+		writer.mov_reg_reg(X64_Register.AX, X64_Register.DI);
+		foreach (c; writer.object_file) {
+			writef("%2x ", c);
+		}
+		writeln;
 	}
-	writeln;
+
+	void test_push_reg() {
+		auto writer = new Object_Writer;
+		
+		writer.push_reg(X64_Register.AX);
+		writer.push_reg(X64_Register.DI);
+		writer.push_reg(X64_Register.BP);
+		writer.push_reg(X64_Register.SI);
+
+		foreach (i, c; writer.object_file) {
+			writefln("%2x", c);
+		}
+	}
+
+	void test_pop_reg() {
+		auto writer = new Object_Writer;
+		
+		writer.pop_reg(X64_Register.AX);
+		writer.pop_reg(X64_Register.DI);
+		writer.pop_reg(X64_Register.BP);
+		writer.pop_reg(X64_Register.SI);
+
+		foreach (i, c; writer.object_file) {
+			writefln("%2x", c);
+		}
+	}
+	
+	/*   0:	50                  push   %rax
+   1:	57                   	push   %rdi
+   2:	55                   	push   %rbp
+   3:	56                   	push   %rsi
+     4:	58                   	pop    %rax
+   5:	5f                   	pop    %rdi
+   6:	5d                   	pop    %rbp
+   7:	5e                   	pop    %rsi
+	*/
+	test_push_reg();
+	test_pop_reg();
 
 }
