@@ -2,6 +2,61 @@
 Krug is a compiled programming language that compiles to x64 assembly. Currently
 the prime targets are OS X and Linux.
 
+## try it out
+Nothing is in working order, but some tests _might_ run! The compiler still has a long
+way to go till it's stable-ish to run some actual programs.
+
+You will likely only be able to build this on OSX and Linux, and you will only _possibly_
+get Krug programs to execute on Linux.
+
+### requirements
+You'll need a few bits of software to compile the compiler:
+
+* `dmd`, `ldc2`, - some D compiler
+* `clang`, `gcc`, - some C compiler
+* GNU assembler/linker
+* GNU make
+
+### building
+
+```bash
+$ git clone http://github.com/felixangell/krug
+$ cd krug
+$ make
+$
+$ ./krug b tests/x64_tests/fib.krug
+$ ./main
+$
+$ ./krug e E0001        # explain error message E0001
+```
+
+## examples!
+For now let's have a nice simple hello world program!
+
+```krug
+// no standard library yet!
+#{c_func}
+func printf();
+    //.    ^- no type checking either yet lol
+    //.       so this is valid and OK
+
+func main() {
+    printf(c"Hello, World!\n");
+}
+```
+
+## why?!
+Krug is a fun little side project. The goal is to create a somewhat polished compiler that 
+can compile any Krug program you throw at it. In an ideal world it would compile krug programs 
+for most major platforms: Windows, Linux, and OS X. Realistically, it will only work on Linux 
+on x64 systems.
+
+The main things I want to do with this project are:
+
+* generate x64 assembly...
+* writing directly to object files, no assemblers needed!
+* have a reasonable set of optimisation passes, hand-in-hand with an SSA-based IR;
+
 ## how it works
 here's a brief overview of how the compiler works (so far):
 
@@ -29,28 +84,3 @@ here's a brief overview of how the compiler works (so far):
   ir. this is then assembled into object files and linked together.
   _note: this is the current focus is getting a feature complete x64
   code generator_
-
-## try it out
-Nothing is in working order, but some tests might run!
-
-Make sure you have `dub` installed as well as a D compiler,
-I'm using `dmd`.
-
-```bash
-$ git clone http://github.com/felixangell/krug
-$ cd krug
-$ make
-$
-$ ./krug b tests/x64_tests/fib.krug
-$ ./a.out
-$
-$ ./krug e E0001 				# explain error message 1
-```
-
-## future plans
-The idea of this language is to keep the features and syntax
-relatively simple.
-
-## notes
-Though this compiler is written in D, most of the code
-is written in a very c/c++-y way!

@@ -48,6 +48,7 @@ enum X64_Register : ubyte {
 enum X64_Instruction {
 	ADD     = 0x01,
 	MOV     = 0x89,
+	RET     = 0xc3,
 
 	// .. 
 
@@ -82,6 +83,22 @@ enum REX_Prefix {
 // assembly! TODO: have some inheritance-y
 // thing or modular thingy for multiple architectures
 // i.e. x64
+//
+// TODO:
+// - push_reg
+// - pop_reg
+// - mov_val_reg
+// - add_val_reg
+// - sub_val_reg
+// - je, jne
+// - cmp
+// - set
+// - lea
+// 
+// ... the rest
+// but that covers most of the 
+// instructions currently in use
+// in the x64 backend.
 class Object_Writer {
 	// purely for debugging purposes
 	string[] asm_code;
@@ -162,8 +179,18 @@ class Object_Writer {
 		object_file ~= encoded_instr;
 	}
 
+	void add_reg_reg(X64_Register src, X64_Register dest) {
+
+	}
+
+	void sub_reg_reg(X64_Register src, X64_Register dest) {
+		
+	}
+
 	void ret() {
 		write_asm("ret");
+		// FIXME
+		object_file ~= X64_Instruction.RET;
 	}
 
 	// mov $x, reg
@@ -187,11 +214,12 @@ class Object_Writer {
 	}
 
 	void call(string addr) {
-
 	}
 
 	void syscall() {
 		write_asm("syscall");
+		// FIXME?
+		object_file ~= [0x0f, 0x05];
 	}
 }
 
