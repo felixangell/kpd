@@ -28,7 +28,7 @@ class X64_Backend : Code_Generator_Backend {
 			gen.code.emit(".macosx_version_min 10, 16");
 		}
 
-		gen.generate_mod(mod);
+		gen.emit_mod(mod);
 
 		// hack
 		// generate a main function for us to

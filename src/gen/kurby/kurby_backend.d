@@ -26,7 +26,7 @@ class Kurby_Backend : Code_Generator_Backend {
 
 	Kurby_Byte_Code code_gen(Kir_Module mod) {
 		auto gen = new Kurby_Generator;
-		gen.generate_mod(mod);
+		gen.emit_mod(mod);
 		auto f = mod.get_function("main");
 		if (f !is null) {
 			main_func = f;

@@ -56,38 +56,6 @@ class X64_Code : Generated_Output {
 		return emit_addr;
 	}
 
-	// FIXME
-	// we're hoping this is a constant...
-	void emit_data_const(Value v) {
-		auto c = cast(Constant) v;
-		if (!c) {
-			logger.Fatal("emit_data_const: unhandled value ", to!string(v));
-		}
-
-		// FIXME
-		// this is messy
-		if (auto i = cast(Integer_Type) c.get_type()) {
-			string conv_type = "error";
-
-			switch (i.get_width()) {
-			case 4:
-				conv_type = "long";
-				break;
-			default:
-				conv_type = "? " ~ to!string(i.get_width());
-				break;
-			}
-
-			emitt(".{} {}", conv_type, c.value);
-		}
-
-		// TODO better comparison
-		// to string type
-		if (c.get_type().cmp(new Pointer_Type(get_uint(8)))) {
-			emitt(".asciz {}", c.value);
-		}
-	}
-
 	void push(int width, string[] p...) {
 		string instr_width;
 		final switch (width) {

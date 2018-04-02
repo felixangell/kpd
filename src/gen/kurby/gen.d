@@ -221,7 +221,7 @@ class Kurby_Generator {
 		code.emit(encode(OP.RET));
 	}
 
-	void generate_mod(Kir_Module mod) {
+	void emit_mod(Kir_Module mod) {
 		this.mod = mod;
 		// todo global variables.
 		foreach (ref name, func; mod.functions) {

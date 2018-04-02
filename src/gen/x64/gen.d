@@ -93,6 +93,38 @@ class X64_Generator {
 		return "; unhandled constant, -- " ~ to!string(c);
 	}
 
+	// FIXME
+	// we're hoping this is a constant...
+	void emit_data_const(Value v) {
+		auto c = cast(Constant) v;
+		if (!c) {
+			logger.Fatal("emit_data_const: unhandled value ", to!string(v));
+		}
+
+		// FIXME
+		// this is messy
+		if (auto i = cast(Integer_Type) c.get_type()) {
+			string conv_type = "error";
+
+			switch (i.get_width()) {
+			case 4:
+				conv_type = "long";
+				break;
+			default:
+				conv_type = "? " ~ to!string(i.get_width());
+				break;
+			}
+
+			code.emitt(".{} {}", conv_type, c.value);
+		}
+
+		// TODO better comparison
+		// to string type
+		if (c.get_type().cmp(new Pointer_Type(get_uint(8)))) {
+			code.emitt(".asciz {}", c.value);
+		}
+	}
+
 	string add_binary_op(BinaryOp b) {
 		string left = get_val(b.a);
 		string right = get_val(b.b);
@@ -423,7 +455,7 @@ class X64_Generator {
 		}
 	}
 
-	void generate_mod(Kir_Module mod) {
+	void emit_mod(Kir_Module mod) {
 		this.mod = mod;
 
 		code.emit(".data");
@@ -431,7 +463,7 @@ class X64_Generator {
 		// TODO these arent populated
 		foreach (k, v; mod.constants) {
 			code.emit("{}:", k);
-			code.emit_data_const(v);
+			emit_data_const(v);
 		}
 
 		code.emit(".text");
@@ -440,7 +472,7 @@ class X64_Generator {
 		}
 
 		foreach (ref name, func; mod.functions) {
-			generate_func(func);
+			emit_func(func);
 		}
 	}
 
@@ -465,7 +497,7 @@ class X64_Generator {
 		}
 	}
 
-	void generate_func(Function func) {
+	void emit_func(Function func) {
 		curr_func = func;
 		
 		if (func.has_attribute("c_func")) {
