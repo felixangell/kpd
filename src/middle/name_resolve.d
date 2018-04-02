@@ -303,6 +303,9 @@ class Name_Resolve_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 				analyze_expr(ret.value);
 			}
 		}
+		else if (auto next = cast(ast.Next_Statement_Node) stat) {
+			// NOP
+		}
 		else {
 			this.log(Log_Level.Error, "unhandled statement " ~ to!string(stat));
 		}
@@ -330,7 +333,7 @@ class Name_Resolve_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 	}
 
 	override string toString() const {
-		return "resolve-pass";
+		return "name-resolve-pass";
 	}
 
 }
