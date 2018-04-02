@@ -1,9 +1,15 @@
-D_FLAGS := -cache=krug_cache/ -dip1000 -march=x86-64 -d-debug -g -w
-D_COMPILER := ldc2
+D_COMPILER := dmd
+
+ifeq ($(D_COMPILER), ldc2)
+	D_FLAGS := -cache=krug_cache/ -dip1000 -march=x86-64 -d-debug -g -w
+else
+	D_FLAGS := -dip1000 -m64 -debug -g -w
+endif
+
 D_SOURCES := $(shell find src -type f -name '*.d')
 D_OBJ_FILES := $(patsubst %.d,%.o,$(D_SOURCES))
 
-LD_FLAGS := -L=vm/krugvm.a -L=-lcollectc -vcolumns
+LD_FLAGS := -L=vm/krugvm.a -vcolumns
 KRUG_OUT := krug
 
 default: $(KRUG_OUT)
@@ -16,7 +22,7 @@ CC := clang
 CC_FLAGS := -Wall -Wextra -g3 -std=c99 -Wno-unused-function
 
 %.o: %.c
-	$(CC) $(CC_FLAGS) -c $< -o $@
+	$(CC) -fPIC $(CC_FLAGS) -c $< -o $@
 
 $(VM_OUT): $(VM_CC_OBJ_FILES)
 	ar -cvq $(VM_OUT) $(VM_CC_OBJ_FILES)

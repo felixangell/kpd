@@ -421,6 +421,6 @@ execute_program(size_t entry_addr, size_t program_size, uint8_t* program) {
 		interpret_instruction(&engine, op_code);
 	}
 
-	printf("%lld procedures called!\n", num_calls);
+	printf("%lu procedures called!\n", num_calls);
 	return false;
 }
