@@ -64,8 +64,23 @@ class X64_Backend : Code_Generator_Backend {
 		}
 		else version (Posix) {
 			// http://blog.rchapman.org/posts/Linux_System_Call_Table_for_x86_64/
+			// invoke sys_exit
+
+			// rax is the return value of the function
+			// invoked from the main entry point
+			// store this for later
+			gen.code.emitt("pushq %rax");
+
+			// invoke the sys_exit syscall (60)
 			gen.code.emitt("movq $60, %rax");
-			gen.code.emitt("movq $2, %rdi");
+
+			// the exit code (param to the sys_exit syscall)
+			// is the value in rsi, which was thej return value
+			// from the function called from this main entry
+			// point
+			gen.code.emitt("popq %rdi");
+
+			// invoke the syscall
 			gen.code.emitt("syscall");
 		}
 
@@ -94,7 +109,7 @@ class X64_Backend : Code_Generator_Backend {
 				if (line.length == 0) {
 					continue;
 				}
-				writeln(i, ":    ", line);
+				writefln("%04d:\t\t%s", i, line);
 			}
 		}
 

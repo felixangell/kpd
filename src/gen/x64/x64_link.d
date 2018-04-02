@@ -69,7 +69,7 @@ void find_incl() {
 /*
 	First step is find the gcc installation!
 */
-Linker_Info link_objs_linux(string[] obj_paths) {
+Linker_Info link_objs_linux() {
 	logger.Verbose("Linking for POSIX");
 
 	Linker_Info info;
@@ -78,9 +78,18 @@ Linker_Info link_objs_linux(string[] obj_paths) {
 		"--eh-frame-hdr",
 		"-dynamic-linker",
 		"-melf_x86_64"); // FIXME
+	return info;
+}
 
-	info.add_objs(obj_paths);
+Linker_Info link_objs_osx() {
+	logger.Verbose("Linking for OSX");
 
+	Linker_Info info;
+	info.add_flags(
+		"-macosx_version_min",
+		"10.16",
+		"-lsystem",
+	);
 	return info;
 }
 
@@ -95,14 +104,12 @@ void link_objs(string[] obj_paths, string out_name) {
 
 	Linker_Info info;
 	version (OSX) {
-		//link_flags ~= "-macosx_version_min";
-		//link_flags ~= "10.16";
-		//link_flags ~= "-lsystem";
-		//link_flags ~= "-lc";
+		info = link_objs_osx();
 	}
 	else version (Posix) {
-		info = link_objs_linux(obj_paths);
+		info = link_objs_linux();
 	}
+	info.add_objs(obj_paths);
 
 	auto linker_args = ["/usr/bin/ld"] ~ info.flags ~ info.objects ~ ["-o", out_name];
 	writeln("Running linker", linker_args);
