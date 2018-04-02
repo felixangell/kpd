@@ -1,10 +1,11 @@
 module gen.x64.obj_writer;
 
 import std.conv : to;
+import std.bitmanip;
 
 import gen.x64.formatter;
 
-enum X64_Register {
+enum X64_Register : ubyte {
 	AX      = 0,
 	CX      = 1,
 	DX      = 2,
@@ -45,6 +46,11 @@ enum X64_Register {
 };
 
 enum X64_Instruction {
+	ADD     = 0x01,
+	MOV     = 0x89,
+
+	// .. 
+
 	SEGCS   = 0x2E,
 
 	NOP     = SEGCS,
@@ -80,12 +86,80 @@ class Object_Writer {
 	// purely for debugging purposes
 	string[] asm_code;
 
+	ubyte[] object_file;
+
 	void write_asm(string fmt, string[] s...) {
 		asm_code ~= sfmt(fmt, s);
 	}
 
-	void mov_reg_reg(X64_Register a, X64_Register b) {
-		write_asm("mov {}, {}", to!string(a), to!string(b));
+	ubyte encode_rex(bool is_64bit, ubyte ext_sib_idx, ubyte ext_modrm_reg, ubyte ext_modrm_rm) {
+		struct REX {
+			mixin(bitfields!(
+		        ubyte, "b", 1,
+		        ubyte, "x", 1,
+		        ubyte, "r", 1,
+		        ubyte, "w", 1,
+		        ubyte, "f", 4,
+			));
+		}
+
+		REX r;
+		r.b = ext_modrm_rm;
+		r.x = ext_modrm_reg;
+		r.r = ext_sib_idx;
+		r.w = cast(ubyte) is_64bit;
+		r.f = 0b100;
+		return *(cast(ubyte*)(&r));
+	}
+
+	ubyte encode_modrm(ubyte mod, ubyte rm, ubyte reg){
+		assert(reg < X64_Register.R8);
+		assert(rm < X64_Register.R8);
+
+		struct ModRM {
+			mixin(bitfields!(
+				ubyte, "rm", 3,
+				ubyte, "reg", 3,
+				ubyte, "mod", 2,
+			));
+		}
+		
+		ModRM m;
+		m.rm = rm;
+		m.reg = reg;
+		m.mod = mod;
+		return *(cast(ubyte*)&m);
+	}
+
+	ubyte encode_sib(ubyte scale, ubyte index, ubyte base){
+		struct SIB {
+			mixin(bitfields!(
+				ubyte, "base", 3,
+				ubyte, "index", 3,
+				ubyte, "scale", 2,
+			));
+		}
+
+		SIB s;
+		s.scale = scale;
+		s.index = index;
+		s.base = base;
+		return *(cast(ubyte*)&s);
+	}
+
+	ubyte encode_disp8(ubyte value){
+		assert(value <= 0xff);
+		return cast(ubyte) value;
+	}
+
+	void mov_reg_reg(X64_Register src, X64_Register dest) {
+		write_asm("mov {}, {}", to!string(src), to!string(dest));
+		
+		ubyte[3] encoded_instr;
+		encoded_instr[0] = encode_rex(true, 0, 0, 0);
+		encoded_instr[1] = X64_Instruction.MOV;
+		encoded_instr[2] = encode_modrm(3, dest, src);
+		object_file ~= encoded_instr;
 	}
 
 	void ret() {
@@ -122,7 +196,13 @@ class Object_Writer {
 }
 
 unittest {
-	Object_Writer writer;
-	writer.mov_int_reg("300", RAX);
-	writer.mov_int_reg("60", RDI);
+	import std.stdio;
+
+	auto writer = new Object_Writer;
+	writer.mov_reg_reg(X64_Register.AX, X64_Register.DI);
+	foreach (c; writer.object_file) {
+		writef("%2x ", c);
+	}
+	writeln;
+
 }
