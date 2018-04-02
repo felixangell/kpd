@@ -21,6 +21,7 @@ class Block_Context {
 
 	long addr_ptr = 0;
 	long[string] locals;
+	uint alloc_instr_addr;
 
 	this(Function parent) {
 		this.parent = parent;
@@ -57,7 +58,7 @@ class X64_Generator {
 	Function curr_func;
 
 	Block_Context[string] ctx;
-	Block_Context curr;
+	Block_Context curr_ctx;
 
 	this() {
 		code = new X64_Code;
@@ -66,10 +67,10 @@ class X64_Generator {
 	// gets the address of the given
 	// alloc in the current block context
 	long get_alloc_addr(Alloc a) {
-		return curr.get_addr(a.name);
+		return curr_ctx.get_addr(a.name);
 	}
 	long get_alloc_addr_by_name(string name) {
-		return curr.get_addr(name);
+		return curr_ctx.get_addr(name);
 	}
 
 	string get_instr_suffix(uint width) {
@@ -141,9 +142,9 @@ class X64_Generator {
 		}
 		else if (auto r = cast(Identifier) v) {
 			// first check if this is a param
-			auto index = curr.parent.params.countUntil!("a.name == b")(r.name);
+			auto index = curr_ctx.parent.params.countUntil!("a.name == b")(r.name);
 			if (index != -1) {
-				auto param = curr.parent.params[index];
+				auto param = curr_ctx.parent.params[index];
 				if (index < registers.length) {
 					// TODO get the type here.
 					// for now just load the 64 bit reg
@@ -164,7 +165,7 @@ class X64_Generator {
 				// we look up args(i) where i > 6 
 				// by registers[i]!
 				auto arg_index = index - registers.length;
-				auto addr = curr.get_addr("__arg_" ~ to!string(arg_index));
+				auto addr = curr_ctx.get_addr("__arg_" ~ to!string(arg_index));
 				return to!string(addr) ~ "(%rsp)";
 			}
 
@@ -306,6 +307,19 @@ class X64_Generator {
 			code.emitt("movl {}, %eax", get_val(v));
 		}
 
+		// FIXME this wont work all the time...
+		// i dont think?!
+
+		// before we return from the function we 
+		// have to de-allocate all the stack space
+		// we allocated. note that we also set
+		// the allocated space here because
+		// when we emit the _initial_ subq allocation
+		// instruction we don't know how much space
+		// has been pushed to the stack!
+		code.emitt_at(curr_ctx.alloc_instr_addr, "subq ${}, %rsp", to!string(curr_ctx.size()));
+		code.emitt("addq ${}, %rsp", to!string(curr_ctx.size()));
+
 		code.emitt("popq %rbp");
 		code.emitt("ret");
 	}
@@ -347,13 +361,6 @@ class X64_Generator {
 
 			should be stack aligned on 16 byte boundary.
 		*/
-
-		// PLACEHOLDER value here, we subtract 0 from the
-		// RSP but we later on MODIFY THIS to however much
-		// bytes we allocated (aligned to a 16 byte boundary).
-		// this is why we store the address which this instruction
-		// was written to
-		uint alloc_instr_addr = code.emitt("subq $0, %rsp");
 
 		import std.algorithm.comparison : min, max;
 
@@ -414,18 +421,11 @@ class X64_Generator {
 		}		
 
 		code.emitt("call {}", call_name);
-
-		// we want to make sure it's aligned
-		// to a 16 byte boundary
-		// stack_alloc_amount = align_to(stack_alloc_amount, 16);
-
-		code.emitt_at(alloc_instr_addr, "subq ${}, %rsp", to!string(call_frame_ctx.size()));
-		code.emitt("addq ${}, %rsp", to!string(call_frame_ctx.size()));
 	}
 
 	void emit_instr(Instruction i) {
 		if (auto alloc = cast(Alloc)i) {
-			auto addr = curr.push_local(alloc.name, alloc.get_type().get_width());
+			auto addr = curr_ctx.push_local(alloc.name, alloc.get_type().get_width());
 			logger.Verbose("Emitting local ", to!string(alloc), " at addr ", to!string(addr), "(%rsp)");
 		}
 		else if (auto ret = cast(Return)i) {
@@ -480,7 +480,7 @@ class X64_Generator {
 		auto new_ctx = new Block_Context(func);
 		logger.Verbose("Pushing local context for func '", func.name, "'");
 		ctx[mangle(func)] = new_ctx;
-		curr = new_ctx;
+		curr_ctx = new_ctx;
 	}
 
 	void setup_func_proto(Function func) {
@@ -492,7 +492,7 @@ class X64_Generator {
 		// where N is the index of the argument.
 		if (func.params.length >= registers.length) {
 			foreach_reverse (i, arg; func.params[registers.length..$]) {
-				curr.push_local("__arg_" ~ to!string(i), arg.get_type().get_width());
+				curr_ctx.push_local("__arg_" ~ to!string(i), arg.get_type().get_width());
 			}
 		}
 	}
@@ -504,12 +504,19 @@ class X64_Generator {
 			return;
 		}
 
-		curr = ctx[mangle(func)];
+		curr_ctx = ctx[mangle(func)];
 
 		code.emit("{}:", mangle(func));
 
 		code.emitt("pushq %rbp");
 		code.emitt("movq %rsp, %rbp");
+
+		// PLACEHOLDER value here, we subtract 0 from the
+		// RSP but we later on MODIFY THIS to however much
+		// bytes we allocated (aligned to a 16 byte boundary).
+		// this is why we store the address which this instruction
+		// was written to
+		curr_ctx.alloc_instr_addr = code.emitt("subq $0, %rsp");
 
 		foreach (ref bb; func.blocks) {
 			emit_bb(bb);
