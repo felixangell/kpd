@@ -187,7 +187,13 @@ class X64_Generator {
 		else if (auto c = cast(Constant_Reference) v) {
 			return c.name ~ "(%rip)";
 		}
+		else if (auto i = cast(Call) v) {
+			// eax or rax ?
+			emit_call(i);
+			return "%eax";
+		}
 
+		logger.Fatal("unimplemented get_val " ~ to!string(v) ~ " ... " ~ to!string(typeid(v)));
 		return "%eax, %eax # unimplemented get_val " ~ to!string(v);
 	}
 

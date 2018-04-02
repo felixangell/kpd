@@ -6,5 +6,6 @@ func add(a s32, b s32) s32 {
 }
 
 func main() {
-	add(5, 2);
+	add(3, 3);
+	let g = add(5, 6);
 }

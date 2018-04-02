@@ -74,6 +74,7 @@ class Type_Infer_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 
 	void analyze_call(ast.Call_Node call) {
 		// TODO
+		inferrer.analyze(call, curr_sym_table.env);
 	}
 
 	override void analyze_function_node(ast.Function_Node node) {

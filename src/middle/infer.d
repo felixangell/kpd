@@ -137,7 +137,7 @@ void unify(Type a, Type b) {
 		}
 		else if (auto opb = cast(Type_Operator) pb) {
 			if (cmp(opa.name, opb.name) || opa.types.length != opb.types.length) {
-				writeln("Type mismatch between types ", to!string(a), " and ", to!string(b));
+				logger.Error("Type mismatch between types ", to!string(a), " and ", to!string(b));
 			}
 
 			foreach (idx, t; opa.types) {

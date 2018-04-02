@@ -69,10 +69,10 @@ enum X64_Instruction {
 	JB      = 0x72,
 	JE      = 0x74,
 	JNE     = 0x75,
-	JL      = 0x7C,
-	JGE     = 0x7D,
-	JLE     = 0x7E,
-	JG      = 0x7F,
+	JL      = 0x7c,
+	JGE     = 0x7d,
+	JLE     = 0x7e,
+	JG      = 0x7f,
 };
 
 enum REX_Prefix {
@@ -88,9 +88,8 @@ enum REX_Prefix {
 // thing or modular thingy for multiple architectures
 // i.e. x64
 //
+//
 // TODO:
-// - push_reg
-// - pop_reg
 // - mov_val_reg
 // - add_val_reg
 // - sub_val_reg
@@ -243,6 +242,7 @@ class Object_Writer {
 	}
 
 	void call(string addr) {
+
 	}
 
 	void syscall() {
