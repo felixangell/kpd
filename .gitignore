@@ -1,4 +1,5 @@
 cfg-**.html
+asm_tests/
 .dub
 a.out
 *.o

@@ -36,8 +36,16 @@ class X64_Backend : Code_Generator_Backend {
 		// we add more modules then they will
 		// all have a main function generated
 
-		gen.code.emit(".global _main");
-		gen.code.emit("_main:");
+		string entry_label = "main";
+		version (OSX) {
+			entry_label = "_main";
+		}
+		else version (Posix) {
+			entry_label = "_start";
+		}
+
+		gen.code.emit(".global {}", entry_label);
+		gen.code.emit("{}:", entry_label);
 		gen.code.emitt("pushq %rbp");
 		gen.code.emitt("movq %rsp, %rbp");
 
@@ -49,7 +57,16 @@ class X64_Backend : Code_Generator_Backend {
 		}
 
 		gen.code.emitt("popq %rbp");
-		gen.code.emitt("ret");
+
+		version (OSX) {
+			gen.code.emitt("ret");
+		}
+		else version (Posix) {
+			// http://blog.rchapman.org/posts/Linux_System_Call_Table_for_x86_64/
+			gen.code.emitt("movq $60, %rax");
+			gen.code.emitt("movq $2, %rdi");
+			gen.code.emitt("syscall");
+		}
 
 		return gen.code;
 	}
@@ -116,6 +133,8 @@ class X64_Backend : Code_Generator_Backend {
 		auto ld_pid = execute(linker_args);
 		if (ld_pid.status != 0) {
 			writeln("Linker failed:\n", ld_pid.output);
+		} else {
+			writeln("Linker notes:\n", ld_pid.output);
 		}
 
 		// delete object files and assembly files
