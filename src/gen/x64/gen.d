@@ -376,7 +376,8 @@ class X64_Generator {
 			// its probably going to be a function
 			// registered in THIS module, so lets
 			// look it up and see if it exists.
-			auto func = mod.functions[iden.name];
+			auto func = mod.get_function(iden.name);
+			assert(func !is null);
 			call_name = mangle(func);
 		}
 		else {
@@ -473,6 +474,9 @@ class X64_Generator {
 		}
 
 		code.emit(".text");
+		foreach (ref name, func; mod.c_funcs) {
+			setup_func_proto(func);
+		}
 		foreach (ref name, func; mod.functions) {
 			setup_func_proto(func);
 		}
@@ -505,7 +509,7 @@ class X64_Generator {
 
 	void emit_func(Function func) {
 		curr_func = func;
-		
+		// hm		
 		if (func.has_attribute("c_func")) {
 			return;
 		}

@@ -26,6 +26,10 @@ class Node {
 	Attribute[string] attribs;
 }
 
+bool has_attribute(Node n, string name) {
+	return (name in n.attribs) !is null;
+}
+
 class Statement_Node : Node {
 }
 

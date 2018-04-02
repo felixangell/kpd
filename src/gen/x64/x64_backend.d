@@ -20,6 +20,8 @@ import gen.x64.link;
 	the x64 backend generates x86_64 assembly. 
 */
 class X64_Backend : Code_Generator_Backend {
+	bool has_c_symbols = false;
+
 	X64_Code code_gen(Kir_Module mod) {
 		auto gen = new X64_Generator;
 
@@ -30,6 +32,8 @@ class X64_Backend : Code_Generator_Backend {
 
 		gen.emit_mod(mod);
 
+		has_c_symbols = mod.c_funcs.length > 0;
+
 		// hack
 		// generate a main function for us to
 		// enter, this only works for single
@@ -38,11 +42,18 @@ class X64_Backend : Code_Generator_Backend {
 		// all have a main function generated
 
 		string entry_label = "main";
-		version (OSX) {
-			entry_label = "_main";
-		}
-		else version (Posix) {
-			entry_label = "_start";
+
+		// we don't have c symbols
+		// so set the label ourselves
+		// OTHERWISE we keep it as main
+		// because we are linking with gcc.
+		if (!has_c_symbols) {
+			version (OSX) {
+				entry_label = "_main";
+			}
+			else version (Posix) {
+				entry_label = "_start";
+			}
 		}
 
 		gen.code.emit(".global {}", entry_label);
@@ -58,6 +69,13 @@ class X64_Backend : Code_Generator_Backend {
 		}
 
 		gen.code.emitt("popq %rbp");
+		if (has_c_symbols) {
+			gen.code.emitt("ret");
+			return gen.code;
+		}
+
+		// WE ARENT linking with gcc so we have
+		// to handle the returns properly..
 
 		version (OSX) {
 			gen.code.emitt("ret");
@@ -132,7 +150,12 @@ class X64_Backend : Code_Generator_Backend {
 			obj_file_paths ~= obj_file_path;
 		}
 
-		link_objs(obj_file_paths, OUT_NAME);
+		// REALLY IMPORTANT NOTE:
+		// if we have c_functions anywhere
+		// we link via GCC/clang instead!
+		// this is kind of messy but for now itll do
+
+		link_objs(obj_file_paths, OUT_NAME, has_c_symbols);
 
 		// delete object files and assembly files
 		foreach (as_file; as_files) {

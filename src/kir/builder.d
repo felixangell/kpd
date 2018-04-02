@@ -247,7 +247,18 @@ class Kir_Builder : Top_Level_Node_Visitor {
 		if (func.return_type !is null) {
 			return_type = get_type(func.return_type);
 		}
-		curr_func = ir_mod.add_function(func.name.lexeme, return_type);
+
+		// FIXME this is kind of awkward
+		// NOTE I tried to make a Kir_Module for c_functions
+		// nested in every module, but this causes a seg fault
+		// with the D gc smallAlloc? lol
+		if (func.has_attribute("c_func")) {
+			curr_func = new kir.instr.Function(func.name.lexeme, return_type, ir_mod);
+			ir_mod.c_funcs[curr_func.name] = curr_func;
+		}
+		else {
+			curr_func = ir_mod.add_function(func.name.lexeme, return_type);
+		}
 
 		writeln("ATTRIBS FOR FUNC ", func.name);
 		foreach (name; func.attribs.byKey) {

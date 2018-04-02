@@ -93,7 +93,11 @@ Linker_Info link_objs_osx() {
 	return info;
 }
 
-void link_objs(string[] obj_paths, string out_name) {
+// FIXME gcc -> clang, more general name
+// use a c compiler as the linker frontend
+// in the future I want the compiler to not
+// depend on gcc/clang..
+void link_objs(string[] obj_paths, string out_name, bool use_gcc) {
 	logger.Verbose("Linking...");
 
 	string obj_files;
@@ -103,15 +107,24 @@ void link_objs(string[] obj_paths, string out_name) {
 	}
 
 	Linker_Info info;
-	version (OSX) {
-		info = link_objs_osx();
-	}
-	else version (Posix) {
-		info = link_objs_linux();
-	}
 	info.add_objs(obj_paths);
 
-	auto linker_args = ["/usr/bin/ld"] ~ info.flags ~ info.objects ~ ["-o", out_name];
+	string linker_process = "/usr/bin/ld";
+	if (use_gcc) {
+		linker_process = "/usr/bin/gcc";
+		info.add_flags("-fpic", "-no-pie");
+	}
+	// do our own link stuff
+	else {
+		version (OSX) {
+			info = link_objs_osx();
+		}
+		else version (Posix) {
+			info = link_objs_linux();
+		}
+	}
+
+	auto linker_args = [linker_process] ~ info.flags ~ info.objects ~ ["-o", out_name];
 	writeln("Running linker", linker_args);
 	auto ld_pid = execute(linker_args);
 	if (ld_pid.status != 0) {

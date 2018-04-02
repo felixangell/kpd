@@ -19,9 +19,14 @@ class Kir_Module {
 	this(string module_name, string sub_module_name) {
 		this.module_name = module_name;
 		this.sub_module_name = sub_module_name;
+
+		// this causes a smallAlloc seg fault for some reason?
+		// this.c_mod = new Kir_Module("c", "main");
 	}
 
 	Kir_Module[string] dependencies;
+
+	Function[string] c_funcs;
 
 	Function[string] functions;
 	Value[string] constants;
@@ -36,6 +41,9 @@ class Kir_Module {
 	Function get_function(string name) {
 		if ((name in functions) !is null) {
 			return functions[name];
+		}
+		if ((name in c_funcs) !is null) {
+			return c_funcs[name];
 		}
 		return null;
 	}
