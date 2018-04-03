@@ -169,10 +169,6 @@ bool occurs_in_type(Type a, Type b) {
 	return false;
 }
 
-Type_Node resolve(Type_Node old, Type resolved) {
-	return new Resolved_Type(old, resolved);
-}
-
 struct Type_Inferrer {
 	Type_Environment e;
 
@@ -273,7 +269,6 @@ struct Type_Inferrer {
 		// we have to infer the type from the value of the
 		// expression instead. TODO handle no expression! (error)
 		auto resolved = analyze(node.value, e, generics);
-		node.type = resolve(node.type, resolved);
 		return resolved;
 	}
 

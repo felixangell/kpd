@@ -33,6 +33,9 @@ class Type_Infer_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 		
 	}
 
+	// FIXME!
+	// TODO think of a way to attach the sema types to ast 
+	// nodes without causing a weird cyclic dependency thing!
 	override void analyze_let_node(ast.Variable_Statement_Node var) {
 		// there is no value or type so the type inferrer
 		// doesn't have anything to work with.
@@ -53,7 +56,6 @@ class Type_Infer_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 		// the current environment
 		curr_sym_table.env.register_type(var.twine.lexeme, inferred_type);
 
-		var.type = new Resolved_Type(var.type, inferred_type);
 		this.log(Log_Level.Verbose, "-- (", to!string(var), ") : ", to!string(inferred_type));
 	}
 

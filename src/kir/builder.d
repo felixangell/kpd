@@ -195,10 +195,7 @@ class Kir_Builder : Top_Level_Node_Visitor {
 	kt.Kir_Type get_type(Node t) {
 		assert(t !is null, "get_type null type!");
 
-		if (auto resolved = cast(Resolved_Type) t) {
-			return conv(resolved.type);
-		}
-		else if (auto prim = cast(Primitive_Type_Node) t) {
+		if (auto prim = cast(Primitive_Type_Node) t) {
 			return conv_prim_type(prim);
 		}
 		else if (auto arr = cast(Array_Type_Node) t) {

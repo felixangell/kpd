@@ -5,16 +5,12 @@ import std.conv;
 import logger;
 import ast;
 import sema.infer : Type_Environment;
-import sema.type;
 import tok;
 
 class Symbol_Value {
 	ast.Node reference;
 	Token tok;
 	string name;
-
-	// hm!
-	private Type type;
 
 	this(ast.Node reference, Token tok) {
 		this(reference, tok.lexeme);

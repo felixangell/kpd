@@ -11,7 +11,6 @@ import tok;
 import logger;
 import colour;
 import kt;
-import sema.type : Type;
 import sema.symbol;
 import krug_module;
 
@@ -496,24 +495,6 @@ alias Generic_Set = Generic_Sigil[];
 
 class Type_Node : Node {
 	Generic_Set sigils;
-}
-
-class Resolved_Type : Type_Node {
-	// a copy of the node itself before
-	// we resolved it.
-	Type_Node before;
-
-	// the real type
-	Type type;
-
-	this(Type_Node before, Type type) {
-		this.before = before;
-		this.type = type;
-	}
-
-	override string toString() {
-		return "$" ~ (before !is null ? to!string(before) : "_");
-	}
 }
 
 class Primitive_Type_Node : Type_Node {
