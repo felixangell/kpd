@@ -185,8 +185,8 @@ class Kir_Builder : Top_Level_Node_Visitor {
 		auto res = try_evaluate_expr(arr.value);
 		if (res.failed) {
 			// TODO store the tokens for array types...
-			Diagnostic_Engine.throw_error(COMPILE_TIME_EVAL, null, null);
-			assert(0);
+			Diagnostic_Engine.throw_error(COMPILE_TIME_EVAL, arr.value.get_tok_info(), arr.value.get_tok_info());
+			res.value = 0;
 		}
 		return new kt.Array_Type(get_type(arr.base_type), res.value);
 	}
@@ -274,11 +274,11 @@ class Kir_Builder : Top_Level_Node_Visitor {
 		}
 
 		writeln("ATTRIBS FOR FUNC ", func.name);
-		foreach (name; func.attribs.byKey) {
+		foreach (name; func.get_attribs().byKey) {
 			writeln(" - ", name);
 		}
 
-		curr_func.set_attributes(func.attribs);
+		curr_func.set_attributes(func.get_attribs());
 
 		// this is kinda hacky.
 		bool is_proto = func.func_body is null;

@@ -11,6 +11,7 @@ import sema.symbol;
 import diag.engine;
 import sema.type;
 import krug_module;
+import tok;
 import compiler_error;
 
 immutable bool NAME_RESOLVE_DEBUG = false;
@@ -100,7 +101,7 @@ class Name_Resolve_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 			}
 
 			if (found_sym is null) {
-				Diagnostic_Engine.throw_error(compiler_error.UNRESOLVED_SYMBOL, p);
+				Diagnostic_Engine.throw_error(compiler_error.UNRESOLVED_SYMBOL, new Absolute_Token(p));
 				return null;
 			}
 
@@ -113,7 +114,7 @@ class Name_Resolve_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 				// places for us to search and we still have
 				// iterations left i.e. thinks to resolve.
 				// throw an unresolved error
-				Diagnostic_Engine.throw_error(compiler_error.UNRESOLVED_SYMBOL, next_tok);
+				Diagnostic_Engine.throw_error(compiler_error.UNRESOLVED_SYMBOL, new Absolute_Token(next_tok));
 				return null;
 			}
 		}
@@ -180,8 +181,7 @@ class Name_Resolve_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 			e.resolved_symbol = found_sym;
 
 			if (found_sym is null) {
-				Diagnostic_Engine.throw_error(compiler_error.UNRESOLVED_SYMBOL, sym
-						.value);
+				Diagnostic_Engine.throw_error(compiler_error.UNRESOLVED_SYMBOL, sym.get_tok_info());
 				return;
 			}
 
@@ -212,7 +212,7 @@ class Name_Resolve_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 				// places for us to search and we still have
 				// iterations left i.e. thinks to resolve.
 				// throw an unresolved error
-				Diagnostic_Engine.throw_error(compiler_error.UNRESOLVED_SYMBOL, next_tok);
+				Diagnostic_Engine.throw_error(compiler_error.UNRESOLVED_SYMBOL, new Absolute_Token(next_tok));
 				return;
 			}
 		}

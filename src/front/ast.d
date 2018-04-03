@@ -7,6 +7,7 @@ import std.bigint;
 import compiler_error;
 import diag.engine;
 
+import tok;
 import logger;
 import colour;
 import kt;
@@ -22,15 +23,35 @@ interface Semicolon_Stat {}
 alias AST = ast.Node[];
 
 class Node {
-	// directive = "#" "{" { [","] attribute } "}"
-	Attribute[string] attribs;
+	private Attribute[string] attribs;
+	private Token_Info tok_info;
+
+	Token_Info get_tok_info() {
+		return tok_info;
+	}
+
+	void set_tok_info(Token start, Token end = null) {
+		if (end is null) {
+			tok_info = new Absolute_Token(start);
+			return;
+		}
+		tok_info = new Token_Span(start, end);
+	}
+
+	Attribute[string] get_attribs() {
+		return attribs;
+	}
+	void set_attribs(Attribute[string] a) {
+		this.attribs = a;
+	}
 }
 
 bool has_attribute(Node n, string name) {
-	return (name in n.attribs) !is null;
+	return (name in n.get_attribs()) !is null;
 }
 
 class Statement_Node : Node {
+
 }
 
 // examples...
@@ -607,6 +628,7 @@ class Structure_Field : Node {
 		this.name = name;
 		this.type = type;
 		this.value = value;
+		set_tok_info(name);
 	}
 
 	override string toString() {

@@ -6,7 +6,7 @@ import logger;
 import ast;
 import sema.infer : Type_Environment;
 import sema.type;
-import krug_module : Token;
+import tok;
 
 class Symbol_Value {
 	ast.Node reference;
@@ -29,6 +29,10 @@ class Symbol_Value {
 	this() {
 		// debug only
 		this.name = "__anonymous_sym_table";
+	}
+
+	Token_Info get_tok_info() {
+		return reference.get_tok_info();
 	}
 
 	override string toString() const {

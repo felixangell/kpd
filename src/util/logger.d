@@ -7,7 +7,7 @@ import std.array;
 import std.outbuffer;
 
 import cflags;
-import krug_module;
+import tok;
 import colour;
 
 const uint TAB_SIZE = 4;
@@ -40,7 +40,9 @@ static string get_line(const(Source_File*) file, ulong index) {
 // this code is very spaghetti but it works.
 static string Blame_Token(Token tok) {
 	if (tok is null) {
-		return "token is null!";
+		// little crazy string that looks similar
+		// to the error template.
+		return "?!|\n  |\t?!\n";
 	}
 
 	writeln("blaming token ", tok);

@@ -8,6 +8,7 @@ import grammar;
 import krug_module;
 import compilation_phase;
 import ast;
+import tok;
 import keyword;
 
 import logger;
@@ -411,6 +412,8 @@ class Parser : Compilation_Phase {
 			return null;
 		}
 
+		Token start = peek();
+
 		auto res = new Type_Path_Node;
 		while (peek().cmp(Token_Type.Identifier)) {
 			res.values ~= consume();
@@ -420,6 +423,7 @@ class Parser : Compilation_Phase {
 			expect(".");
 		}
 
+		res.set_tok_info(start, res.values[res.values.length-1]);
 		return res;
 	}
 
@@ -447,6 +451,8 @@ class Parser : Compilation_Phase {
 				sigils ~= parse_generic_sigil();
 			}
 		}
+
+		Token start = peek();
 
 		ast.Type_Node type;
 
@@ -486,7 +492,9 @@ class Parser : Compilation_Phase {
 		// it might be a primitive
 		if (type is null) {
 			if (peek().lexeme in PRIMITIVE_TYPES) {
-				type = new Primitive_Type_Node(consume());				
+				Token prim_type_tok = consume();
+				type = new Primitive_Type_Node(prim_type_tok);
+				type.set_tok_info(prim_type_tok);
 			}
 			else {
 				// not a primitive, not a type earlier
@@ -507,6 +515,9 @@ class Parser : Compilation_Phase {
 		// apply the sigils if we can
 		if (type !is null) {
 			type.sigils = sigils;
+	
+			// hopefully this doesnt fuck with parse_type_path
+			type.set_tok_info(start, peek());
 		}
 
 		return type;
@@ -894,14 +905,20 @@ class Parser : Compilation_Phase {
 	ast.Expression_Node parse_expr(bool comp_allowed = false) {
 		// TODO: parsing composite expressions?
 
+		Token start = peek();
+
 		if (peek().cmp(keyword.Eval) && peek(1).cmp("{")) {
 			expect(keyword.Eval);
-			return new Block_Expression_Node(parse_block());
+			auto result = new Block_Expression_Node(parse_block());
+			result.set_tok_info(start, peek());
+			return result;
 		}
 
 		// lambda
 		if (peek().cmp(keyword.Function)) {
-			return parse_lambda();
+			auto result = parse_lambda();
+			result.set_tok_info(start, peek());
+			return result;
 		}
 
 		auto left = parse_left(comp_allowed);
@@ -912,16 +929,20 @@ class Parser : Compilation_Phase {
 		if (!has_next()) {
 			// TODO: handle this properly for when it does happen
 			// this should never happen, but just in case.
+			left.set_tok_info(start, peek());
 			return left;
 		}
 
 		// not a binary expression so we'll
 		// return the left expression
 		if (!is_binary_op(peek().lexeme)) {
+			left.set_tok_info(start, peek());
 			return left;
 		}
 
-		return parse_bin_op(0, left, comp_allowed);
+		auto bin = parse_bin_op(0, left, comp_allowed);
+		bin.set_tok_info(start, peek());
+		return bin;
 	}
 
 	ast.Structure_Destructuring_Statement_Node parse_structure_destructure() {
@@ -1212,36 +1233,58 @@ class Parser : Compilation_Phase {
 
 	ast.Statement_Node parse_stat() {
 		Token tok = peek();
+
+		ast.Statement_Node result = null;
 		switch (tok.lexeme) {
 		case keyword.Let:
-			return parse_let();
+			result = parse_let();
+			break;
 		case keyword.Defer:
-			return parse_defer();
+			result = parse_defer();
+			break;
 		case keyword.While:
-			return parse_while();
+			result = parse_while();
+			break;
 		case keyword.If:
-			return parse_if();
+			result = parse_if();
+			break;
 		case keyword.Else:
 			// ELSE IF!
 			if (peek(1).cmp(keyword.If)) {
-				return parse_elif();
+				result = parse_elif();
 			}
-			return parse_else();
+			else {
+				result = parse_else();
+			}
+			break;
 		case keyword.Loop:
-			return parse_loop();
+			result = parse_loop();
+			break;
 		case keyword.Yield:
-			return parse_yield();
+			result = parse_yield();
+			break;
 		case keyword.Return:
-			return parse_return();
+			result = parse_return();
+			break;
 		case keyword.Break:
-			return parse_break();
+			result = parse_break();
+			break;
 		case keyword.Next:
-			return parse_next();
+			result = parse_next();
+			break;
 		case "{":
-			return parse_block();
+			result = parse_block();
+			break;
 		default:
 			break;
 		}
+
+		if (result !is null) {
+			result.set_tok_info(tok, peek());
+			return result;
+		}
+
+		Token start = peek();
 
 		// FIXME
 		// fuck it, try parsing an expression.
@@ -1251,6 +1294,7 @@ class Parser : Compilation_Phase {
 		}
 
 		expect(";");
+		val.set_tok_info(start, peek());
 		return val;
 	}
 
@@ -1422,6 +1466,8 @@ class Parser : Compilation_Phase {
 
 		Node result = null;
 
+		auto start = peek();
+
 		switch (peek().lexeme) {
 		case keyword.Type:
 			result = parse_named_type();
@@ -1439,7 +1485,9 @@ class Parser : Compilation_Phase {
 
 		// attach the directives we
 		// parsed before the node to the node
-		result.attribs = dirs;
+		result.set_attribs(dirs);
+		result.set_tok_info(start, peek());
+
 		return result;
 	}
 

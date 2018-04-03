@@ -5,7 +5,7 @@ import std.conv;
 import std.algorithm.comparison : equal;
 import std.typecons;
 
-import krug_module;
+import tok;
 
 // a very simple specialized parser that parses
 // the given token streams for load directives 

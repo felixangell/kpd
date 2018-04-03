@@ -8,6 +8,7 @@ import colour;
 import ast;
 import diag.engine;
 import compiler_error;
+import tok;
 
 import sema.analyzer;
 import sema.infer : Type_Environment;
@@ -25,7 +26,7 @@ class Declaration_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 		foreach (idx, field; s.fields) {
 			auto og_field = table.register_sym(new Symbol(field, field.name));
 			if (og_field) {
-				Diagnostic_Engine.throw_error(SYMBOL_CONFLICT, field.name, og_field.tok);
+				Diagnostic_Engine.throw_error(SYMBOL_CONFLICT, field.get_tok_info(), og_field.get_tok_info());
 			}
 		}
 		return table;
@@ -36,7 +37,7 @@ class Declaration_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 		foreach (idx, field; u.fields) {
 			auto og_field = table.register_sym(new Symbol(field, field.name));
 			if (og_field) {
-				Diagnostic_Engine.throw_error(SYMBOL_CONFLICT, field.name, og_field.tok);
+				Diagnostic_Engine.throw_error(SYMBOL_CONFLICT, field.get_tok_info(), og_field.get_tok_info());
 			}
 		}
 		return table;
@@ -47,7 +48,7 @@ class Declaration_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 		foreach (idx, attrib; t.attributes) {
 			auto og_field = table.register_sym(new Symbol(attrib, attrib.twine));
 			if (og_field) {
-				Diagnostic_Engine.throw_error(SYMBOL_CONFLICT, attrib.twine, og_field.tok);
+				Diagnostic_Engine.throw_error(SYMBOL_CONFLICT, new Absolute_Token(attrib.twine), og_field.get_tok_info());
 			}
 		}
 		return table;
@@ -97,7 +98,7 @@ class Declaration_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 
 			auto existing = curr_sym_table.register_sym(new Symbol(node, node.twine));
 			if (existing !is null) {
-				Diagnostic_Engine.throw_error(SYMBOL_CONFLICT, node.twine, existing.tok);
+				Diagnostic_Engine.throw_error(SYMBOL_CONFLICT, node.get_tok_info(), existing.get_tok_info());
 			}
 		}
 	}
@@ -152,7 +153,7 @@ class Declaration_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 
 		auto existing = curr_sym_table.register_sym(new Symbol(node, node.name));
 		if (existing) {
-			Diagnostic_Engine.throw_error(SYMBOL_CONFLICT, node.name, existing.tok);
+			Diagnostic_Engine.throw_error(SYMBOL_CONFLICT, node.get_tok_info(), existing.get_tok_info());
 		}
 
 		// some functions have no body!
@@ -171,7 +172,7 @@ class Declaration_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 			foreach (param; node.params) {
 				auto conflicting_param = curr_stab.register_sym(new Symbol(param, param.twine));
 				if (conflicting_param) {
-					Diagnostic_Engine.throw_error(SYMBOL_CONFLICT, param.twine, conflicting_param.tok);
+					Diagnostic_Engine.throw_error(SYMBOL_CONFLICT, param.get_tok_info(), conflicting_param.get_tok_info());
 					continue;
 				}
 			}
@@ -188,7 +189,7 @@ class Declaration_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 	override void analyze_let_node(ast.Variable_Statement_Node node) {
 		auto existing = curr_sym_table.register_sym(new Symbol(node, node.twine));
 		if (existing !is null) {
-			Diagnostic_Engine.throw_error(SYMBOL_CONFLICT, node.twine, existing.tok);
+			Diagnostic_Engine.throw_error(SYMBOL_CONFLICT, node.get_tok_info(), existing.get_tok_info());
 		}
 	}
 

@@ -11,6 +11,7 @@ import std.string : lastIndexOf;
 import lex.lexer;
 import parse.load_directive_parser;
 import ast;
+import tok : Token;
 
 import krug_module;
 import logger;

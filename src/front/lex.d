@@ -8,7 +8,7 @@ import std.conv;
 import std.range.primitives;
 
 import logger;
-import krug_module;
+import tok;
 import compilation_phase;
 import grammar;
 

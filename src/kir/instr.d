@@ -9,9 +9,8 @@ import std.range.primitives;
 import kir.ir_mod;
 import kir.cfg;
 import ast;
-import krug_module : Token;
+import tok;
 import kt;
-import ast;
 
 kt.Void_Type VOID_TYPE;
 

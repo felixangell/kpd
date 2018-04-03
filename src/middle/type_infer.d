@@ -37,7 +37,7 @@ class Type_Infer_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 		// there is no value or type so the type inferrer
 		// doesn't have anything to work with.
 		if (var.value is null && var.type is null) {
-			Diagnostic_Engine.throw_error(NO_TYPE_ANNOTATION, var.twine);
+			Diagnostic_Engine.throw_error(NO_TYPE_ANNOTATION, var.get_tok_info());
 			return;
 		}
 

@@ -7,7 +7,7 @@ import std.conv;
 import std.algorithm.searching : countUntil;
 
 import logger;
-import krug_module : Token;
+import tok;
 import compiler_error;
 import colour;
 
@@ -28,7 +28,7 @@ struct Diagnostic_Engine {
 	// this is a code error as it takes tokens for context and
 	// blames them! distinguish this. also it uses a predefined
 	// error message template
-	static void throw_error(Compiler_Error err, Token[] context...) {
+	static void throw_error(Compiler_Error err, Token_Info[] context...) {
 		thrown_errors[err] = true;
 
 		string[] token_names;
@@ -38,7 +38,7 @@ struct Diagnostic_Engine {
 				token_names ~= "?";
 				continue;
 			}
-			token_names ~= colour.Bold(tok.lexeme);
+			token_names ~= colour.Bold(tok.get_tok().lexeme);
 		}
 
 		string error_msg; // todo buffer thing
@@ -46,7 +46,9 @@ struct Diagnostic_Engine {
 			char[1024] buff;
 			error_msg ~= sformat(buff[], error, token_names[idx]);
 			error_msg ~= '\n';
-			error_msg ~= Blame_Token(context[idx]);
+
+			// TODO make this use the token_info range
+			error_msg ~= Blame_Token(context[idx].get_tok());
 		}
 
 		char[8] id_buff;
