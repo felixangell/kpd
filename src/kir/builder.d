@@ -13,6 +13,8 @@ import sema.symbol;
 import sema.infer;
 import sema.type;
 
+import diag.engine;
+import compiler_error;
 import kt;
 import logger;
 import ast;
@@ -178,6 +180,17 @@ class Kir_Builder : Top_Level_Node_Visitor {
 		assert(0, "shit!");
 	}
 
+	kt.Kir_Type get_array_type(Array_Type_Node arr) {
+		import kir.eval;
+		auto res = try_evaluate_expr(arr.value);
+		if (res.failed) {
+			// TODO store the tokens for array types...
+			Diagnostic_Engine.throw_error(COMPILE_TIME_EVAL, null, null);
+			assert(0);
+		}
+		return new kt.Array_Type(get_type(arr.base_type), res.value);
+	}
+
 	// convert an AST type to a krug ir type
 	kt.Kir_Type get_type(Node t) {
 		assert(t !is null, "get_type null type!");
@@ -189,9 +202,7 @@ class Kir_Builder : Top_Level_Node_Visitor {
 			return conv_prim_type(prim);
 		}
 		else if (auto arr = cast(Array_Type_Node) t) {
-			// TODO: make sure the array length
-			// is a compile time constant and evaluate it here.
-			return new kt.Array_Type(get_type(arr.base_type), 69);
+			return get_array_type(arr);
 		}
 		else if (auto ptr = cast(Pointer_Type_Node) t) {
 			return new kt.Pointer_Type(get_type(ptr.base_type));

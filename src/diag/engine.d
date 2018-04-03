@@ -34,6 +34,10 @@ struct Diagnostic_Engine {
 		string[] token_names;
 
 		foreach (idx, tok; context) {
+			if (tok is null) {
+				token_names ~= "?";
+				continue;
+			}
 			token_names ~= colour.Bold(tok.lexeme);
 		}
 

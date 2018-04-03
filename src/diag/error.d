@@ -163,3 +163,7 @@ mixin(make_err!("TYPE_MISMATCH", "0003u",
 mixin(make_err!("NO_TYPE_ANNOTATION", "0004u",
         `TODO.`,
         "No type annotation for binding '%s':"));
+
+mixin(make_err!("COMPILE_TIME_EVAL", "0005u",
+        `TODO.`,
+        "Failed to evaluate expression at compile-time '%s':"));
