@@ -107,7 +107,6 @@ void link_objs(string[] obj_paths, string out_name, bool use_gcc) {
 	}
 
 	Linker_Info info;
-	info.add_objs(obj_paths);
 
 	string linker_process = "/usr/bin/ld";
 	if (use_gcc) {
@@ -123,6 +122,8 @@ void link_objs(string[] obj_paths, string out_name, bool use_gcc) {
 			info = link_objs_linux();
 		}
 	}
+
+	info.add_objs(obj_paths);
 
 	auto linker_args = [linker_process] ~ info.flags ~ info.objects ~ ["-o", out_name];
 	writeln("Running linker", linker_args);

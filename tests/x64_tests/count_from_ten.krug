@@ -1,9 +1,13 @@
+#{c_func}
+func printf();
+
 func main() {
 	let i s32 = 10;
 	loop {
 		if i == 0 {
 			break;
 		}
+		printf(c"the number is %d\n", i);
 		i = i - 1;
 	}
 	return i;

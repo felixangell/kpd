@@ -62,8 +62,16 @@ class Type_Infer_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 		auto while_type = inferrer.analyze(loop.condition, curr_sym_table.env);
 	}
 
-	void analyze_iff(ast.If_Statement_Node iff) {
+	void analyze_if_stat(ast.If_Statement_Node iff) {
 		auto if_type = inferrer.analyze(iff.condition, curr_sym_table.env);
+	}
+
+	void analyze_else_if_stat(ast.Else_If_Statement_Node else_if) {
+		auto else_if_type = inferrer.analyze(else_if.condition, curr_sym_table.env);
+	}
+
+	void analyze_else_stat(ast.Else_Statement_Node else_stat) {
+		// NOP
 	}
 
 	void analyze_ret(ast.Return_Statement_Node ret) {
@@ -101,13 +109,22 @@ class Type_Infer_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 			analyze_while_loop(loop);
 		}
 		else if (auto iff = cast(ast.If_Statement_Node) stat) {
-			analyze_iff(iff);
+			analyze_if_stat(iff);
+		}
+		else if (auto else_if = cast(ast.Else_If_Statement_Node) stat) {
+			analyze_else_if_stat(else_if);
+		}
+		else if (auto else_stat = cast(ast.Else_Statement_Node) stat) {
+			analyze_else_stat(else_stat);
 		}
 		else if (auto ret = cast(ast.Return_Statement_Node) stat) {
 			analyze_ret(ret);
 		}
 		else if (auto call = cast(ast.Call_Node) stat) {
 			analyze_call(call);
+		}
+		else if (auto loop = cast(ast.Loop_Statement_Node) stat) {
+			// NOP
 		}
 		else {
 			this.log(Log_Level.Error, "unhandled statement " ~ to!string(stat));

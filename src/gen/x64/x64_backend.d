@@ -139,12 +139,15 @@ class X64_Backend : Code_Generator_Backend {
 			string obj_file_path = baseName(as_file.name, ".as") ~ ".o";
 
 			string[] args = ["as", as_file.name, "-o", obj_file_path];
-			writeln("Executing the following command: ", args);
+			writeln("Assembler running: ", args);
 
 			auto as_pid = execute(args);
 			if (as_pid.status != 0) {
 				writeln("Assembler failed:\n", as_pid.output);
 				continue;
+			}
+			else {
+				writeln("Assembler notes:\n", as_pid.output);
 			}
 
 			obj_file_paths ~= obj_file_path;

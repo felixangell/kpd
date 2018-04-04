@@ -282,6 +282,15 @@ class Name_Resolve_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 		visit_block(if_stat.block);
 	}
 
+	void analyze_else_stat(ast.Else_Statement_Node else_stat) {
+		visit_block(else_stat.block);	
+	}
+
+	void analyze_else_if_stat(ast.Else_If_Statement_Node else_if_stat) {
+		analyze_expr(else_if_stat.condition);
+		visit_block(else_if_stat.block);	
+	}
+
 	void analyze_call(ast.Call_Node call) {
 		analyze_expr(call.left);
 		
@@ -303,6 +312,12 @@ class Name_Resolve_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 		else if (auto if_stat = cast(ast.If_Statement_Node) stat) {
 			analyze_if_stat(if_stat);
 		}
+		else if (auto else_stat = cast(ast.Else_Statement_Node) stat) {
+			analyze_else_stat(else_stat);
+		}
+		else if (auto else_if_stat = cast(ast.Else_If_Statement_Node) stat) {
+			analyze_else_if_stat(else_if_stat);
+		}
 		else if (auto call = cast(ast.Call_Node) stat) {
 			analyze_call(call);
 		}
@@ -312,6 +327,12 @@ class Name_Resolve_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 			}
 		}
 		else if (auto next = cast(ast.Next_Statement_Node) stat) {
+			// NOP
+		}
+		else if (auto brk = cast(ast.Break_Statement_Node) stat) {
+			// NOP
+		}
+		else if (auto loop = cast(ast.Loop_Statement_Node) stat) {
 			// NOP
 		}
 		else {
