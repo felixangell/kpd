@@ -23,7 +23,7 @@ T instanceof(T)(Object o) if (is(T == class)) {
 }
 
 class Kurby_Generator {
-	Kir_Module mod;
+	IR_Module mod;
 	Kurby_Byte_Code code;
 
 	// todo
@@ -66,7 +66,7 @@ class Kurby_Generator {
 			}
 		}
 		else {
-			logger.Fatal("unhandled constant type ", to!string(c.get_type()));
+			logger.fatal("unhandled constant type ", to!string(c.get_type()));
 		}
 	}
 
@@ -109,7 +109,7 @@ class Kurby_Generator {
 			emit_identifier(i);
 		}
 		else {
-			logger.Fatal("unhandled value ", to!string(v));
+			logger.fatal("unhandled value ", to!string(v));
 		}
 	}
 
@@ -187,7 +187,7 @@ class Kurby_Generator {
 				emit_call(c);
 			}
 			else {
-				logger.Fatal("Unhandled instruction ", to!string(instr));
+				logger.fatal("Unhandled instruction ", to!string(instr));
 			}
 		}
 	}
@@ -195,7 +195,7 @@ class Kurby_Generator {
 	void gen_func(Function func) {
 		uint func_addr = code.program_index;
 		code.func_addr_reg[func.name] = func_addr;
-		logger.Verbose("func '", to!string(func.name), "' at addr: ", to!string(func_addr));
+		logger.verbose("func '", to!string(func.name), "' at addr: ", to!string(func_addr));
 
 		code.emit(encode(OP.ENTR));
 		foreach (bb; func.blocks) {
@@ -221,7 +221,7 @@ class Kurby_Generator {
 		code.emit(encode(OP.RET));
 	}
 
-	void emit_mod(Kir_Module mod) {
+	void emit_mod(IR_Module mod) {
 		this.mod = mod;
 		// todo global variables.
 		foreach (ref name, func; mod.functions) {

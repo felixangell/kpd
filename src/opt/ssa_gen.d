@@ -118,7 +118,7 @@ class SSA_Builder : Optimisation_Pass {
 		}
 	}
 
-	void process(Kir_Module mod) {
+	void process(IR_Module mod) {
 		foreach (func; mod.functions) {
 			ssa_func(func);
 		}

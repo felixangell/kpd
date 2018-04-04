@@ -12,7 +12,7 @@ import kir.ir_mod;
 
 import logger;
 
-void generate_code(Target t, Kir_Module[] modules) {
+void generate_code(Target t, IR_Module[] modules) {
 	Code_Generator_Backend backend;
 	final switch (t) {
 	case Target.X64:
@@ -24,10 +24,10 @@ void generate_code(Target t, Kir_Module[] modules) {
 	}
 
 	Generated_Output[] output_program;
-	logger.VerboseHeader("Generating code for ", to!string(modules.length), " modules");
+	logger.verbose_header("Generating code for ", to!string(modules.length), " modules");
 	foreach (ref mod; modules) {
 		output_program ~= backend.code_gen(mod);
 	}
-	logger.VerboseHeader("Writing generated code");
+	logger.verbose_header("Writing generated code");
 	backend.write(output_program);
 }

@@ -38,7 +38,7 @@ static string get_line(const(Source_File*) file, ulong index) {
 
 // FIXME
 // this code is very spaghetti but it works.
-static string Blame_Token(Token tok) {
+static string blame_token(Token tok) {
 	if (tok is null) {
 		// little crazy string that looks similar
 		// to the error template.
@@ -104,7 +104,7 @@ int get_err_count() {
 	return num_logger_errors;
 }
 
-static void Log(Log_Level lvl, string[] str...) {
+static void log(Log_Level lvl, string[] str...) {
 	if (lvl == Log_Level.Error) {
 		num_logger_errors++;
 	}
@@ -145,35 +145,35 @@ static void Log(Log_Level lvl, string[] str...) {
 	out_stream.writeln(result);
 }
 
-static void Error(Token t, string msg) {
-	Error(msg, "\n", Blame_Token(t));
+static void error(Token t, string msg) {
+	error(msg, "\n", blame_token(t));
 }
 
 // TODO remove the lazy join things
 
-static void Error(string[] strings...) {
-	Log(Log_Level.Error, strings);
+static void error(string[] strings...) {
+	log(Log_Level.Error, strings);
 }
 
-static void Warn(string[] strings...) {
-	Log(Log_Level.Warning, strings);
+static void warn(string[] strings...) {
+	log(Log_Level.Warning, strings);
 }
 
-static void Info(string[] strings...) {
-	Log(Log_Level.Info, strings);
+static void info(string[] strings...) {
+	log(Log_Level.Info, strings);
 }
 
-static void Fatal(string[] strings...) {
-	Log(Log_Level.Fatal, strings);
+static void fatal(string[] strings...) {
+	log(Log_Level.Fatal, strings);
 }
 
-static void Verbose(string[] strings...) {
-	Log(Log_Level.Verbose, strings);
+static void verbose(string[] strings...) {
+	log(Log_Level.Verbose, strings);
 }
 
 // prints a verbose message in a nice big
 // obnoxious border.
-static void VerboseHeader(string[] strings...) {
+static void verbose_header(string[] strings...) {
 	if (!VERBOSE_LOGGING) {
 		return;
 	}

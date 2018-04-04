@@ -154,7 +154,7 @@ class Name_Resolve_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 			return resolve_type(param.type);
 		}
 
-		logger.Verbose(to!string(s.reference), " has not been handled in resolve_via!");
+		logger.verbose(to!string(s.reference), " has not been handled in resolve_via!");
 		return null;
 	}
 

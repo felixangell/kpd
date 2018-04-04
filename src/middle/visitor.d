@@ -48,7 +48,7 @@ class Top_Level_Node_Visitor : AST_Visitor {
 
 	Symbol_Table leave_sym_table() {
 		auto old = curr_sym_table;
-		logger.Verbose(" - POPPED SYMBOL TABLE ", to!string(old.id));
+		logger.verbose(" - POPPED SYMBOL TABLE ", to!string(old.id));
 		curr_sym_table = old.outer;
 		return old;
 	}
@@ -63,18 +63,18 @@ class Top_Level_Node_Visitor : AST_Visitor {
 		// maybe have a check to throw an error if 
 		// this occurs after the decl pass.
 		if (block.sym_table is null) {
-			logger.Verbose("Setting up a symbol table in block");
+			logger.verbose("Setting up a symbol table in block");
 			block.sym_table = push_sym_table();
 		}
 
-		logger.Verbose("Restored symbol table ", to!string(block.sym_table.id), " entries:");
+		logger.verbose("Restored symbol table ", to!string(block.sym_table.id), " entries:");
 		foreach (entry; block.sym_table.symbols.byKeyValue()) {
-			logger.Verbose("- ", entry.key);
+			logger.verbose("- ", entry.key);
 		}
 		foreach (entry; block.sym_table.env.data.byKeyValue()) {
-			logger.Verbose("* ", entry.key);
+			logger.verbose("* ", entry.key);
 		}
-		logger.Verbose("");
+		logger.verbose("");
 
 		curr_sym_table = block.sym_table;
 
@@ -84,7 +84,7 @@ class Top_Level_Node_Visitor : AST_Visitor {
 
 		foreach (stat; block.statements) {
 			if (stat is null) {
-				logger.Warn("null statement in block? " ~ to!string(block));
+				logger.warn("null statement in block? " ~ to!string(block));
 				continue;
 			}
 
@@ -111,7 +111,7 @@ class Top_Level_Node_Visitor : AST_Visitor {
 			analyze_let_node(var_node);
 		}
 		else {
-			logger.Fatal("unhandled node in " ~ to!string(this) ~ " execution:\n" ~ to!string(
+			logger.fatal("unhandled node in " ~ to!string(this) ~ " execution:\n" ~ to!string(
 					node));
 		}
 	}

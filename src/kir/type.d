@@ -2,8 +2,8 @@ module kt;
 
 import std.conv;
 
-interface Kir_Type {
-	bool cmp(Kir_Type t);
+interface IR_Type {
+	bool cmp(IR_Type t);
 	string toString();
 	uint get_width();
 };
@@ -45,11 +45,11 @@ Integer_Type get_uint(uint width) {
 	return i;
 }
 
-class Array_Type : Kir_Type {
-	Kir_Type base;
+class Array_Type : IR_Type {
+	IR_Type base;
 	size_t len;
 
-	this(Kir_Type base, size_t len) {
+	this(IR_Type base, size_t len) {
 		this.base = base;
 		this.len = len;
 	}
@@ -58,7 +58,7 @@ class Array_Type : Kir_Type {
 		return base.get_width();
 	}
 
-	bool cmp(Kir_Type t) {
+	bool cmp(IR_Type t) {
 		if (auto arr = cast(Array_Type) t) {
 			// if the base types are the same
 			// these types are equal.
@@ -72,10 +72,10 @@ class Array_Type : Kir_Type {
 	}
 }
 
-class Pointer_Type : Kir_Type {
-	Kir_Type base;
+class Pointer_Type : IR_Type {
+	IR_Type base;
 
-	this(Kir_Type base) {
+	this(IR_Type base) {
 		this.base = base;
 	}
 
@@ -84,7 +84,7 @@ class Pointer_Type : Kir_Type {
 		return 8;
 	}
 
-	bool cmp(Kir_Type kt) {
+	bool cmp(IR_Type kt) {
 		if (auto ptr = cast(Pointer_Type) kt) {
 			return base.cmp(ptr.base);
 		}
@@ -96,12 +96,12 @@ class Pointer_Type : Kir_Type {
 	}
 }
 
-class Structure_Type : Kir_Type {
-	Kir_Type[] types;
+class Structure_Type : IR_Type {
+	IR_Type[] types;
 
 	this() {}
 
-	this(Kir_Type[] types...) {
+	this(IR_Type[] types...) {
 		foreach (t; types) {
 			this.types ~= t;
 		}
@@ -115,7 +115,7 @@ class Structure_Type : Kir_Type {
 		return size;
 	}
 
-	bool cmp(Kir_Type kt) {
+	bool cmp(IR_Type kt) {
 		auto other = cast(Structure_Type) kt;
 		if (!other) {
 			return false;
@@ -146,8 +146,8 @@ class Structure_Type : Kir_Type {
 	}
 }
 
-class Void_Type : Kir_Type {
-	bool cmp(Kir_Type other) {
+class Void_Type : IR_Type {
+	bool cmp(IR_Type other) {
 		if (auto v = cast(Void_Type) other) {
 			return true;
 		}
@@ -170,7 +170,7 @@ class Void_Type : Kir_Type {
 	}
 }
 
-class Integer_Type : Kir_Type {
+class Integer_Type : IR_Type {
 	uint width;
 	bool signed;
 
@@ -186,7 +186,7 @@ class Integer_Type : Kir_Type {
 	// if they are both integer types
 	// and the widths are the same,
 	// they are equivalent.
-	bool cmp(Kir_Type other) {
+	bool cmp(IR_Type other) {
 		if (auto i = cast(Integer_Type) other) {
 			return i.width == width && i.signed == signed;
 		}
@@ -198,7 +198,7 @@ class Integer_Type : Kir_Type {
 	}
 }
 
-class Floating_Type : Kir_Type {
+class Floating_Type : IR_Type {
 	uint width;
 	bool signed;
 
@@ -212,7 +212,7 @@ class Floating_Type : Kir_Type {
 		return width / 8;
 	}
 
-	bool cmp(Kir_Type other) {
+	bool cmp(IR_Type other) {
 		if (auto f = cast(Floating_Type) other) {
 			return f.width == width && f.signed == signed;
 		}

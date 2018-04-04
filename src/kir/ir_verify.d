@@ -9,14 +9,14 @@ import logger;
 // and are mostly an indicator of compiler bugs.
 class IR_Verifier {
 
-	Kir_Module mod;
+	IR_Module mod;
 
-	this(Kir_Module mod) {
+	this(IR_Module mod) {
 		this.mod = mod;
 		verify(mod);
 	}
 
-	void verify(Kir_Module mod) {
+	void verify(IR_Module mod) {
 		
 	}
 

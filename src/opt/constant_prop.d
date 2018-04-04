@@ -12,7 +12,7 @@ import opt.pass;
 // evaluates simple expressions in
 // binary expressions _only_
 class Constant_Prop : Optimisation_Pass {
-	void process(Kir_Module mod) {
+	void process(IR_Module mod) {
 	}
 
 	override string toString() {

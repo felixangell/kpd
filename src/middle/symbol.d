@@ -69,18 +69,18 @@ class Symbol_Table : Symbol_Value {
 	}
 
 	void dump_values() {
-		logger.Verbose("symbol_table_" ~ to!string(id) ~ ":");
+		logger.verbose("symbol_table_" ~ to!string(id) ~ ":");
 		foreach (v; symbols.byKeyValue()) {
-			logger.Verbose("  > ", v.key);
+			logger.verbose("  > ", v.key);
 		}
-		logger.Verbose(".");
+		logger.verbose(".");
 	}
 
 	// registers the given symbol, if the
 	// symbol already exists it will be
 	// returned from the symbol table in the scope.
 	Symbol_Value register_sym(string name, Symbol_Value s) {
-		logger.Verbose("Registering symbol " ~ name ~ " // " ~ to!string(s));
+		logger.verbose("Registering symbol " ~ name ~ " // " ~ to!string(s));
 		if (name in symbols) {
 			return symbols[name];
 		}

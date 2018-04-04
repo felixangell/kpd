@@ -61,9 +61,9 @@ class Type_Environment {
 	// false -> bool
 	// or add -> [int, int] : int
 	void register_type(string key, Type t) {
-		logger.Verbose("Registering type ", key, " : ", to!string(t));
+		logger.verbose("Registering type ", key, " : ", to!string(t));
 		if ((key in data)) {
-			logger.Verbose("Type ", key, " has already been registered!?");
+			logger.verbose("Type ", key, " has already been registered!?");
 			assert(0);
 		}
 		data[key] = t;
@@ -115,7 +115,7 @@ Type fresh(Type t, Type_Variable[string] generics) {
 			return new Function(fresh_type(fn.ret, generics), types);
 		}
 
-		logger.Fatal("bad type!");
+		logger.fatal("bad type!");
 		assert(0);
 	}
 
@@ -137,7 +137,7 @@ void unify(Type a, Type b) {
 		}
 		else if (auto opb = cast(Type_Operator) pb) {
 			if (cmp(opa.name, opb.name) || opa.types.length != opb.types.length) {
-				logger.Error("Type mismatch between types ", to!string(a), " and ", to!string(b));
+				logger.error("Type mismatch between types ", to!string(a), " and ", to!string(b));
 				assert(0);
 			}
 
@@ -175,14 +175,14 @@ struct Type_Inferrer {
 	Type get_type(string name, Type_Variable[string] generics) {
 		auto t = e.lookup_type(name);
 		if (t !is null) {
-			logger.Verbose("Found '", name, "', type is ", to!string(t));
+			logger.verbose("Found '", name, "', type is ", to!string(t));
 			return fresh(t, generics);
 		}
 
-		logger.Error("Couldn't find type '", name, "' in environment:");
+		logger.error("Couldn't find type '", name, "' in environment:");
 
 		foreach (entry; e.data.byKeyValue()) {
-			logger.Verbose(entry.key, " is ", to!string(entry.value));
+			logger.verbose(entry.key, " is ", to!string(entry.value));
 		}
 		
 		assert(0);
@@ -200,7 +200,7 @@ struct Type_Inferrer {
 			return t;
 		}
 
-		logger.Error("unhandled symbol lookup ", sym_name);
+		logger.error("unhandled symbol lookup ", sym_name);
 		return null;
 	}
 
@@ -311,8 +311,8 @@ struct Type_Inferrer {
 			auto type = path_type.values[0];
 			Type t = e.lookup_type(type.lexeme);
 			if (t is null) {
-				logger.Error("Failed to resolve type '" ~ colour.Bold(
-						type.lexeme) ~ "':", Blame_Token(type));
+				logger.error("Failed to resolve type '" ~ colour.Bold(
+						type.lexeme) ~ "':", blame_token(type));
 			}
 			return t;
 		}
@@ -355,7 +355,7 @@ struct Type_Inferrer {
 			return new Array(analyze(arr.base_type, e, generics));
 		}
 
-		logger.Fatal("infer: unhandled node " ~ to!string(node) ~ " ... " ~ to!string(typeid(node)));
+		logger.fatal("infer: unhandled node " ~ to!string(node) ~ " ... " ~ to!string(typeid(node)));
 		assert(0);
 	}
 }

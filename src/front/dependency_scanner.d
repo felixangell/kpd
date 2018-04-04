@@ -77,10 +77,10 @@ struct Krug_Project {
 
 	Module load_module(string name) {
 		if (name in modules) {
-			logger.Verbose("Module '" ~ name ~ "' already loaded - skipping.");
+			logger.verbose("Module '" ~ name ~ "' already loaded - skipping.");
 			return modules[name];
 		}
-		logger.Verbose("Loading module '" ~ name ~ "'.");
+		logger.verbose("Loading module '" ~ name ~ "'.");
 
 		auto mod = new Module(this.path ~ std.path.dirSeparator ~ name ~ std.path.dirSeparator);
 		modules[name] = mod;
@@ -123,7 +123,7 @@ struct Krug_Project {
 // otherwise if we are given a cyclic program
 // then the compiler will likely crash with a nasty error.
 Krug_Project build_krug_project(ref Source_File main_source_file) {
-	logger.Verbose("Building program tree `" ~ main_source_file.path ~ "`");
+	logger.verbose("Building program tree `" ~ main_source_file.path ~ "`");
 
 	auto tokens = new Lexer(main_source_file).tokenize();
 	Load_Directive[] dirs = collect_deps(tokens);
@@ -146,7 +146,7 @@ Krug_Project build_krug_project(ref Source_File main_source_file) {
 
 		if (!project.module_exists(module_name)) {
 			// TODO: better error message.
-			logger.Error(dir[0], "No such module '" ~ module_name ~ "'.");
+			logger.error(dir[0], "No such module '" ~ module_name ~ "'.");
 			continue;
 		}
 

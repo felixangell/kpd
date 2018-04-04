@@ -8,7 +8,7 @@ import colour;
 import kt;
 import kir.instr;
 
-class Kir_Module {
+class IR_Module {
 	// the name of the parent module
 	string module_name;
 
@@ -21,10 +21,10 @@ class Kir_Module {
 		this.sub_module_name = sub_module_name;
 
 		// this causes a smallAlloc seg fault for some reason?
-		// this.c_mod = new Kir_Module("c", "main");
+		// this.c_mod = new IR_Module("c", "main");
 	}
 
-	Kir_Module[string] dependencies;
+	IR_Module[string] dependencies;
 
 	Function[string] c_funcs;
 
@@ -48,7 +48,7 @@ class Kir_Module {
 		return null;
 	}
 
-	Function add_function(string name, Kir_Type type = VOID_TYPE) {
+	Function add_function(string name, IR_Type type = VOID_TYPE) {
 		auto func = new Function(name, type, this);
 		functions[func.name] = func;
 		recent_func = func;

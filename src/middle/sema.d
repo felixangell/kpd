@@ -37,7 +37,7 @@ Semantic_Pass[] passes = [
 ];
 
 void log(Semantic_Pass pass, Log_Level level, string[] msg...) {
-	logger.Log(level, (to!string(pass) ~ ": ") ~ msg);
+	logger.log(level, (to!string(pass) ~ ": ") ~ msg);
 }
 
 struct Semantic_Analysis {
@@ -49,7 +49,7 @@ struct Semantic_Analysis {
 
 	void process(ref Module mod, AST as_tree) {
 		foreach (pass; passes) {
-			logger.Verbose("  * " ~ to!string(pass));
+			logger.verbose("  * " ~ to!string(pass));
 
 			// FIXME this really shows how sloppy
 			// the architecture is for this... we're

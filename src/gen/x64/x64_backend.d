@@ -22,7 +22,7 @@ import gen.x64.link;
 class X64_Backend : Code_Generator_Backend {
 	bool has_c_symbols = false;
 
-	X64_Code code_gen(Kir_Module mod) {
+	X64_Code code_gen(IR_Module mod) {
 		auto gen = new X64_Generator;
 
 		// is this necessary

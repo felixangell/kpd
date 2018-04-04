@@ -30,7 +30,7 @@ static this() {
 }
 
 interface Instruction {
-	Kir_Type get_type();
+	IR_Type get_type();
 
 	// TODO do we need this on _Every_
 	// instruction? probably not, later
@@ -50,11 +50,11 @@ interface Instruction {
 }
 
 interface Value {
-	Kir_Type get_type();
+	IR_Type get_type();
 }
 
 class Basic_Instruction : Instruction {
-	protected Kir_Type type;
+	protected IR_Type type;
 	protected string code;
 	protected Attribute[string] dirs;
 
@@ -69,7 +69,7 @@ class Basic_Instruction : Instruction {
 		return (name in dirs) !is null;
 	}
 
-	this(Kir_Type type) {
+	this(IR_Type type) {
 		this.type = type;
 	}
 
@@ -85,15 +85,15 @@ class Basic_Instruction : Instruction {
 		return to!string(type);
 	}
 
-	Kir_Type get_type() {
+	IR_Type get_type() {
 		return type;
 	}
 }
 
 class Basic_Value : Value {
-	protected Kir_Type type;
+	protected IR_Type type;
 
-	this(Kir_Type type) {
+	this(IR_Type type) {
 		this.type = type;
 	}
 
@@ -101,7 +101,7 @@ class Basic_Value : Value {
 		return to!string(type);
 	}
 
-	Kir_Type get_type() {
+	IR_Type get_type() {
 		return type;
 	}
 }
@@ -162,7 +162,7 @@ class Basic_Block {
 class Constant_Reference : Basic_Value {
 	string name;
 
-	this(Kir_Type type, string name) {
+	this(IR_Type type, string name) {
 		super(type);
 		this.name = name;
 	}
@@ -175,7 +175,7 @@ class Constant_Reference : Basic_Value {
 class Identifier : Basic_Value {
 	string name;
 
-	this(Kir_Type type, string name) {
+	this(IR_Type type, string name) {
 		super(type); // fixme
 		this.name = name;
 	}
@@ -189,13 +189,13 @@ class Index : Basic_Instruction, Value {
 	Value addr;
 	Value index;
 
-	this(Kir_Type t, Value addr, Value index) {
+	this(IR_Type t, Value addr, Value index) {
 		super(t);
 		this.addr = addr;
 		this.index = index;
 	}
 
-	override Kir_Type get_type() {
+	override IR_Type get_type() {
 		return type;
 	}
 
@@ -207,7 +207,7 @@ class Index : Basic_Instruction, Value {
 class Composite : Basic_Value {
 	Value[] values;
 
-	this(Kir_Type t, Value[] values...) {
+	this(IR_Type t, Value[] values...) {
 		super(t);
 		this.values.length = values.length;
 		foreach (v; values) {
@@ -234,7 +234,7 @@ class Constant : Basic_Value {
 	// storing this! for now it's strings
 	string value;
 
-	this(Kir_Type t, string value) {
+	this(IR_Type t, string value) {
 		super(t);
 		this.value = value;
 	}
@@ -245,7 +245,7 @@ class Constant : Basic_Value {
 }
 
 class Function : Basic_Instruction {
-	Kir_Module parent_mod;
+	IR_Module parent_mod;
 
 	string name;
 	Alloc[] locals;
@@ -257,7 +257,7 @@ class Function : Basic_Instruction {
 
 	Basic_Block curr_block;
 
-	this(string name, Kir_Type return_type, Kir_Module parent) {
+	this(string name, IR_Type return_type, IR_Module parent) {
 		super(return_type);
 		this.name = name;
 		this.parent_mod = parent;
@@ -338,12 +338,12 @@ class Undef : Basic_Value {
 class Alloc : Basic_Instruction, Value {
 	string name;
 
-	this(Kir_Type type, string name) {
+	this(IR_Type type, string name) {
 		super(type);
 		this.name = name;
 	}
 
-	override Kir_Type get_type() {
+	override IR_Type get_type() {
 		return type;
 	}
 
@@ -356,13 +356,13 @@ class Call : Basic_Instruction, Value {
 	Value left;
 	Value[] args;
 
-	this(Kir_Type type, Value left, Value[] args) {
+	this(IR_Type type, Value left, Value[] args) {
 		super(type);
 		this.left = left;
 		this.args = args;
 	}
 
-	override Kir_Type get_type() {
+	override IR_Type get_type() {
 		return type;
 	}
 
@@ -382,13 +382,13 @@ class Store : Basic_Instruction, Value {
 	Value address;
 	Value val;
 
-	this(Kir_Type type, Value address, Value val) {
+	this(IR_Type type, Value address, Value val) {
 		super(type);
 		this.address = address;
 		this.val = val;
 	}
 
-	override Kir_Type get_type() {
+	override IR_Type get_type() {
 		return type;
 	}
 
@@ -406,14 +406,14 @@ class BinaryOp : Basic_Instruction, Value {
 	Token op;
 	Value a, b;
 
-	this(Kir_Type type, Token op, Value a, Value b) {
+	this(IR_Type type, Token op, Value a, Value b) {
 		super(type);
 		this.op = op;
 		this.a = a;
 		this.b = b;
 	}
 
-	override Kir_Type get_type() {
+	override IR_Type get_type() {
 		return type;
 	}
 
@@ -460,7 +460,7 @@ class UnaryOp : Basic_Instruction, Value {
 		this.op = op;
 	}
 
-	override Kir_Type get_type() {
+	override IR_Type get_type() {
 		return type;
 	}
 
@@ -531,11 +531,11 @@ class If : Basic_Instruction {
 class Return : Basic_Instruction {
 	Value[] results;
 
-	this(Kir_Type type) {
+	this(IR_Type type) {
 		super(type);
 	}
 
-	void set_type(Kir_Type type) {
+	void set_type(IR_Type type) {
 		this.type = type;
 	}
 

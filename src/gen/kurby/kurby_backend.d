@@ -24,7 +24,7 @@ extern (C) bool execute_program(size_t entry_addr, size_t instruction_count, uby
 class Kurby_Backend : Code_Generator_Backend {
 	Function main_func;
 
-	Kurby_Byte_Code code_gen(Kir_Module mod) {
+	Kurby_Byte_Code code_gen(IR_Module mod) {
 		auto gen = new Kurby_Generator;
 		gen.emit_mod(mod);
 		auto f = mod.get_function("main");
@@ -48,11 +48,11 @@ class Kurby_Backend : Code_Generator_Backend {
 		}
 
 		if (final_program.length == 0) {
-			logger.Verbose("Nothing to execute");
+			logger.verbose("Nothing to execute");
 			return;
 		}
 
-		logger.Verbose("Executing ", to!string(final_program.length), " instructions from addr ", to!string(main_addr));
+		logger.verbose("Executing ", to!string(final_program.length), " instructions from addr ", to!string(main_addr));
 		execute_program(main_addr, final_program.length, &final_program[0]);
 	}
 }

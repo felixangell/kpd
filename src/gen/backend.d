@@ -6,5 +6,5 @@ interface Generated_Output {}
 
 interface Code_Generator_Backend {
 	void write(Generated_Output[] output);
-	Generated_Output code_gen(Kir_Module mod);
+	Generated_Output code_gen(IR_Module mod);
 }

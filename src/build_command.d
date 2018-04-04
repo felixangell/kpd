@@ -53,7 +53,7 @@ class Build_Command : Command {
 		compilerTimer.start();
 
 		if (args.length == 0) {
-			logger.Error("No input files.");
+			logger.error("No input files.");
 			return;
 		}
 
@@ -84,7 +84,7 @@ class Build_Command : Command {
 		// algorithm on the graph of the project to ensure
 		// there are no cycles in the krug project graph
 
-		logger.VerboseHeader("Cycle detection:");		
+		logger.verbose_header("Cycle detection:");		
 		SCC[] cycles = proj.graph.get_scc();
 		if (cycles.length > 0) {
 			foreach (ref cycle; cycles) {
@@ -123,10 +123,10 @@ class Build_Command : Command {
 		// are first
 		auto sorted_modules = flattened.sort!((a, b) => a.dep_count() < b.dep_count());
 
-		logger.VerboseHeader("Parsing:");
+		logger.verbose_header("Parsing:");
 		foreach (ref mod; sorted_modules) {
 			foreach (ref sub_mod_name, token_stream; mod.token_streams) {
-				logger.Verbose("- " ~ mod.name ~ "::" ~ sub_mod_name);
+				logger.verbose("- " ~ mod.name ~ "::" ~ sub_mod_name);
 				// there is no point starting a parser instance
 				// if we have no tokens to parse
 				if (token_stream.length == 0) {
@@ -139,23 +139,23 @@ class Build_Command : Command {
 
 		const auto parse_errors = logger.get_err_count();
 		if (parse_errors > 0) {
-			logger.Error("Terminating compilation: ", to!string(parse_errors),
+			logger.error("Terminating compilation: ", to!string(parse_errors),
 					" parse errors encountered.");
 			return;
 		}
 
-		logger.VerboseHeader("Semantic Analysis: ");
+		logger.verbose_header("Semantic Analysis: ");
 		foreach (ref mod; sorted_modules) {
 			auto sema = new Semantic_Analysis(graph);
 			foreach (ref sub_mod_name, as_tree; mod.as_trees) {
-				logger.Verbose("- " ~ mod.name ~ "::" ~ sub_mod_name);
+				logger.verbose("- " ~ mod.name ~ "::" ~ sub_mod_name);
 				sema.process(mod, as_tree);
 			}
 		}
 
 		const auto sema_errors = logger.get_err_count();
 		if (sema_errors > 0) {
-			logger.Error("Terminating compilation: ", to!string(sema_errors),
+			logger.error("Terminating compilation: ", to!string(sema_errors),
 					" semantic errors encountered.");
 			return;
 		}
@@ -163,16 +163,16 @@ class Build_Command : Command {
 		bool GEN_IR = true;
 		if (!GEN_IR) return;
 
-		Kir_Module[] krug_program;
+		IR_Module[] krug_program;
 
-		logger.VerboseHeader("Generating Krug IR:");
+		logger.verbose_header("Generating Krug IR:");
 		foreach (ref mod; sorted_modules) {
 			foreach (ref sub_mod_name, as_tree; mod.as_trees) {
-				auto kir_builder = new Kir_Builder(mod.name, sub_mod_name);
+				auto IR_Builder = new IR_Builder(mod.name, sub_mod_name);
 
-				logger.Verbose(" - ", mod.name, "::", sub_mod_name);
+				logger.verbose(" - ", mod.name, "::", sub_mod_name);
 
-				auto ir_mod = kir_builder.build(mod, as_tree);
+				auto ir_mod = IR_Builder.build(mod, as_tree);
 				ir_mod.dump();
 				new IR_Verifier(ir_mod);
 
@@ -180,19 +180,19 @@ class Build_Command : Command {
 			}
 		}
 
-		logger.VerboseHeader("Control flow analysis of Krug IR:");
+		logger.verbose_header("Control flow analysis of Krug IR:");
 		foreach (ref ir_mod; krug_program) {
 			build_graphs(ir_mod);
 		}
 
-		logger.VerboseHeader("Optimisation Pass: ");
+		logger.verbose_header("Optimisation Pass: ");
 		optimise(krug_program, OPTIMIZATION_LEVEL);
 
-		logger.VerboseHeader("Code Generation: ");
+		logger.verbose_header("Code Generation: ");
 		generate_code(BUILD_TARGET, krug_program);
 
 		auto duration = compilerTimer.peek();
-		logger.Info("Compiler took ", to!string(duration.total!"msecs"),
+		logger.info("Compiler took ", to!string(duration.total!"msecs"),
 				"/ms or ", to!string(duration.total!"usecs"), "/µs");
 	}
 }

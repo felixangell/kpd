@@ -53,7 +53,7 @@ class Block_Context {
 }
 
 class X64_Generator {
-	Kir_Module mod;
+	IR_Module mod;
 	X64_Code code;
 	Function curr_func;
 
@@ -99,7 +99,7 @@ class X64_Generator {
 	void emit_data_const(Value v) {
 		auto c = cast(Constant) v;
 		if (!c) {
-			logger.Fatal("emit_data_const: unhandled value ", to!string(v));
+			logger.fatal("emit_data_const: unhandled value ", to!string(v));
 		}
 
 		// FIXME
@@ -193,7 +193,7 @@ class X64_Generator {
 			return "%eax";
 		}
 
-		logger.Fatal("unimplemented get_val " ~ to!string(v) ~ " ... " ~ to!string(typeid(v)));
+		logger.fatal("unimplemented get_val " ~ to!string(v) ~ " ... " ~ to!string(typeid(v)));
 		return "%eax, %eax # unimplemented get_val " ~ to!string(v);
 	}
 
@@ -280,7 +280,7 @@ class X64_Generator {
 			instruction = "imul";
 			break;
 		default:
-			logger.Fatal("Unhandled instr selection for binary op ", to!string(bin));
+			logger.fatal("Unhandled instr selection for binary op ", to!string(bin));
 			break;
 		}
 
@@ -298,7 +298,7 @@ class X64_Generator {
 			return;
 		}
 
-		Kir_Type t = s.get_type();
+		IR_Type t = s.get_type();
 
 		string val = get_val(s.val);
 		string addr = get_val(s.address);
@@ -381,13 +381,13 @@ class X64_Generator {
 			call_name = mangle(func);
 		}
 		else {
-			logger.Fatal("unhandled invoke lefthand ! ", to!string(c.left), " for ", to!string(c));
+			logger.fatal("unhandled invoke lefthand ! ", to!string(c.left), " for ", to!string(c));
 		}
 
 		if ((call_name in ctx) is null) {
-			logger.Verbose("Call context for '", call_name, "' does not exist!");
+			logger.verbose("Call context for '", call_name, "' does not exist!");
 			foreach (k, v; ctx) {
-				logger.Verbose(k, " => ", to!string(v));
+				logger.verbose(k, " => ", to!string(v));
 			}
 			assert(0);
 		}
@@ -434,7 +434,7 @@ class X64_Generator {
 	void emit_instr(Instruction i) {
 		if (auto alloc = cast(Alloc)i) {
 			auto addr = curr_ctx.push_local(alloc.name, alloc.get_type().get_width());
-			logger.Verbose("Emitting local ", to!string(alloc), " at addr ", to!string(addr), "(%rsp)");
+			logger.verbose("Emitting local ", to!string(alloc), " at addr ", to!string(addr), "(%rsp)");
 		}
 		else if (auto ret = cast(Return)i) {
 			emit_ret(ret);
@@ -452,7 +452,7 @@ class X64_Generator {
 			emit_call(c);
 		}
 		else {
-			logger.Fatal("x64_gen: unhandled instruction ", to!string(typeid(cast(Basic_Instruction)i)), ":\n\t", to!string(i));
+			logger.fatal("x64_gen: unhandled instruction ", to!string(typeid(cast(Basic_Instruction)i)), ":\n\t", to!string(i));
 		}
 	}
 
@@ -463,7 +463,7 @@ class X64_Generator {
 		}
 	}
 
-	void emit_mod(Kir_Module mod) {
+	void emit_mod(IR_Module mod) {
 		this.mod = mod;
 
 		code.emit(".data");
@@ -489,7 +489,7 @@ class X64_Generator {
 
 	void push_block_ctx(Function func) {
 		auto new_ctx = new Block_Context(func);
-		logger.Verbose("Pushing local context for func '", func.name, "'");
+		logger.verbose("Pushing local context for func '", func.name, "'");
 		ctx[mangle(func)] = new_ctx;
 		curr_ctx = new_ctx;
 	}

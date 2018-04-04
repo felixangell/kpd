@@ -10,13 +10,13 @@ import kargs.command;
 void explain_err(string err_code) {
 	// validate the error code first:
 	if (err_code.length != 5) {
-		logger.Error("Invalid error code '", err_code, "' - error code format is EXXXX");
+		logger.error("Invalid error code '", err_code, "' - error code format is EXXXX");
 		return;
 	}
 
 	auto num = to!ushort(err_code[1 .. $]);
 	if (num < 0) {
-		logger.Error("Invalid error code sign '", err_code, "'");
+		logger.error("Invalid error code sign '", err_code, "'");
 		return;
 	}
 
@@ -25,7 +25,7 @@ void explain_err(string err_code) {
 		writeln(error.detail);
 	}
 	else {
-		logger.Error("No such error defined for '", err_code, "'");
+		logger.error("No such error defined for '", err_code, "'");
 	}
 }
 
@@ -36,7 +36,7 @@ class Explain_Command : Command {
 
 	override void process(string[] args) {
 		if (args.length == 0) {
-			logger.Fatal("Expected error code in the format of EXXXX.");
+			logger.fatal("Expected error code in the format of EXXXX.");
 			return;
 		}
 

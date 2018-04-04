@@ -32,7 +32,7 @@ string mangle_join(T...)(T values...) {
 	return res;
 }
 
-string mangle(Kir_Type t) {
+string mangle(IR_Type t) {
 	if (cast(Integer_Type) t) {
 		return "s" ~ to!string(t.get_width() * 8);
 	}

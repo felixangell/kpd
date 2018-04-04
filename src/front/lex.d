@@ -312,7 +312,7 @@ class Lexer : Compilation_Phase {
 					// we have to do the error check here because otherwise we wont
 					// have any of the tokens positions set so it will cause an error!
 					if (curr == '$' && recognized_token.lexeme !in KEYWORDS) {
-						logger.Error(recognized_token,
+						logger.error(recognized_token,
 								"Attempting to de-keyword a non-keyword, found:");
 					}
 				}

@@ -70,7 +70,7 @@ void find_incl() {
 	First step is find the gcc installation!
 */
 Linker_Info link_objs_linux() {
-	logger.Verbose("Linking for POSIX");
+	logger.verbose("Linking for POSIX");
 
 	Linker_Info info;
 	info.add_flags(
@@ -82,7 +82,7 @@ Linker_Info link_objs_linux() {
 }
 
 Linker_Info link_objs_osx() {
-	logger.Verbose("Linking for OSX");
+	logger.verbose("Linking for OSX");
 
 	Linker_Info info;
 	info.add_flags(
@@ -98,7 +98,7 @@ Linker_Info link_objs_osx() {
 // in the future I want the compiler to not
 // depend on gcc/clang..
 void link_objs(string[] obj_paths, string out_name, bool use_gcc) {
-	logger.Verbose("Linking...");
+	logger.verbose("Linking...");
 
 	string obj_files;
 	foreach (i, obj; obj_paths) {

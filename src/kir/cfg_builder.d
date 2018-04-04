@@ -9,7 +9,7 @@ import kir.instr;
 import kir.ir_mod;
 
 void add_edge_to(Graph_Node!Basic_Block a, Graph_Node!Basic_Block b) {
-    logger.Verbose(a.value.name(), " -> ", b.value.name());
+    logger.verbose(a.value.name(), " -> ", b.value.name());
     a.add_edge(b);
 }
 
@@ -46,7 +46,7 @@ class CFG_Builder {
     }
 
     Graph_Node!Basic_Block analyze_bb(Basic_Block bb) {
-        logger.Verbose("- Analyzing ", bb.name());
+        logger.verbose("- Analyzing ", bb.name());
         auto node = graph.get_node(bb.name());
         foreach (instr; bb.instructions) {
             analyze_instr(node, instr);        
@@ -81,7 +81,7 @@ class CFG_Builder {
 
 // builds the control flow graph for
 // all of the functions in the ir module
-void build_graphs(Kir_Module mod) {
+void build_graphs(IR_Module mod) {
     foreach (func; mod.functions) {
         auto cfg_builder = new CFG_Builder(func);
         cfg_builder.build();

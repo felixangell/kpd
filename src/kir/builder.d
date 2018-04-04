@@ -43,16 +43,16 @@ string gen_temp() {
 alias Block_Builder_Function = Label delegate(kir.instr.Function current_func,
 		ast.Block_Node block, Basic_Block b = null);
 		
-class Kir_Builder : Top_Level_Node_Visitor {
+class IR_Builder : Top_Level_Node_Visitor {
 
-	Kir_Module ir_mod;
+	IR_Module ir_mod;
 	kir.instr.Function curr_func;
 
 	// fuck me what am I doing  
 	Block_Builder_Function build_block;
 
 	this(string mod_name, string sub_mod_name) {
-		ir_mod = new Kir_Module(mod_name, sub_mod_name);
+		ir_mod = new IR_Module(mod_name, sub_mod_name);
 		build_block = &build_normal_bb;
 	}
 
@@ -79,7 +79,7 @@ class Kir_Builder : Top_Level_Node_Visitor {
 		return new Label(bb.name(), bb);
 	}	 
 
-	kt.Kir_Type conv_type_op(Type_Operator to) {
+	kt.IR_Type conv_type_op(Type_Operator to) {
 		final switch (to.name) {
 		case "s8": return get_int(8);
 		case "s16": return get_int(16);
@@ -108,7 +108,7 @@ class Kir_Builder : Top_Level_Node_Visitor {
 	// convert a type from the type system
 	// used in the type infer/check pass
 	// into a krug IR or KIR type.
-	kt.Kir_Type conv(Type t) {
+	kt.IR_Type conv(Type t) {
 		if (auto to = cast(Type_Operator) t) {
 			return conv_type_op(to);
 		}
@@ -116,11 +116,11 @@ class Kir_Builder : Top_Level_Node_Visitor {
 			return new Pointer_Type(conv(ptr.base));
 		}
 
-		logger.Fatal("kir_builder: unhandled type conversion from\t", to!string(t));
+		logger.fatal("IR_Builder: unhandled type conversion from\t", to!string(t));
 		assert(0);
 	}
 
-	kt.Kir_Type conv_prim_type(ast.Primitive_Type_Node prim) {
+	kt.IR_Type conv_prim_type(ast.Primitive_Type_Node prim) {
 		switch (prim.type_name.lexeme) {
 			// signed integers
 		case "s8":
@@ -162,14 +162,14 @@ class Kir_Builder : Top_Level_Node_Visitor {
 
 		// TODO f32 and f64.
 
-		logger.Error("Unhandled conversion of primitive type to kir type ", to!string(
+		logger.error("Unhandled conversion of primitive type to kir type ", to!string(
 				prim));
 		return null;
 	}
 
-	kt.Kir_Type get_sym_type(ast.Symbol_Node sym) {
+	kt.IR_Type get_sym_type(ast.Symbol_Node sym) {
 		if (sym.resolved_symbol is null) {
-			logger.Fatal("Unresolved symbol node leaking! ", to!string(sym));
+			logger.fatal("Unresolved symbol node leaking! ", to!string(sym));
 			return VOID_TYPE;
 		}
 
@@ -180,7 +180,7 @@ class Kir_Builder : Top_Level_Node_Visitor {
 		assert(0, "shit!");
 	}
 
-	kt.Kir_Type get_array_type(Array_Type_Node arr) {
+	kt.IR_Type get_array_type(Array_Type_Node arr) {
 		import kir.eval;
 		auto res = try_evaluate_expr(arr.value);
 		if (res.failed) {
@@ -192,7 +192,7 @@ class Kir_Builder : Top_Level_Node_Visitor {
 	}
 
 	// convert an AST type to a krug ir type
-	kt.Kir_Type get_type(Node t) {
+	kt.IR_Type get_type(Node t) {
 		assert(t !is null, "get_type null type!");
 
 		if (auto prim = cast(Primitive_Type_Node) t) {
@@ -235,7 +235,7 @@ class Kir_Builder : Top_Level_Node_Visitor {
 			return get_type(param.type);
 		}
 
-		logger.Error("Leaking unresolved type:\n\t", to!string(t), "\n\t", to!string(typeid(t)));
+		logger.error("Leaking unresolved type:\n\t", to!string(t), "\n\t", to!string(typeid(t)));
 
 		// FIXME just pretend it's an integer for now!
 		return get_int(32);
@@ -253,13 +253,13 @@ class Kir_Builder : Top_Level_Node_Visitor {
 	// 2. any instruction that is the target of a jump is a leader.
 	// 3. any instruction that follows a jump is a leader.
 	override void analyze_function_node(ast.Function_Node func) {
-		Kir_Type return_type = VOID_TYPE;
+		IR_Type return_type = VOID_TYPE;
 		if (func.return_type !is null) {
 			return_type = get_type(func.return_type);
 		}
 
 		// FIXME this is kind of awkward
-		// NOTE I tried to make a Kir_Module for c_functions
+		// NOTE I tried to make a IR_Module for c_functions
 		// nested in every module, but this causes a seg fault
 		// with the D gc smallAlloc? lol
 		if (func.has_attribute("c_func")) {
@@ -527,7 +527,7 @@ class Kir_Builder : Top_Level_Node_Visitor {
 			return new Constant(get_uint(8), value);
 		}
 
-		logger.Fatal("kir_builder: unhandled build_expr ", to!string(expr), " -> ", to!string(typeid(expr)));
+		logger.fatal("IR_Builder: unhandled build_expr ", to!string(expr), " -> ", to!string(typeid(expr)));
 		assert(0);
 	}
 
@@ -699,7 +699,7 @@ class Kir_Builder : Top_Level_Node_Visitor {
 			build_block(curr_func, b);
 		}
 		else {
-			logger.Warn("kir_builder: unhandled node: ", to!string(node));
+			logger.warn("IR_Builder: unhandled node: ", to!string(node));
 		}
 
 		if (block_sample.instructions.length == 0) {
@@ -710,7 +710,7 @@ class Kir_Builder : Top_Level_Node_Visitor {
 		last_instr.set_code(to!string(node));
 	}
 
-	Kir_Module build(ref Module mod, AST as_tree) {
+	IR_Module build(ref Module mod, AST as_tree) {
 		foreach (node; as_tree) {
 			super.process_node(node);
 		}

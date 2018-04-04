@@ -21,7 +21,7 @@ struct Diagnostic_Engine {
 		char[8] id_buff;
 		auto err_code_str = to!string(sformat(id_buff[], "%04d", err.id));
 
-		logger.Error(colour.Err("[E" ~ err_code_str ~ "]:\n") ~ msg ~
+		logger.error(colour.Err("[E" ~ err_code_str ~ "]:\n") ~ msg ~
 				"\n\n./krug --explain E" ~ err_code_str ~ " to explain the error.");
 	}
 
@@ -48,11 +48,11 @@ struct Diagnostic_Engine {
 			error_msg ~= '\n';
 
 			// TODO make this use the token_info range
-			error_msg ~= Blame_Token(context[idx].get_tok());
+			error_msg ~= blame_token(context[idx].get_tok());
 		}
 
 		char[8] id_buff;
-		logger.Error(colour.Err("[E" ~ to!string(sformat(id_buff[], "%04d",
+		logger.error(colour.Err("[E" ~ to!string(sformat(id_buff[], "%04d",
 				err.id)) ~ "]:\n") ~ error_msg);
 	}
 }

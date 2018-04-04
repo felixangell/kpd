@@ -6,7 +6,7 @@ import logger;
 
 void main(string[] args) {
 	if (args.length == 1) {
-		logger.Fatal("No sub-command offered.");
+		logger.fatal("No sub-command offered.");
 		return;
 	}
 
@@ -19,6 +19,6 @@ void main(string[] args) {
 		commands[cmd_name].process(args[2 .. $]);
 	}
 	else {
-		logger.Fatal("No such command '", command_name, "'.");
+		logger.fatal("No such command '", command_name, "'.");
 	}
 }
