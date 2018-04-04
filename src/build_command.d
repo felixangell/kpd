@@ -23,13 +23,12 @@ import diag.engine;
 import logger;
 import kargs.command;
 
-import kir.cfg;
-import kir.cfg_builder;
-
 import parse.parser;
 import ast;
 import logger;
 
+import kir.cfg;
+import kir.cfg_builder;
 import kir.ir_mod;
 import kir.ir_verify;
 import kir.builder;
@@ -156,6 +155,7 @@ class Build_Command : Command {
 		foreach (ref mod; sorted_modules) {
 			foreach (ref sub_mod_name, as_tree; mod.as_trees) {
 				auto ir_builder = new IR_Builder(mod.name, sub_mod_name);
+				ir_builder.setup_sym_table(as_tree);
 
 				logger.verbose(" - ", mod.name, "::", sub_mod_name);
 

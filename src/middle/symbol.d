@@ -39,6 +39,9 @@ class Symbol_Value {
 	}
 }
 
+import std.random;
+auto rnd = Random(0xff00ff);
+
 class Symbol_Table : Symbol_Value {
 	Symbol_Table outer;
 	Symbol_Value[string] symbols;
@@ -57,7 +60,13 @@ class Symbol_Table : Symbol_Value {
 	this(Symbol_Table outer = null) {
 		super();
 
-		this.id = outer is null ? 0 : outer.id + 1;
+		debug {
+			this.id = uniform!uint(rnd);
+		}
+		else {
+			this.id = outer is null ? 0 : outer.id + 1;
+		}
+
 		this.outer = outer;
 
 		if (outer is null) {
@@ -80,7 +89,7 @@ class Symbol_Table : Symbol_Value {
 	// symbol already exists it will be
 	// returned from the symbol table in the scope.
 	Symbol_Value register_sym(string name, Symbol_Value s) {
-		logger.verbose("Registering symbol " ~ name ~ " // " ~ to!string(s));
+		logger.verbose("Registering symbol ", name, " // ", to!string(s), " STAB#", to!string(this.id));
 		if (name in symbols) {
 			return symbols[name];
 		}

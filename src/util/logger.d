@@ -145,6 +145,11 @@ static void log(Log_Level lvl, string[] str...) {
 	out_stream.writeln(result);
 }
 
+// TODO
+static void error(Token_Info t, string msg) {
+	error(msg, "\n", blame_token(t.get_tok()));
+}
+
 static void error(Token t, string msg) {
 	error(msg, "\n", blame_token(t));
 }

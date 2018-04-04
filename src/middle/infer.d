@@ -47,6 +47,9 @@ class Type_Environment {
 	Type[string] data;
 
 	Type lookup_type(string name) {
+		import object : hashOf;
+		logger.verbose("Looking up type for ", name, " IN#", to!string(this.hashOf()));
+
 		for (Type_Environment e = this; e !is null; e = e.parent) {
 			if (name in e.data) {
 				return e.data[name];
@@ -61,7 +64,9 @@ class Type_Environment {
 	// false -> bool
 	// or add -> [int, int] : int
 	void register_type(string key, Type t) {
-		logger.verbose("Registering type ", key, " : ", to!string(t));
+		import object : hashOf;
+		logger.verbose("Registering type ", key, " : ", to!string(t), " IN#", to!string(this.hashOf()));
+
 		if ((key in data)) {
 			logger.verbose("Type ", key, " has already been registered!?");
 			assert(0);

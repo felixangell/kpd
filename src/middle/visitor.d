@@ -12,7 +12,7 @@ class AST_Visitor {
 }
 
 // ...
-private Symbol_Table[ast.Node] sym_tables;
+private Symbol_Table[ulong] sym_tables;
 
 class Top_Level_Node_Visitor : AST_Visitor {
 	protected Symbol_Table curr_sym_table;
@@ -26,22 +26,20 @@ class Top_Level_Node_Visitor : AST_Visitor {
 	// going on here but its the cleanest
 	// way that works atm.
 	void setup_sym_table(ref AST as_tree) {
-		// NOTE: this is a stupid hack i dont know
-		// if it works. we cant have mutable keys
-		// as an associative array so instead we
-		// use the first node in the AST as the key...
-		// hopefully this uses some weird hash of the
-		// object so its always unique? is the assumption
-		// im going with here...
-		if (as_tree[0] in sym_tables) {
-			curr_sym_table = sym_tables[as_tree[0]];
+		import object : hashOf;
+
+		if (as_tree.hashOf() in sym_tables) {
+			curr_sym_table = sym_tables[as_tree.hashOf()];
+			logger.verbose(" - RESTORED SYMBOL TABLE ", to!string(curr_sym_table.id));
 			return;
 		}
-		sym_tables[as_tree[0]] = push_sym_table();
+
+		sym_tables[as_tree.hashOf()] = push_sym_table();
 	}
 
 	Symbol_Table push_sym_table() {
 		auto s = new Symbol_Table(curr_sym_table);
+		logger.verbose(" - PUSHED SYMBOL TABLE ", to!string(s.id));
 		curr_sym_table = s;
 		return s;
 	}

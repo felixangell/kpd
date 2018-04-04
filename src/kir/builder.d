@@ -31,51 +31,22 @@ uint temp = 0;
 string gen_temp() {
 	return "t" ~ to!string(temp++);
 }
-
-// this is a stupid crazy hack and im not sure how i feel about this
-// but basically we have the NORMAL build_block and then
-// we have a version which builds blocks but handles all of the
-// yield stuff.
-// whenever we handle a Block_Expression_Node, we set
-// the current build_block to handle it for YIELDS, and once
-// we're done we set it _back_ to the default block builder!
-// stupid hacky thing but it works!
-alias Block_Builder_Function = Label delegate(kir.instr.Function current_func,
-		ast.Block_Node block, Basic_Block b = null);
 		
 class IR_Builder : Top_Level_Node_Visitor {
 
 	IR_Module ir_mod;
 	kir.instr.Function curr_func;
 
-	// fuck me what am I doing  
-	Block_Builder_Function build_block;
-
 	this(string mod_name, string sub_mod_name) {
 		ir_mod = new IR_Module(sub_mod_name);
-		build_block = &build_normal_bb;
 	}
 
 	override void analyze_named_type_node(ast.Named_Type_Node) {
 	}
 
-	// NOTE:
-	// taking a basic block to build onto is a hack so that
-	// we can set 'last_looping_bb' for the
-	// analyze_loop_node and analyze_while_node
-	// i.e. we can push the block ourselves, set the 'last_looping_bb'
-	// and then pass it. OTHERWISE if we try set it we have to do
-	// it AFTER this function is executed... which means that we
-	// will have already emitted the code for the statements that
-	// need it (i.e. a next_statement_node) and thus 'last_looping_bb'
-	// will be null.
-	Label build_normal_bb(kir.instr.Function current_func, ast.Block_Node block, Basic_Block b = null) {
+	Label build_block(kir.instr.Function current_func, ast.Block_Node block, Basic_Block b = null) {
 		auto bb = b is null ? push_bb() : b;
-
-		foreach (stat; block.statements) {
-			visit_stat(stat);
-		}
-
+		visit_block(block);
 		return new Label(bb.name(), bb);
 	}	 
 
@@ -213,8 +184,16 @@ class IR_Builder : Top_Level_Node_Visitor {
 			return get_sym_type(sym);
 		}
 		else if (auto var = cast(Variable_Statement_Node) t) {
-			assert(var.type !is null, "leaking unresolved type for Variable_Statement_Node");
-			return get_type(var.type);
+			if (var.type !is null) {
+				return get_type(var.type);
+			}
+
+			auto inferred_type = curr_sym_table.env.lookup_type(var.twine.lexeme);
+			if (inferred_type is null) {
+				logger.error(var.get_tok_info(), "Un-inferred type is leaking!");
+				assert(0);
+			}
+			return conv(inferred_type);
 		}
 		else if (auto fn = cast(Function_Node) t) {
 			// void...
@@ -377,16 +356,9 @@ class IR_Builder : Top_Level_Node_Visitor {
 		return new Call(left.get_type(), left, args);
 	}
 
+	// TODO remove namespace shit
 	Basic_Block push_bb(string namespace = "") {
-		// assuming the prior hack!
-		if (ref this.build_block ==  & build_normal_bb) {
-			return curr_func.push_block(namespace);
-		}
-
-		if (namespace != "") {
-			namespace = "_" ~ namespace;
-		}
-		return curr_func.push_block("_yield" ~ namespace);
+		return curr_func.push_block(namespace);
 	}
 
 	// this is a specialize block thingy majig
@@ -414,32 +386,7 @@ class IR_Builder : Top_Level_Node_Visitor {
 		Alloc a = new Alloc(get_int(32), bb.name() ~ "_" ~ gen_temp());
 		curr_func.add_instr(a);
 
-		// what the fuck am i doing!
-		this.build_block = delegate(kir.instr.Function curr_func, ast.Block_Node block,
-				Basic_Block unused = null) {
-			auto bb = push_bb();
-
-			foreach (s; block.statements) {
-				if (auto yield = cast(ast.Yield_Statement_Node) s) {
-					auto val = build_expr(yield.value);
-					curr_func.add_instr(new Store(a.get_type(), a, val));
-				}
-				else if (auto b = cast(ast.Block_Node) s) {
-					build_block(curr_func, b);
-				}
-				else {
-					visit_stat(s);
-				}
-			}
-
-			return new Label(bb.name(), bb);
-		};
 		build_block(curr_func, eval.block);
-
-		// this is a crazy hack! im not sure how i feel
-		// about this.
-		// RESET the build block shit
-		this.build_block = &build_normal_bb;
 
 		push_bb();
 
@@ -617,9 +564,7 @@ class IR_Builder : Top_Level_Node_Visitor {
 	}
 
 	override void analyze_let_node(ast.Variable_Statement_Node var) {
-		auto typ = get_type(var.type);
-		assert(typ !is null);
-
+		IR_Type type = get_type(var);
 		if (curr_func is null) {
 			// it's a global
 			analyze_global(var);
@@ -627,7 +572,7 @@ class IR_Builder : Top_Level_Node_Visitor {
 		}
 
 		// TODO handle global variables.
-		auto addr = curr_func.add_alloc(new Alloc(typ, var.twine.lexeme));
+		auto addr = curr_func.add_alloc(new Alloc(type, var.twine.lexeme));
 
 		if (var.value !is null) {
 			auto val = build_expr(var.value);
@@ -665,11 +610,19 @@ class IR_Builder : Top_Level_Node_Visitor {
 		}
 	}
 
+	void analyze_yield(ast.Yield_Statement_Node yield) {
+		// TODO
+	}
+
 	override void visit_stat(ast.Statement_Node node) {
 		Basic_Block block_sample = curr_func.curr_block;
 
 		if (auto let = cast(ast.Variable_Statement_Node) node) {
 			analyze_let_node(let);
+		}
+		// NOTE! TODO FIXME ?HACK..
+		else if (auto yield = cast(ast.Yield_Statement_Node) node) {
+			analyze_yield(yield);
 		}
 		else if (auto ret = cast(ast.Return_Statement_Node) node) {
 			analyze_return_node(ret);
