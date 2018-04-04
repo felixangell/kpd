@@ -87,9 +87,9 @@ class Build_Command : Command {
 		logger.VerboseHeader("Cycle detection:");		
 		SCC[] cycles = proj.graph.get_scc();
 		if (cycles.length > 0) {
-			foreach (cycle; cycles) {
+			foreach (ref cycle; cycles) {
 				string dep_string;
-				foreach (idx, mod; cycle) {
+				foreach (ref idx, mod; cycle) {
 					if (idx > 0) {
 						dep_string ~= " ";
 					}
@@ -112,6 +112,7 @@ class Build_Command : Command {
 		// flatten the dependency graph into an array
 		// of modules.
 		Dependency_Graph graph = proj.graph;
+
 		Module[] flattened;
 		foreach (ref mod; graph) {
 			flattened ~= mod;
@@ -120,22 +121,19 @@ class Build_Command : Command {
 		// sort the flattened modules such that the
 		// modules with the least amount of dependencies
 		// are first
-		auto sorted_deps = flattened.sort!((a, b) => a.dep_count() < b.dep_count());
+		auto sorted_modules = flattened.sort!((a, b) => a.dep_count() < b.dep_count());
+
 		logger.VerboseHeader("Parsing:");
-		foreach (ref dep; sorted_deps) {
-			foreach (ref entry; dep.token_streams.byKeyValue) {
-				logger.Verbose("- " ~ dep.name ~ "::" ~ entry.key);
-
+		foreach (ref mod; sorted_modules) {
+			foreach (ref sub_mod_name, token_stream; mod.token_streams) {
+				logger.Verbose("- " ~ mod.name ~ "::" ~ sub_mod_name);
 				// there is no point starting a parser instance
-				// if we have no tokens to parse!
-
-				auto token_stream = entry.value;
+				// if we have no tokens to parse
 				if (token_stream.length == 0) {
-					dep.as_trees[entry.key] = [];
+					mod.as_trees[sub_mod_name] = [];
 					continue;
 				}
-
-				dep.as_trees[entry.key] = new Parser(token_stream).parse();
+				mod.as_trees[sub_mod_name] = new Parser(token_stream).parse();
 			}
 		}
 
@@ -147,10 +145,11 @@ class Build_Command : Command {
 		}
 
 		logger.VerboseHeader("Semantic Analysis: ");
-		foreach (ref dep; sorted_deps) {
+		foreach (ref mod; sorted_modules) {
 			auto sema = new Semantic_Analysis(graph);
-			foreach (ref entry; dep.as_trees.byKeyValue) {
-				sema.process(dep, entry.key);
+			foreach (ref sub_mod_name, as_tree; mod.as_trees) {
+				logger.Verbose("- " ~ mod.name ~ "::" ~ sub_mod_name);
+				sema.process(mod, as_tree);
 			}
 		}
 
@@ -167,26 +166,23 @@ class Build_Command : Command {
 		Kir_Module[] krug_program;
 
 		logger.VerboseHeader("Generating Krug IR:");
-		foreach (ref dep; sorted_deps) {
-			foreach (ref entry; dep.as_trees.byKeyValue) {
-				auto sub_mod_name = entry.key;
-				auto mod_path = dep.path;
-				auto mod_name = dep.name;
+		foreach (ref mod; sorted_modules) {
+			foreach (ref sub_mod_name, as_tree; mod.as_trees) {
+				auto kir_builder = new Kir_Builder(mod.name, sub_mod_name);
 
-				auto kir_builder = new Kir_Builder(mod_name, sub_mod_name);
+				logger.Verbose(" - ", mod.name, "::", sub_mod_name);
 
-				logger.Verbose(" - ", mod_name, "::", sub_mod_name);
+				auto ir_mod = kir_builder.build(mod, as_tree);
+				ir_mod.dump();
+				new IR_Verifier(ir_mod);
 
-				auto mod = kir_builder.build(dep, sub_mod_name);
-				mod.dump();
-				new IR_Verifier(mod);
-				krug_program ~= mod;
+				krug_program ~= ir_mod;
 			}
 		}
 
 		logger.VerboseHeader("Control flow analysis of Krug IR:");
-		foreach (mod; krug_program) {
-			build_graphs(mod);
+		foreach (ref ir_mod; krug_program) {
+			build_graphs(ir_mod);
 		}
 
 		logger.VerboseHeader("Optimisation Pass: ");

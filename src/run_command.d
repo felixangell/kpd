@@ -125,22 +125,22 @@ class Run_Command : Command {
 		// sort the flattened modules such that the
 		// modules with the least amount of dependencies
 		// are first
-		auto sorted_deps = flattened.sort!((a, b) => a.dep_count() < b.dep_count());
+		auto sorted_modules = flattened.sort!((a, b) => a.dep_count() < b.dep_count());
 		logger.VerboseHeader("Parsing:");
-		foreach (ref dep; sorted_deps) {
-			foreach (ref entry; dep.token_streams.byKeyValue) {
-				logger.Verbose("- " ~ dep.name ~ "::" ~ entry.key);
+		foreach (ref mod; sorted_modules) {
+			foreach (ref entry; mod.token_streams.byKeyValue) {
+				logger.Verbose("- " ~ mod.name ~ "::" ~ entry.key);
 
 				// there is no point starting a parser instance
 				// if we have no tokens to parse!
 
 				auto token_stream = entry.value;
 				if (token_stream.length == 0) {
-					dep.as_trees[entry.key] = [];
+					mod.as_trees[entry.key] = [];
 					continue;
 				}
 
-				dep.as_trees[entry.key] = new Parser(token_stream).parse();
+				mod.as_trees[entry.key] = new Parser(token_stream).parse();
 			}
 		}
 
@@ -152,10 +152,10 @@ class Run_Command : Command {
 		}
 
 		logger.VerboseHeader("Semantic Analysis: ");
-		foreach (ref dep; sorted_deps) {
+		foreach (ref mod; sorted_modules) {
 			auto sema = new Semantic_Analysis(graph);
-			foreach (ref entry; dep.as_trees.byKeyValue) {
-				sema.process(dep, entry.key);
+			foreach (ref sub_mod_name, as_tree; mod.as_trees) {
+				sema.process(mod, as_tree);
 			}
 		}
 
@@ -172,20 +172,17 @@ class Run_Command : Command {
 		Kir_Module[] krug_program;
 
 		logger.VerboseHeader("Generating Krug IR:");
-		foreach (ref dep; sorted_deps) {
-			foreach (ref entry; dep.as_trees.byKeyValue) {
-				auto sub_mod_name = entry.key;
-				auto mod_path = dep.path;
-				auto mod_name = dep.name;
+		foreach (ref mod; sorted_modules) {
+			foreach (ref sub_mod_name, as_tree; mod.as_trees) {
+				auto kir_builder = new Kir_Builder(mod.name, sub_mod_name);
 
-				auto kir_builder = new Kir_Builder(mod_name, sub_mod_name);
+				logger.Verbose(" - ", mod.name, "::", sub_mod_name);
 
-				logger.Verbose(" - ", mod_name, "::", sub_mod_name);
+				auto ir_mod = kir_builder.build(mod, as_tree);
+				ir_mod.dump();
+				new IR_Verifier(ir_mod);
 
-				auto mod = kir_builder.build(dep, sub_mod_name);
-				mod.dump();
-				new IR_Verifier(mod);
-				krug_program ~= mod;
+				krug_program ~= ir_mod;
 			}
 		}
 

@@ -11,6 +11,9 @@ class AST_Visitor {
 	abstract void process_node(ast.Node node);
 }
 
+// ...
+private Symbol_Table[ast.Node] sym_tables;
+
 class Top_Level_Node_Visitor : AST_Visitor {
 	protected Symbol_Table curr_sym_table;
 
@@ -18,6 +21,24 @@ class Top_Level_Node_Visitor : AST_Visitor {
 	abstract void analyze_function_node(ast.Function_Node);
 	abstract void analyze_let_node(ast.Variable_Statement_Node);
 	abstract void visit_stat(ast.Statement_Node);
+
+	// kind of messy architecture
+	// going on here but its the cleanest
+	// way that works atm.
+	void setup_sym_table(ref AST as_tree) {
+		// NOTE: this is a stupid hack i dont know
+		// if it works. we cant have mutable keys
+		// as an associative array so instead we
+		// use the first node in the AST as the key...
+		// hopefully this uses some weird hash of the
+		// object so its always unique? is the assumption
+		// im going with here...
+		if (as_tree[0] in sym_tables) {
+			curr_sym_table = sym_tables[as_tree[0]];
+			return;
+		}
+		sym_tables[as_tree[0]] = push_sym_table();
+	}
 
 	Symbol_Table push_sym_table() {
 		auto s = new Symbol_Table(curr_sym_table);

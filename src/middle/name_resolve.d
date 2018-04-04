@@ -319,21 +319,8 @@ class Name_Resolve_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 		}
 	}
 
-	override void execute(ref Module mod, string sub_mod_name) {
-		assert(mod !is null);
-		this.mod = mod;
-
-		if (sub_mod_name !in mod.as_trees) {
-			this.log(Log_Level.Error, "couldn't find the AST for " ~ sub_mod_name ~
-					" in module " ~ mod.name ~ " ...");
-			return;
-		}
-
-		// current = mod.scopes[sub_mod_name];
-		curr_sym_table = mod.sym_tables[sub_mod_name];
-
-		auto ast = mod.as_trees[sub_mod_name];
-		foreach (node; ast) {
+	override void execute(ref Module mod, AST as_tree) {
+		foreach (node; as_tree) {
 			if (node !is null) {
 				super.process_node(node);
 			}

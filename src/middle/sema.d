@@ -6,15 +6,17 @@ import ast;
 import logger;
 import krug_module;
 
+import sema.visitor;
 import sema.decl;
 import sema.name_resolve;
 import sema.top_level_type_decl;
 import sema.type_infer_pass;
+import sema.symbol;
 
 import dependency_scanner;
 
 interface Semantic_Pass {
-	void execute(ref Module mod, string sub_mod_name);
+	void execute(ref Module mod, AST as_tree);
 }
 
 // the passes to run on
@@ -45,11 +47,17 @@ struct Semantic_Analysis {
 		this.graph = graph;
 	}
 
-	void process(ref Module mod, string sub_mod_name) {
-		logger.Verbose("- " ~ mod.name ~ "::" ~ sub_mod_name);
+	void process(ref Module mod, AST as_tree) {
 		foreach (pass; passes) {
 			logger.Verbose("  * " ~ to!string(pass));
-			pass.execute(mod, sub_mod_name);
+
+			// FIXME this really shows how sloppy
+			// the architecture is for this... we're
+			// assuming here the visitors are all 
+			// top level node visitors.
+			(cast(Top_Level_Node_Visitor)pass).setup_sym_table(as_tree);
+
+			pass.execute(mod, as_tree);
 		}
 	}
 }

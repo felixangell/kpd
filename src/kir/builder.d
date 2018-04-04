@@ -710,22 +710,10 @@ class Kir_Builder : Top_Level_Node_Visitor {
 		last_instr.set_code(to!string(node));
 	}
 
-	Kir_Module build(ref Module mod, string sub_mod_name) {
-		assert(mod !is null);
-
-		if (sub_mod_name !in mod.as_trees) {
-			logger.Error("couldn't find the AST for " ~ sub_mod_name ~
-					" in module " ~ mod.name ~ " ...");
-			return null;
-		}
-
-		curr_sym_table = mod.sym_tables[sub_mod_name];
-
-		auto ast = mod.as_trees[sub_mod_name];
-		foreach (node; ast) {
+	Kir_Module build(ref Module mod, AST as_tree) {
+		foreach (node; as_tree) {
 			super.process_node(node);
 		}
-
 		return ir_mod;
 	}
 }
