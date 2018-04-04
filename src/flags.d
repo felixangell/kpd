@@ -1,13 +1,33 @@
 module cflags;
 
+import std.stdio;
+import std.conv : to;
+
+import gen.target : Target;
+
 enum VERSION = "0.0.1";
 enum KRUG_EXT = ".krug";
 
+Target BUILD_TARGET = Target.X64;
 uint OPTIMIZATION_LEVEL = 0;
 bool RELEASE_MODE = false;
 string ARCH = arch_type();
 string OPERATING_SYSTEM = os_name();
 string OUT_NAME = "main";
+
+// prints krug compiler info (i.e. relevant flags)
+// to the stdout only in debug mode.
+void write_krug_info() {
+	debug {
+		writeln("KRUG COMPILER, VERSION ", VERSION);
+		writeln("* Executing compiler, optimization level O", to!string(OPTIMIZATION_LEVEL));
+		writeln("* Operating system: ", os_name());
+		writeln("* Architecture: ", arch_type());
+		writeln("* Target Architecture: ", BUILD_TARGET);
+		writeln("* Compiler is in ", (RELEASE_MODE ? "release" : "debug"), " mode");
+		writeln();
+	}
+}
 
 static string os_name() {
 	// this should cover most of the important-ish ones

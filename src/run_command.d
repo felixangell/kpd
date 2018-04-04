@@ -71,15 +71,7 @@ class Run_Command : Command {
 			"out|o", &OUT_NAME,
 		);
 
-		debug {
-			writeln("KRUG COMPILER, VERSION ", VERSION);
-			writeln("* Executing compiler, optimization level O", to!string(OPTIMIZATION_LEVEL));
-			writeln("* Operating system: ", os_name());
-			writeln("* Architecture: ", arch_type());
-			writeln("* Target Architecture: ", BUILD_TARGET);
-			writeln("* Compiler is in ", (RELEASE_MODE ? "release" : "debug"), " mode");
-			writeln();
-		}
+		write_krug_info();
 
 		string entry_file = args[0];
 		auto main_source_file = new Source_File(entry_file);

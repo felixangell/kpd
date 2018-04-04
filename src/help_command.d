@@ -13,12 +13,7 @@ class Help_Command : Command {
 	}
 
 	override void process(string[] args) {
-		writeln("KRUG COMPILER, VERSION ", VERSION);
-		writeln("* Executing compiler, optimization level O", to!string(OPTIMIZATION_LEVEL));
-		writeln("* Operating system: ", OPERATING_SYSTEM);
-		writeln("* Target architecture: ", ARCH);
-		writeln("* Compiler is in ", (RELEASE_MODE ? "release" : "debug"), " mode");
-		writeln();
+		write_krug_info();
 
 		writeln("Usage:\n");
 		writeln("    krug command [arguments...]\n");
