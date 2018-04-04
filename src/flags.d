@@ -20,9 +20,10 @@ string OUT_NAME = "main";
 void write_krug_info() {
 	debug {
 		writeln("KRUG COMPILER, VERSION ", VERSION);
-		writeln("* Executing compiler, optimization level O", to!string(OPTIMIZATION_LEVEL));
+		writeln("Executing compiler");
+		writeln("* Optimization level O", to!string(OPTIMIZATION_LEVEL));
 		writeln("* Operating system: ", os_name());
-		writeln("* Architecture: ", arch_type());
+		writeln("* Architecture: ", ARCH);
 		writeln("* Target Architecture: ", BUILD_TARGET);
 		writeln("* Compiler is in ", (RELEASE_MODE ? "release" : "debug"), " mode");
 		writeln();
