@@ -143,6 +143,11 @@ static void log(Log_Level lvl, string[] str...) {
 		result ~= s;
 	}
 	out_stream.writeln(result);
+
+	if (lvl == Log_Level.Fatal) {
+		import core.stdc.stdlib : exit;
+		exit(0);
+	}
 }
 
 // TODO

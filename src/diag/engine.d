@@ -48,7 +48,12 @@ struct Diagnostic_Engine {
 			error_msg ~= '\n';
 
 			// TODO make this use the token_info range
-			error_msg ~= blame_token(context[idx].get_tok());
+			if (context is null || context[idx] is null) {
+				error_msg ~= "? compiler bug ?";
+			}
+			else {
+				error_msg ~= blame_token(context[idx].get_tok());			
+			}
 		}
 
 		char[8] id_buff;

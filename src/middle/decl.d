@@ -120,8 +120,13 @@ class Declaration_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 		else if (auto ptr = cast(ast.Pointer_Type_Node) t) {
 			return mangle_word("ptr") ~ "_" ~ mangle_type(ptr.base_type);
 		}
+		else if (auto prim = cast(ast.Primitive_Type_Node) t) {
+			// FIXME
+			return mangle_word(prim.type_name.lexeme);
+		}
 
-		this.log(Log_Level.Verbose, "mangle_type: unhandled type node ", to!string(t));
+		this.log(Log_Level.Error, "mangle_type: unhandled type node ", to!string(t), " ... ", to!string(typeid(t)),
+			"\n", logger.blame_token(t.get_tok_info().get_tok()));
 		assert(0);
 	}
 

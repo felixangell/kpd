@@ -360,7 +360,7 @@ struct Type_Inferrer {
 			return new Array(analyze(arr.base_type, e, generics));
 		}
 
-		logger.fatal("infer: unhandled node " ~ to!string(node) ~ " ... " ~ to!string(typeid(node)));
+		logger.error(node.get_tok_info(), "infer: unhandled node " ~ to!string(node) ~ " ... " ~ to!string(typeid(node)));
 		assert(0);
 	}
 }

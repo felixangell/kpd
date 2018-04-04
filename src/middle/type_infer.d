@@ -58,6 +58,13 @@ class Type_Infer_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 		this.log(Log_Level.Verbose, "-- (", to!string(var), ") : ", to!string(inferred_type));
 	}
 
+	void analyze_expr(ast.Expression_Node expr) {
+		auto type = inferrer.analyze(expr, curr_sym_table.env);
+		if (type is null) {
+			this.log(Log_Level.Error, "unimplemented/failed to infer: ", to!string(expr), " ... ", to!string(typeid(expr)), "\n", logger.blame_token(expr.get_tok_info().get_tok()));
+		}
+	}
+
 	void analyze_while_loop(ast.While_Statement_Node loop) {
 		auto while_type = inferrer.analyze(loop.condition, curr_sym_table.env);
 	}
@@ -117,6 +124,9 @@ class Type_Infer_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 		else if (auto else_stat = cast(ast.Else_Statement_Node) stat) {
 			analyze_else_stat(else_stat);
 		}
+		else if (auto expr = cast(ast.Expression_Node) stat) {
+			analyze_expr(expr);
+		}
 		else if (auto ret = cast(ast.Return_Statement_Node) stat) {
 			analyze_ret(ret);
 		}
@@ -127,7 +137,8 @@ class Type_Infer_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 			// NOP
 		}
 		else {
-			this.log(Log_Level.Error, "unhandled statement " ~ to!string(stat));
+			this.log(Log_Level.Error, "unhandled statement " ~ to!string(stat) ~ " ... " ~ to!string(typeid(stat)),
+				"\n", logger.blame_token(stat.get_tok_info().get_tok()));
 		}
 	}
 

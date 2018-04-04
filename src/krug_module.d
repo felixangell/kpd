@@ -92,6 +92,11 @@ class Source_File {
 
 	this(string path) {
 		this.path = path;
-		this.contents = readText(path);
+		try {
+			this.contents = readText(path);		
+		} 
+		catch (FileException e) {
+			logger.fatal("failed to read file '", to!string(path), "'");
+		}
 	}
 }

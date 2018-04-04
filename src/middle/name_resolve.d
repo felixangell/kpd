@@ -227,6 +227,15 @@ class Name_Resolve_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 		analyze_expr(unary.value);
 	}
 
+	// TODO these are resolved via the rhand of the node
+	// so for example
+	// let { foo, bar, baz } = blah;
+	// we look for foo bar and baz in the right hand
+	// blah symbol tables.
+	void resolve_structure_destructure(ast.Structure_Destructuring_Statement_Node structure_destructure) {
+		this.log(Log_Level.Error, "unimplemented!");
+	}
+
 	void analyze_expr(ast.Expression_Node expr) {
 		if (auto binary = cast(ast.Binary_Expression_Node) expr) {
 			analyze_binary_expr(binary);
@@ -255,8 +264,18 @@ class Name_Resolve_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 		else if (cast(ast.String_Constant_Node) expr) {
 			// NOOP
 		}
+		else if (cast(ast.Boolean_Constant_Node) expr) {
+			// NOP
+		}
+		else if (auto lambda = cast(ast.Lambda_Node) expr) {
+			// TODO NOP
+		}
+		else if (auto index = cast(ast.Index_Expression_Node) expr) {
+			// TODO NOP
+		}
 		else {
-			this.log(Log_Level.Error, "name_resolve: unhandled node " ~ to!string(expr) ~ "..." ~ to!string(typeid(expr)));
+			this.log(Log_Level.Error, "name_resolve: unhandled node " ~ to!string(expr) ~ "..." ~ to!string(typeid(expr)),
+				"\n", logger.blame_token(expr.get_tok_info().get_tok()));
 		}
 	}
 
@@ -326,6 +345,12 @@ class Name_Resolve_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 				analyze_expr(ret.value);
 			}
 		}
+		else if (auto structure_destructure = cast(ast.Structure_Destructuring_Statement_Node) stat) {
+			resolve_structure_destructure(structure_destructure);
+		}
+		else if (auto eval = cast(ast.Block_Expression_Node) stat) {
+			// TODO NOP
+		}
 		else if (auto next = cast(ast.Next_Statement_Node) stat) {
 			// NOP
 		}
@@ -336,11 +361,13 @@ class Name_Resolve_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 			// NOP
 		}
 		else {
-			this.log(Log_Level.Error, "unhandled statement " ~ to!string(stat));
+			this.log(Log_Level.Error, "unhandled statement " ~ to!string(stat), " ... ", to!string(typeid(stat)),
+				"\n", logger.blame_token(stat.get_tok_info().get_tok()));
 		}
 	}
 
 	override void execute(ref Module mod, AST as_tree) {
+		this.mod = mod;
 		foreach (node; as_tree) {
 			if (node !is null) {
 				super.process_node(node);
