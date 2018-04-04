@@ -126,7 +126,7 @@ class X64_Generator {
 		}
 	}
 
-	string add_binary_op(BinaryOp b) {
+	string add_binary_op(Binary_Op b) {
 		string left = get_val(b.a);
 		string right = get_val(b.b);
 		return left;
@@ -198,7 +198,7 @@ class X64_Generator {
 	}
 
 	void emit_cmp(Store s) {
-		auto bin = cast(BinaryOp) s.val;
+		auto bin = cast(Binary_Op) s.val;
 
 		// mov bin.left into eax
 		code.emitt("movl {}, %eax", get_val(bin.a));
@@ -252,7 +252,7 @@ class X64_Generator {
 		// here based on the width of the type
 		// we are dealing with
 
-		auto bin = cast(BinaryOp) s.val;
+		auto bin = cast(Binary_Op) s.val;
 		code.emitt("movl {}, %eax", get_val(bin.a));
 
 		string instruction;
@@ -293,7 +293,7 @@ class X64_Generator {
 
 	void emit_store(Store s) {
 		// kind of hacky but ok
-		if (auto bin = cast(BinaryOp) s.val) {
+		if (auto bin = cast(Binary_Op) s.val) {
 			emit_temp(s);
 			return;
 		}

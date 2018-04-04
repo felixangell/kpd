@@ -310,7 +310,7 @@ class IR_Builder : Top_Level_Node_Visitor {
 	Value build_binary_expr(ast.Binary_Expression_Node binary) {
 		Value left = build_expr(binary.left);
 		Value right = build_expr(binary.right);
-		auto expr = new BinaryOp(left.get_type(), binary.operand, left, right);
+		auto expr = new Binary_Op(left.get_type(), binary.operand, left, right);
 
 		// create a store if we're dealing with an assignment
 		if (binary.operand.lexeme == "=") {
@@ -348,7 +348,7 @@ class IR_Builder : Top_Level_Node_Visitor {
 	}
 
 	Value addr_of(ast.Expression_Node e) {
-		return new AddrOf(build_expr(e));
+		return new Addr_Of(build_expr(e));
 	}
 
 	Value build_unary_expr(ast.Unary_Expression_Node unary) {
@@ -359,7 +359,7 @@ class IR_Builder : Top_Level_Node_Visitor {
 		case "-":
 		case "!":
 		case "^":
-			return new UnaryOp(unary.operand, build_expr(unary.value));
+			return new Unary_Op(unary.operand, build_expr(unary.value));
 		case "@":
 			return value_at(unary.value);
 		case "&":

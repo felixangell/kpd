@@ -70,7 +70,7 @@ class Kurby_Generator {
 		}
 	}
 
-	void emit_binary_value(BinaryOp b) {
+	void emit_binary_value(Binary_Op b) {
 		emit_value(b.a);
 		emit_value(b.b);
 
@@ -102,7 +102,7 @@ class Kurby_Generator {
 		if (auto c = cast(Constant) v) {
 			emit_push_const(c);
 		}
-		else if (auto b = cast(BinaryOp) v) {
+		else if (auto b = cast(Binary_Op) v) {
 			emit_binary_value(b);
 		}
 		else if (auto i = cast(Identifier) v) {

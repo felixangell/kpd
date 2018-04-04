@@ -150,19 +150,16 @@ class Build_Command : Command {
 			return;
 		}
 
-		bool GEN_IR = true;
-		if (!GEN_IR) return;
-
 		IR_Module[] krug_program;
 
 		logger.verbose_header("Generating Krug IR:");
 		foreach (ref mod; sorted_modules) {
 			foreach (ref sub_mod_name, as_tree; mod.as_trees) {
-				auto IR_Builder = new IR_Builder(mod.name, sub_mod_name);
+				auto ir_builder = new IR_Builder(mod.name, sub_mod_name);
 
 				logger.verbose(" - ", mod.name, "::", sub_mod_name);
 
-				auto ir_mod = IR_Builder.build(mod, as_tree);
+				auto ir_mod = ir_builder.build(mod, as_tree);
 				ir_mod.dump();
 				new IR_Verifier(ir_mod);
 

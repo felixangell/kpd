@@ -106,7 +106,7 @@ class Basic_Value : Value {
 	}
 }
 
-struct DomInfo {
+struct Dom_Info {
 	Basic_Block idom;
 	Basic_Block[] children;
 	int pre, post;
@@ -116,7 +116,7 @@ class Basic_Block {
 	ulong id;
 	
 	uint index = 0;
-	DomInfo dom;
+	Dom_Info dom;
 
 	string namespace = "";
 
@@ -402,7 +402,7 @@ class Store : Basic_Instruction, Value {
 }
 
 // a op b
-class BinaryOp : Basic_Instruction, Value {
+class Binary_Op : Basic_Instruction, Value {
 	Token op;
 	Value a, b;
 
@@ -436,7 +436,7 @@ class Deref : Basic_Value {
 	}
 }
 
-class AddrOf : Basic_Value {
+class Addr_Of : Basic_Value {
 	Value v;
 
 	this(Value v) {
@@ -450,7 +450,7 @@ class AddrOf : Basic_Value {
 }
 
 // op a
-class UnaryOp : Basic_Instruction, Value {
+class Unary_Op : Basic_Instruction, Value {
 	Value v;
 	Token op;
 
