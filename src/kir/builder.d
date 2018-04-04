@@ -52,7 +52,7 @@ class IR_Builder : Top_Level_Node_Visitor {
 	Block_Builder_Function build_block;
 
 	this(string mod_name, string sub_mod_name) {
-		ir_mod = new IR_Module(mod_name, sub_mod_name);
+		ir_mod = new IR_Module(sub_mod_name);
 		build_block = &build_normal_bb;
 	}
 

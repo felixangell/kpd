@@ -124,12 +124,12 @@ class Kurby_Generator {
 
 	Label[uint] rewrites;
 	void rewrite_jump_later(uint instr_addr, Label label) {
-		rewrites[instr_addr] = label;
+		// TODO
 	}
 
 	string[uint] func_call_rewrites;
 	void rewrite_call_later(uint call_addr, string func_name) {
-		func_call_rewrites[call_addr] = "__" ~ mod.module_name ~ "_" ~ mod.sub_module_name ~ "_" ~ func_name;
+		// TODO
 	}
 
 	void emit_if(If i) {

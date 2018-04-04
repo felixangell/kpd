@@ -8,26 +8,33 @@ import colour;
 import kt;
 import kir.instr;
 
+/*
+	todo some cleanup here is in order
+	an ir_module should have sub_module_name
+	as just name ie. each krug sub module
+	is an ir_module
+
+	then we need an enclsoing thing i.e.
+	one Krug module is many IR_Modules
+
+	and then dependencies can either be a
+	Module (i.e. a bundle of IR_Modules)
+	or just an IR_Module!
+*/
+
 class IR_Module {
-	// the name of the parent module
-	string module_name;
-
 	// the name of the sub_module
-	// which is what THIS class representms
-	string sub_module_name;
+	string mod_name;
 
-	this(string module_name, string sub_module_name) {
-		this.module_name = module_name;
-		this.sub_module_name = sub_module_name;
+	this(string mod_name) {
+		this.mod_name = mod_name;
 
 		// this causes a smallAlloc seg fault for some reason?
 		// this.c_mod = new IR_Module("c", "main");
 	}
 
 	IR_Module[string] dependencies;
-
 	Function[string] c_funcs;
-
 	Function[string] functions;
 	Value[string] constants;
 
@@ -56,7 +63,7 @@ class IR_Module {
 	}
 
 	void dump() {
-		writeln(colour.Bold("Dumping module '", module_name, "::", sub_module_name, "'"));
+		writeln(colour.Bold("Dumping module '", mod_name, "'"));
 		foreach (entry; constants.byKeyValue()) {
 			writeln("'" ~ entry.key, " = ", to!string(entry.value));
 		}

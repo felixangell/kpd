@@ -78,9 +78,8 @@ string mangle(Function f) {
 		return f.name;
 	}
 	
-	return "__" ~ mangle_join!(string, string, string, Alloc[])(
-		f.parent_mod.module_name,
-		f.parent_mod.sub_module_name,
+	return "__" ~ mangle_join!(string, string, Alloc[])(
+		f.parent_mod.mod_name,
 		f.name,
 		f.params,
 	);
