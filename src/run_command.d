@@ -48,8 +48,6 @@ import gen.target;
 // of the build command but with
 // a different function call haha
 class Run_Command : Command {
-	Target BUILD_TARGET = Target.KURBY;
-
 	this() {
 		super("run", "compiles and runs the given krug program");
 	}
@@ -71,6 +69,7 @@ class Run_Command : Command {
 			"out|o", &OUT_NAME,
 		);
 
+		BUILD_TARGET = Target.KURBY;
 		write_krug_info();
 
 		writeln("- unimplemented");
