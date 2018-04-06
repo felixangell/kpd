@@ -107,6 +107,11 @@ class Const : Memory_Location {
 	}
 }
 
+// TODO mangle this or something
+// because there might be name collisionsm
+// among modules.
+uint[string] constant_sizes;
+
 class Address : Memory_Location {
 	long offs;
 	string iden;
@@ -125,7 +130,9 @@ class Address : Memory_Location {
 
 	override uint width() {
 		if (iden.length > 0) {
-			// FIXME
+			if (iden in constant_sizes) {
+				return constant_sizes[iden];
+			}
 			return 0;
 		}
 		return reg.width();

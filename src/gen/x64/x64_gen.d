@@ -153,6 +153,11 @@ class X64_Generator {
 		writer.emit("{}:", name);
 		writer.emitt(".{} {}", constant_type, constant_val);
 
+		// store the type size in the writers constant map thingy
+		// for later refernecing. this is so the x64 writer can
+		// infer the instructions suffix
+		constant_sizes[name] = c.get_type().get_width();
+
 		// restore back to the text segment.
 		writer.set_segment(Segment.Text);
 	}
