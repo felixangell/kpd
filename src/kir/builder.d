@@ -565,7 +565,7 @@ class IR_Builder : Top_Level_Node_Visitor {
 
 	override void analyze_let_node(ast.Variable_Statement_Node var) {
 		IR_Type type = get_type(var);
-		if (curr_func is null) {
+		if (curr_func.curr_block is null) {
 			// it's a global
 			analyze_global(var);
 			return;

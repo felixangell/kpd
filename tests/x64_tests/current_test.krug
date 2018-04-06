@@ -2,5 +2,6 @@
 func printf() s32;
 
 func main() {
-	let i [s32; 100];
+	let a f64 = 3.141;
+	let b f64 = a + 6.141;
 }

@@ -5,7 +5,10 @@ import std.conv;
 import std.format;
 import std.container.array;
 import std.range.primitives;
+import std.bitmanip : bitfields, FloatRep, DoubleRep;
 import std.algorithm.searching : countUntil;
+import std.process;
+import std.random;
 
 import logger;
 
@@ -52,6 +55,19 @@ class Block_Context {
 	}
 }
 
+string width_to_const_type(uint width) {
+	final switch (width) {
+	case 1:
+		return "byte";
+	case 2:
+		return "short";
+	case 4:
+		return "long";
+	case 8:
+		return "quad";
+	}
+}
+
 class X64_Generator {
 	IR_Module mod;
 	X64_Code code;
@@ -90,40 +106,64 @@ class X64_Generator {
 		if (auto integer = cast(Integer_Type) type) {
 			return "$" ~ c.value;
 		}
+		else if (auto floating = cast(Floating_Type) type) {
+			// todo mangle properly?
+			string name = "_FC_" ~ thisProcessID.to!string(36) ~ "_" ~ uniform!uint.to!string(36);
+			emit_data_const(name, c);
+			return name ~ "(%rip)";
+		}
 
 		return "; unhandled constant, -- " ~ to!string(c);
 	}
 
 	// FIXME
 	// we're hoping this is a constant...
-	void emit_data_const(Value v) {
+	void emit_data_const(string name, Value v) {
 		auto c = cast(Constant) v;
 		if (!c) {
 			logger.fatal("emit_data_const: unhandled value ", to!string(v));
 		}
 
-		// FIXME
-		// this is messy
-		if (auto i = cast(Integer_Type) c.get_type()) {
-			string conv_type = "error";
+		string constant_type = width_to_const_type(c.get_type().get_width());
 
-			switch (i.get_width()) {
+		// we can just set the value for most constants
+		string constant_val = c.value;
+
+		// floats we have to convert the floating value
+		// into its float representation and spit it out
+		// as an integer constant.
+		if (auto f = cast(Floating_Type) c.get_type()) {
+			final switch (f.get_width()) {
 			case 4:
-				conv_type = "long";
+				FloatRep flt_rep;
+				flt_rep.value = to!float(c.value);
+				uint int_value = *(cast(uint*)(&flt_rep));
+				constant_val = to!string(int_value);
 				break;
-			default:
-				conv_type = "? " ~ to!string(i.get_width());
+			case 8:
+				DoubleRep dbl_rep;
+				dbl_rep.value = to!float(c.value);
+				ulong int_value = *(cast(ulong*)(&dbl_rep));
+				constant_val = to!string(int_value);
 				break;
 			}
-
-			code.emitt(".{} {}", conv_type, c.value);
 		}
 
-		// TODO better comparison
-		// to string type
-		if (c.get_type().cmp(new Pointer_Type(get_uint(8)))) {
-			code.emitt(".asciz {}", c.value);
+		// FIXME better type/string comparison
+		else if (c.get_type().cmp(new Pointer_Type(get_uint(8)))) {
+			constant_type = "asciz";
 		}
+
+		// data constants are written
+		// in the data segment. this is restored
+		// back to text.
+		code.set_segment(Segment.Data);
+
+		code.emit("{}:", name);
+		code.emitt(".{} {}", constant_type, constant_val);
+
+		// restore back to the text segment.
+		code.set_segment(Segment.Text);
 	}
 
 	string add_binary_op(Binary_Op b) {
@@ -466,15 +506,12 @@ class X64_Generator {
 	void emit_mod(IR_Module mod) {
 		this.mod = mod;
 
-		code.emit(".data");
-
-		// TODO these arent populated
+		code.set_segment(Segment.Data);
 		foreach (k, v; mod.constants) {
-			code.emit("{}:", k);
-			emit_data_const(v);
+			emit_data_const(k, v);
 		}
 
-		code.emit(".text");
+		code.set_segment(Segment.Text);
 		foreach (ref name, func; mod.c_funcs) {
 			setup_func_proto(func);
 		}

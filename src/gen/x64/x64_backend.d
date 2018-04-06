@@ -123,12 +123,7 @@ class X64_Backend : Code_Generator_Backend {
 			as_files ~= temp_file;
 			temp_file.close();
 
-			foreach (i, line; x64_code._assembly_code) {
-				if (line.length == 0) {
-					continue;
-				}
-				writefln("%04d:\t\t%s", i, line);
-			}
+			x64_code.dump_to_stdout();
 		}
 
 		string[] obj_file_paths;

@@ -276,6 +276,7 @@ class Function : Basic_Instruction {
 	// is the entry block, we are adding
 	// all of the allocations to this part!
 	Value add_alloc(Alloc a) {
+		assert(curr_block !is null);
 		curr_block.add_instr(a);
 		return a;
 	}
