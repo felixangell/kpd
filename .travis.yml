@@ -1,6 +1,5 @@
 d:
   - dmd
-  - gdc
   - ldc
 
 notifications:

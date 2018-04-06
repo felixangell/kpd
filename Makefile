@@ -1,10 +1,8 @@
 ifeq ($(DC),)
-	D_COMPILER := dmd
-else
-	D_COMPILER := $(DC)
+	DC := dmd
 endif
 
-ifeq ($(D_COMPILER), ldc2)
+ifeq ($(DC), ldc2)
 	D_FLAGS := -cache=krug_cache/ -march=x86-64 -d-debug -g -w
 else
 	D_FLAGS := -m64 -debug -g -w
@@ -35,10 +33,10 @@ $(VM_OUT): $(VM_CC_OBJ_FILES)
 	ar -cvq $(VM_OUT) $(VM_CC_OBJ_FILES)
 
 $(KRUG_OUT): $(VM_OUT) $(D_SOURCES)
-	$(D_COMPILER) -of$@ -dip1000 $(D_FLAGS) $(LD_FLAGS) $(D_SOURCES)
+	$(DC) -of$@ -dip1000 $(D_FLAGS) $(LD_FLAGS) $(D_SOURCES)
 	
 tests:
-	$(D_COMPILER) -of$@_test -unittest $(D_FLAGS) $(LD_FLAGS) $(D_SOURCES)
+	$(DC) -of$@_test -unittest $(D_FLAGS) $(LD_FLAGS) $(D_SOURCES)
 
 clean:
 	-rm $(VM_CC_OBJ_FILES)
