@@ -3,4 +3,7 @@ d:
   - gdc
   - ldc
 
+notifications:
+  email: false
+
 script: make

@@ -55,7 +55,6 @@ enum X64_Register : ubyte {
 	XMM5,
 	XMM6,
 	XMM7,
-	// xmm8 ... 14
 	XMM15,
 };
 
@@ -67,8 +66,6 @@ enum X64_Instruction {
 
 	PUSH 	= 0x50,
 	POP 	= 0x58,
-
-	// .. 
 
 	SEGCS   = 0x2E,
 

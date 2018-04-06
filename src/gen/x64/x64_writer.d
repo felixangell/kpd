@@ -179,15 +179,28 @@ uint get_width(X64_Register a) {
 	assert(0);
 }
 
+uint nzpick(uint a, uint b) {
+	// pick non zero
+	if (a == 0) {
+		return b;
+	}
+	if (b == 0) {
+		return a;
+	}
+
+	// otherwise pick smallest
+	if (a < b) {
+		return a;
+	}
+	return b;
+}
+
 class X64_Writer : X64_Code {
 	// things to think about
 	// movzb al, eax
 	// movq rax, rax
 	void mov(Memory_Location src, Memory_Location dest) {
-		uint w = min(src.width(), dest.width());
-		if (w == 0) {
-			w = max(src.width(), dest.width());
-		}
+		uint w = nzpick(src.width(), dest.width());
 		emitt("mov{} {}, {}", suffix(w), src.emit(), dest.emit());
 	}
 
@@ -196,52 +209,58 @@ class X64_Writer : X64_Code {
 		emitt("add{} {}, {}", suffix(w), val.emit(), dst.emit());
 	}
 
+	void sub(Memory_Location val, Memory_Location dst) {
+		uint w = max(val.width(), dst.width());
+		emitt("sub{} {}, {}", suffix(w), val.emit(), dst.emit());
+	}
+
 	void ret() {
 		emitt("ret");
 	}
 
 	void setg(Memory_Location m) {
-
+		emitt("sete {}", m.emit());
 	}
 
 	void setb(Memory_Location m) {
-
+		emitt("setb {}", m.emit());
 	}
 
 	void setge(Memory_Location m) {
-
+		emitt("setge {}", m.emit());
 	}
 
 	void setle(Memory_Location m) {
-
+		emitt("setle {}", m.emit());
 	}
 
 	void sete(Memory_Location m) {
-
+		emitt("sete {}", m.emit());
 	}
 
 	void setne(Memory_Location m) {
-
+		emitt("setne {}", m.emit());
 	}
 
 	void xor(Memory_Location a, Memory_Location b) {
-		emitt("xor");
+		emitt("xor {}, {}", a.emit(), b.emit());
 	}
 
 	void jmp(string iden) {
-		emitt("jmp");
+		emitt("jmp {}", iden);
 	}
 
 	void je(string iden) {
-		emitt("je");
+		emitt("je {}", iden);
 	}
 
 	void jne(string iden) {
-		emitt("jen");
+		emitt("jne {}", iden);
 	}
 
-	void cmp(Memory_Location l, Memory_Location r) {
-		emitt("cmp");
+	void cmp(Memory_Location val, Memory_Location r) {
+		uint w = max(val.width(), r.width());
+		emitt("cmp{} {}, {}", suffix(w), val.emit(), r.emit());
 	}
 
 	void push(Memory_Location r) {
@@ -253,7 +272,7 @@ class X64_Writer : X64_Code {
 	}
 
 	void call(string addr) {
-		emitt("call");
+		emitt("call {}", addr);
 	}
 
 	void syscall() {
