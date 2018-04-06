@@ -1,4 +1,4 @@
-# krug
+# krug [![Build Status](https://travis-ci.org/felixangell/krug.svg?branch=master)](https://travis-ci.org/felixangell/krug)
 Krug is a compiled programming language that compiles to x64 assembly. Currently
 the prime targets are OS X and Linux.
 
