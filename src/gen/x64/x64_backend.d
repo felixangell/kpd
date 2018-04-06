@@ -15,6 +15,7 @@ import gen.x64.instr;
 import gen.x64.output;
 import gen.x64.generator;
 import gen.x64.mangler;
+import gen.x64.x64_writer;
 import gen.x64.link;
 
 /*
@@ -100,7 +101,7 @@ class X64_Backend : Code_Generator_Backend {
 			// is the value in rsi, which was thej return value
 			// from the function called from this main entry
 			// point
-			gen.writer.pop(X64_Register.RDI);
+			gen.writer.pop(RDI);
 
 			// invoke the syscall
 			gen.writer.syscall();

@@ -57,6 +57,19 @@ class Block_Context {
 	}
 }
 
+Reg[] SYS_V_CALL_CONV_REG;
+
+static this() {
+	SYS_V_CALL_CONV_REG = [
+		RDI,
+		RSI,
+		RDX,
+		RCX,
+		R8,
+		R9,
+	];
+}
+
 class X64_Generator {
 	IR_Module mod;
 	X64_Writer writer;
@@ -87,7 +100,7 @@ class X64_Generator {
 			// todo mangle properly?
 			string name = "_FC_" ~ thisProcessID.to!string(36) ~ "_" ~ uniform!uint.to!string(36);
 			emit_data_const(name, c);
-			return new Address(name, X64_Register.RIP);
+			return new Address(name, RIP);
 		}
 
 		logger.fatal("unhandled constant, -- " ~ to!string(c));
@@ -156,15 +169,15 @@ class X64_Generator {
 		}
 		else if (auto a = cast(Alloc) v) {
 			long addr = get_alloc_addr(a);
-			return new Address(addr, X64_Register.RSP);
+			return new Address(addr, RSP);
 		}
 		else if (auto r = cast(Identifier) v) {
 			// first check if this is a param
 			auto index = curr_ctx.parent.params.countUntil!("a.name == b")(r.name);
 			if (index != -1) {
 				auto param = curr_ctx.parent.params[index];
-				if (index < registers.length) {
-					return get_reg(registers[index]);
+				if (index < SYS_V_CALL_CONV_REG.length) {
+					return SYS_V_CALL_CONV_REG[index];
 				}
 
 				// VERY IMPORTANT NOTE:
@@ -175,14 +188,14 @@ class X64_Generator {
 				// because normally
 				// we look up args(i) where i > 6 
 				// by registers[i]!
-				auto arg_index = index - registers.length;
+				auto arg_index = index - SYS_V_CALL_CONV_REG.length;
 				auto addr = curr_ctx.get_addr("__arg_" ~ to!string(arg_index));
-				return new Address(addr, get_reg(X64_Register.RSP));
+				return new Address(addr, RSP);
 			}
 
 			long addr = get_alloc_addr_by_name(r.name);
 			if (addr != -1) {
-				return new Address(addr, get_reg(X64_Register.RBP));
+				return new Address(addr, RBP);
 			}
 
 			// look for the value in the globals.
@@ -190,18 +203,18 @@ class X64_Generator {
 			// out the name?
 			if (r.name in mod.constants) {
 				// FIXME
-				return new Address(r.name, get_reg(X64_Register.RIP));
+				return new Address(r.name, RIP);
 			}
 
 			assert(0);
 		}
 		else if (auto c = cast(Constant_Reference) v) {
-			return new Address(c.name, get_reg(X64_Register.RIP));
+			return new Address(c.name, RIP);
 		}
 		else if (auto i = cast(Call) v) {
 			// eax or rax ?
 			emit_call(i);
-			return get_reg(X64_Register.EAX);
+			return EAX;
 		}
 
 		logger.fatal("unimplemented get_val " ~ to!string(v) ~ " ... " ~ to!string(typeid(v)));
@@ -212,10 +225,10 @@ class X64_Generator {
 		auto bin = cast(Binary_Op) s.val;
 
 		// mov bin.left into eax
-		writer.mov(get_val(bin.a), get_reg(X64_Register.EAX));
+		writer.mov(get_val(bin.a), EAX);
 		
 		// cmp bin.right with eax
-		writer.cmp(get_val(bin.b), X64_Register.EAX);
+		writer.cmp(get_val(bin.b), EAX);
 
 		// one opt i've noticed here is it seems to be
 		// cheaper instruction wise to emit a jump i.e.
@@ -226,32 +239,32 @@ class X64_Generator {
 
 		switch (bin.op.lexeme) {
 		case ">":
-			writer.emitt("setg %al");
+			writer.setg(AL);
 			break;
 		case "<":
-			writer.emitt("setb %al");
+			writer.setb(AL);
 			break;
 
 		case ">=":
-			writer.emitt("setge %al");
+			writer.setge(AL);
 			break;
 		case "<=":
-			writer.emitt("setle %al");
+			writer.setle(AL);
 			break;
 
 		case "==":
-			writer.emitt("sete %al");
+			writer.sete(AL);
 			break;
 		case "!=":
-			writer.emitt("setne %al");
+			writer.setne(AL);
 			break;
 
 		default:
 			assert(0, "unhandled op!");
 		}
 
-		writer.mov(get_reg(X64_Register.AL), get_reg(X64_Register.EAX));
-		writer.mov(get_reg(X64_Register.EAX), get_val(s.address));
+		writer.mov(AL, EAX);
+		writer.mov(EAX, get_val(s.address));
 	}
 
 	// a store where the value is
@@ -268,7 +281,7 @@ class X64_Generator {
 
 		uint type_width = s.get_type().get_width();
 		auto bin = cast(Binary_Op) s.val;
-		writer.mov(get_val(bin.a), get_reg(X64_Register.EAX));
+		writer.mov(get_val(bin.a), EAX);
 
 		// FIXME!
 		// this should gen an instr.
@@ -299,7 +312,7 @@ class X64_Generator {
 			break;
 		}
 
-		writer.mov(get_reg(X64_Register.EAX), get_val(s.address));
+		writer.mov(EAX, get_val(s.address));
 	}
 
 	void emit_store(Store s) {
@@ -314,14 +327,14 @@ class X64_Generator {
 		auto val = get_val(s.val);
 		auto addr = get_val(s.address);
 
-		writer.mov(val, get_reg(X64_Register.EAX));
-		writer.mov(get_reg(X64_Register.EAX), addr);
+		writer.mov(val, EAX);
+		writer.mov(EAX, addr);
 	}
 
 	void emit_ret(Return ret) {
 		if (ret.results !is null) {
 			Value v = ret.results[0];
-			writer.mov(get_val(v), get_reg(X64_Register.EAX));
+			writer.mov(get_val(v), EAX);
 		}
 
 		// FIXME this wont work all the time...
@@ -336,9 +349,9 @@ class X64_Generator {
 		// has been pushed to the stack!
 		writer.emitt_at(curr_ctx.alloc_instr_addr, "subq ${}, %rsp", to!string(curr_ctx.size()));
 
-		writer.add(new Const(to!string(curr_ctx.size())), X64_Register.RSP);
+		writer.add(new Const(to!string(curr_ctx.size())), RSP);
 
-		writer.pop(X64_Register.RBP);
+		writer.pop(RBP);
 		writer.ret();
 	}
 
@@ -355,15 +368,6 @@ class X64_Generator {
 	void emit_jmp(Jump j) {
 		writer.jmp(mangle(j.label));
 	}
-
-	static X64_Register[] registers = [
-		X64_Register.RDI,
-		X64_Register.RSI,
-		X64_Register.RDX,
-		X64_Register.RCX,
-		X64_Register.R8,
-		X64_Register.R9,
-	];
 
 	void emit_call(Call c) {
 		// x86_64 calling convention...
@@ -413,23 +417,23 @@ class X64_Generator {
 		// we're calling.
 		Block_Context call_frame_ctx = ctx[call_name];
 
-		foreach (i, arg; c.args[0..min(c.args.length,registers.length)]) {
+		foreach (i, arg; c.args[0..min(c.args.length,SYS_V_CALL_CONV_REG.length)]) {
 			if (auto ptr = cast(Pointer_Type) arg.get_type()) {
 				// FIXME
 				// LEA.
 			}
-			writer.mov(get_val(arg), get_reg(registers[i]));
+			writer.mov(get_val(arg), SYS_V_CALL_CONV_REG[i]);
 		}
 
-		if (c.args.length >= registers.length) {
-			foreach_reverse (i, arg; c.args[registers.length..$]) {
+		if (c.args.length >= SYS_V_CALL_CONV_REG.length) {
+			foreach_reverse (i, arg; c.args[SYS_V_CALL_CONV_REG.length..$]) {
 				// move the value via. the stack
 				long addr = call_frame_ctx.get_addr("__arg_" ~ to!string(i));
-				writer.mov(get_val(arg), new Address(addr, X64_Register.RBP));
+				writer.mov(get_val(arg), new Address(addr, RBP));
 			}
 		}		
 
-		writer.xor(get_reg(X64_Register.RAX), get_reg(X64_Register.RAX));
+		writer.xor(RAX, RAX);
 		writer.call(call_name);
 	}
 
@@ -500,8 +504,8 @@ class X64_Generator {
 		// into the current block context
 		// we mangle the names to __arg_N
 		// where N is the index of the argument.
-		if (func.params.length >= registers.length) {
-			foreach_reverse (i, arg; func.params[registers.length..$]) {
+		if (func.params.length >= SYS_V_CALL_CONV_REG.length) {
+			foreach_reverse (i, arg; func.params[SYS_V_CALL_CONV_REG.length..$]) {
 				curr_ctx.push_local("__arg_" ~ to!string(i), arg.get_type().get_width());
 			}
 		}
@@ -518,8 +522,8 @@ class X64_Generator {
 
 		writer.emit("{}:", mangle(func));
 
-		writer.push(X64_Register.RBP);
-		writer.mov(X64_Register.RSP, X64_Register.RBP);
+		writer.push(RBP);
+		writer.mov(RSP, RBP);
 
 		// PLACEHOLDER value here, we subtract 0 from the
 		// RSP but we later on MODIFY THIS to however much

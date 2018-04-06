@@ -7,14 +7,68 @@ import gen.x64.instr;
 import gen.x64.output;
 import gen.x64.formatter;
 
-// like the obj writer but this spits out
-// assembly text instead.
-// note make some kind of interface-y
-// so theres less dupe code
+// GROSS!
+Reg AL; Reg CL; Reg DL; Reg BL; Reg SPL; Reg BPL; Reg SIL; Reg DIL; 
+Reg AX; Reg CX; Reg DX; Reg BX; Reg SP; Reg BP; Reg SI; Reg DI; 
+Reg EAX; Reg ECX; Reg EDX; Reg EBX; Reg ESP; Reg EBP; Reg ESI; Reg EDI; 
+Reg RAX; Reg RCX; Reg RDX; Reg RBX; Reg RSP; Reg RBP; Reg RSI; Reg RDI; Reg RIP; 
+Reg R8; Reg R9; Reg R10; Reg R11; Reg R12; Reg R13; Reg R14; Reg R15; 
+Reg XMM0; Reg XMM1; Reg XMM2; Reg XMM3; Reg XMM4; Reg XMM5; Reg XMM6; Reg XMM7; Reg XMM15;
 
-class Memory_Location {
-
+static this() {
+	AL = new Reg(X64_Register.AL);
+	CL = new Reg(X64_Register.CL);
+	DL = new Reg(X64_Register.DL);
+	BL = new Reg(X64_Register.BL);
+	SPL = new Reg(X64_Register.SPL);
+	BPL = new Reg(X64_Register.BPL);
+	SIL = new Reg(X64_Register.SIL);
+	DIL = new Reg(X64_Register.DIL);
+	AX = new Reg(X64_Register.AX);
+	CX = new Reg(X64_Register.CX);
+	DX = new Reg(X64_Register.DX);
+	BX = new Reg(X64_Register.BX);
+	SP = new Reg(X64_Register.SP);
+	BP = new Reg(X64_Register.BP);
+	SI = new Reg(X64_Register.SI);
+	DI = new Reg(X64_Register.DI);
+	EAX = new Reg(X64_Register.EAX);
+	ECX = new Reg(X64_Register.ECX);
+	EDX = new Reg(X64_Register.EDX);
+	EBX = new Reg(X64_Register.EBX);
+	ESP = new Reg(X64_Register.ESP);
+	EBP = new Reg(X64_Register.EBP);
+	ESI = new Reg(X64_Register.ESI);
+	EDI = new Reg(X64_Register.EDI);
+	RAX = new Reg(X64_Register.RAX);
+	RCX = new Reg(X64_Register.RCX);
+	RDX = new Reg(X64_Register.RDX);
+	RBX = new Reg(X64_Register.RBX);
+	RSP = new Reg(X64_Register.RSP);
+	RBP = new Reg(X64_Register.RBP);
+	RSI = new Reg(X64_Register.RSI);
+	RDI = new Reg(X64_Register.RDI);
+	RIP = new Reg(X64_Register.RIP);
+	R8 = new Reg(X64_Register.R8);
+	R9 = new Reg(X64_Register.R9);
+	R10 = new Reg(X64_Register.R10);
+	R11 = new Reg(X64_Register.R11);
+	R12 = new Reg(X64_Register.R12);
+	R13 = new Reg(X64_Register.R13);
+	R14 = new Reg(X64_Register.R14);
+	R15 = new Reg(X64_Register.R15);
+	XMM0 = new Reg(X64_Register.XMM0);
+	XMM1 = new Reg(X64_Register.XMM1);
+	XMM2 = new Reg(X64_Register.XMM2);
+	XMM3 = new Reg(X64_Register.XMM3);
+	XMM4 = new Reg(X64_Register.XMM4);
+	XMM5 = new Reg(X64_Register.XMM5);
+	XMM6 = new Reg(X64_Register.XMM6);
+	XMM7 = new Reg(X64_Register.XMM7);
+	XMM15 = new Reg(X64_Register.XMM15);
 }
+
+class Memory_Location {}
 
 class Reg : Memory_Location {
 	X64_Register reg;
@@ -47,27 +101,6 @@ class Address : Memory_Location {
 		this.iden = iden;
 		this.reg = r.reg;
 	}
-
-	this(long offs, X64_Register reg) {
-		this.offs = offs;
-		this.reg = reg;
-	}
-
-	this(string iden, X64_Register reg) {
-		this.iden = iden;
-		this.reg = reg;
-	}
-}
-
-Reg[X64_Register] register_cache;
-
-Reg get_reg(X64_Register r) {
-	if (r in register_cache) {
-		return register_cache[r];
-	}
-	auto val = new Reg(r);
-	register_cache[r] = val;
-	return val;
 }
 
 string reg(X64_Register r) {
@@ -116,63 +149,72 @@ uint get_width(X64_Register a) {
 }
 
 class X64_Writer : X64_Code {
-	void mov(Reg src, Address dest) {
-		emitt("mov{} {}, {}", reg(src.reg), addr(dest));
+	void mov(Memory_Location src, Memory_Location dest) {
+		emitt("mov");
 	}
 
-	void mov(Reg src, Reg dest) {
-		emitt("mov{} {}, {}", suffix(src.reg.get_width()), reg(src.reg), reg(dest.reg));
-	}
-
-	void add_reg_reg(X64_Register src, X64_Register dest) {
-
-	}
-
-	void sub_reg_reg(X64_Register src, X64_Register dest) {
-
+	void add(Memory_Location val, Memory_Location dst) {
+		emitt("add");
 	}
 
 	void ret() {
 		emitt("ret");
 	}
 
-	void mov_int_reg(string value, X64_Register reg) {
+	void setg(Memory_Location m) {
 
 	}
 
-	void sub_val_reg(X64_Register reg, ulong value){
+	void setb(Memory_Location m) {
 
 	}
 
-	void xor(X64_Register a, X64_Register b) { 
+	void setge(Memory_Location m) {
+
+	}
+
+	void setle(Memory_Location m) {
+
+	}
+
+	void sete(Memory_Location m) {
+
+	}
+
+	void setne(Memory_Location m) {
+
+	}
+
+	void xor(Memory_Location a, Memory_Location b) {
+		emitt("xor");
 	}
 
 	void jmp(string iden) {
-
+		emitt("jmp");
 	}
 
 	void je(string iden) {
-
+		emitt("je");
 	}
 
 	void jne(string iden) {
-
+		emitt("jen");
 	}
 
-	void cmp(Memory_Location l, X64_Register r) {
-
+	void cmp(Memory_Location l, Memory_Location r) {
+		emitt("cmp");
 	}
 
-	void push(X64_Register r) {
-		emitt("push{} {}", suffix(r.get_width()), reg(r));
+	void push(Memory_Location r) {
+		emitt("push");
 	}
 
-	void pop(X64_Register r) {
-		emitt("pop{} {}", suffix(r.get_width()), reg(r));
+	void pop(Memory_Location r) {
+		emitt("pop");
 	}
 
 	void call(string addr) {
-
+		emitt("call");
 	}
 
 	void syscall() {
