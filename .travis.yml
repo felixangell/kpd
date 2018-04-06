@@ -1,0 +1,6 @@
+d:
+  - dmd
+  - gdc
+  - ldc
+
+script: make
