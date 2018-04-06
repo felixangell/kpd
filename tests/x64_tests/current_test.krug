@@ -2,5 +2,7 @@
 func printf() s32;
 
 func main() {
-
+	let a = 3;
+	let b = a + 6;
+	printf(c"Hello %d\n", b);
 }

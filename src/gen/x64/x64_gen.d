@@ -211,7 +211,7 @@ class X64_Generator {
 
 			long addr = get_alloc_addr_by_name(r.name);
 			if (addr != -1) {
-				return new Address(addr, RBP);
+				return new Address(addr, RSP);
 			}
 
 			// look for the value in the globals.
@@ -442,7 +442,7 @@ class X64_Generator {
 			foreach_reverse (i, arg; c.args[SYS_V_CALL_CONV_REG.length..$]) {
 				// move the value via. the stack
 				long addr = call_frame_ctx.get_addr("__arg_" ~ to!string(i));
-				writer.mov(get_val(arg), new Address(addr, RBP));
+				writer.mov(get_val(arg), new Address(addr, RSP));
 			}
 		}		
 
