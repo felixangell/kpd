@@ -7,6 +7,7 @@ import std.container.array;
 import std.range.primitives;
 import std.bitmanip : bitfields, FloatRep, DoubleRep;
 import std.algorithm.searching : countUntil;
+import std.math : log2;
 import std.process;
 import std.random;
 
@@ -59,6 +60,9 @@ class Block_Context {
 
 Reg[] SYS_V_CALL_CONV_REG;
 
+// indexed as log2(width) !
+Reg[] temp_ax;
+
 static this() {
 	SYS_V_CALL_CONV_REG = [
 		RDI,
@@ -67,6 +71,13 @@ static this() {
 		RCX,
 		R8,
 		R9,
+	];
+
+	temp_ax = [
+		AL,		// log2(1) = 0
+		AX,		// log2(2) = 1
+		EAX,	// log2(4) = 2
+		RAX,	// log2(8) = 3
 	];
 }
 
@@ -277,16 +288,12 @@ class X64_Generator {
 	// e.g.
 	// t0 = a + b
 	void emit_temp(Store s) {
-		// todo properly select the register
-		// here based on the width of the type
-		// we are dealing with
-
-		// the new x64 gen will really
-		// help this writer...
-
-		uint type_width = s.get_type().get_width();
 		auto bin = cast(Binary_Op) s.val;
-		writer.mov(get_val(bin.a), EAX);
+
+		Reg reg = temp_ax[cast(ulong)log2(bin.a.get_type().get_width())];
+		// TODO floating types.
+
+		writer.mov(get_val(bin.a), reg);
 
 		// FIXME!
 		// this should gen an instr.
@@ -317,7 +324,7 @@ class X64_Generator {
 			break;
 		}
 
-		writer.mov(EAX, get_val(s.address));
+		writer.mov(reg, get_val(s.address));
 	}
 
 	void emit_store(Store s) {
@@ -332,8 +339,9 @@ class X64_Generator {
 		auto val = get_val(s.val);
 		auto addr = get_val(s.address);
 
-		writer.mov(val, EAX);
-		writer.mov(EAX, addr);
+		Reg ax_temp = temp_ax[cast(ulong)log2(s.address.get_type().get_width())];
+		writer.mov(val, ax_temp);
+		writer.mov(ax_temp, addr);
 	}
 
 	void emit_ret(Return ret) {

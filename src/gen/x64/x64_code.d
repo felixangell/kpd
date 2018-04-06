@@ -64,13 +64,15 @@ class X64_Code : Generated_Output {
 	}
 
 	void dump_to_stdout() {
+		uint offs = 0;
 		foreach (seg; segments) {
 			foreach (i, line; seg.data[0..seg.index]) {
 				if (line.length == 0) {
 					continue;
 				}
-				writefln("%04d:\t\t%s", i, line);
+				writefln("%04d:\t\t%s", i + offs, line);
 			}
+			offs += seg.index;
 		}
 	}
 

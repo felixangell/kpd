@@ -31,6 +31,7 @@ static this() {
 
 interface Instruction {
 	IR_Type get_type();
+	void set_type(IR_Type type);
 
 	// TODO do we need this on _Every_
 	// instruction? probably not, later
@@ -51,6 +52,7 @@ interface Instruction {
 
 interface Value {
 	IR_Type get_type();
+	void set_type(IR_Type t);
 }
 
 class Basic_Instruction : Instruction {
@@ -85,7 +87,10 @@ class Basic_Instruction : Instruction {
 		return to!string(type);
 	}
 
-	IR_Type get_type() {
+	override void set_type(IR_Type t) {
+		this.type = t;
+	}
+	override IR_Type get_type() {
 		return type;
 	}
 }
@@ -101,7 +106,10 @@ class Basic_Value : Value {
 		return to!string(type);
 	}
 
-	IR_Type get_type() {
+	override void set_type(IR_Type t) {
+		this.type = t;
+	}
+	override IR_Type get_type() {
 		return type;
 	}
 }
@@ -195,6 +203,9 @@ class Index : Basic_Instruction, Value {
 		this.index = index;
 	}
 
+	override void set_type(IR_Type t) {
+		this.type = t;
+	}
 	override IR_Type get_type() {
 		return type;
 	}
@@ -344,6 +355,9 @@ class Alloc : Basic_Instruction, Value {
 		this.name = name;
 	}
 
+	override void set_type(IR_Type t) {
+		this.type = t;
+	}
 	override IR_Type get_type() {
 		return type;
 	}
@@ -363,6 +377,9 @@ class Call : Basic_Instruction, Value {
 		this.args = args;
 	}
 
+	override void set_type(IR_Type t) {
+		this.type = t;
+	}
 	override IR_Type get_type() {
 		return type;
 	}
@@ -389,6 +406,9 @@ class Store : Basic_Instruction, Value {
 		this.val = val;
 	}
 
+	override void set_type(IR_Type t) {
+		this.type = t;
+	}
 	override IR_Type get_type() {
 		return type;
 	}
@@ -414,6 +434,9 @@ class Binary_Op : Basic_Instruction, Value {
 		this.b = b;
 	}
 
+	override void set_type(IR_Type t) {
+		this.type = t;
+	}
 	override IR_Type get_type() {
 		return type;
 	}
@@ -461,6 +484,9 @@ class Unary_Op : Basic_Instruction, Value {
 		this.op = op;
 	}
 
+	override void set_type(IR_Type t) {
+		this.type = t;
+	}
 	override IR_Type get_type() {
 		return type;
 	}
@@ -534,10 +560,6 @@ class Return : Basic_Instruction {
 
 	this(IR_Type type) {
 		super(type);
-	}
-
-	void set_type(IR_Type type) {
-		this.type = type;
 	}
 
 	override string toString() {
