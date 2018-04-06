@@ -2,6 +2,8 @@ module gen.x64.x64_writer;
 
 import std.conv : to;
 import std.bitmanip;
+import std.algorithm.comparison : min, max;
+import std.uni : toLower;
 
 import gen.x64.instr;
 import gen.x64.output;
@@ -68,13 +70,24 @@ static this() {
 	XMM15 = new Reg(X64_Register.XMM15);
 }
 
-class Memory_Location {}
+class Memory_Location {
+	abstract uint width();
+	abstract string emit();
+}
 
 class Reg : Memory_Location {
 	X64_Register reg;
 
 	this(X64_Register reg) {
 		this.reg = reg;
+	}
+
+	override uint width() {
+		return get_width(reg);
+	}
+
+	override string emit() {
+		return "%" ~ to!string(reg).toLower;
 	}
 }
 
@@ -84,35 +97,46 @@ class Const : Memory_Location {
 	this(string val) {
 		this.val = val;
 	}
+
+	override string emit() {
+		return "$" ~ val;
+	}
+
+	override uint width() {
+		return 0;
+	}
 }
 
 class Address : Memory_Location {
 	long offs;
 	string iden;
 
-	X64_Register reg;
+	Reg reg;
 
 	this(long offs, Reg r) {
 		this.offs = offs;
-		this.reg = r.reg;
+		this.reg = r;
 	}
 
 	this(string iden, Reg r) {
 		this.iden = iden;
-		this.reg = r.reg;
+		this.reg = r;
 	}
-}
 
-string reg(X64_Register r) {
-	// TODO lowercase
-	return "%" ~ to!string(r);
-}
-
-string addr(Address a) {
-	if (a.iden.length > 0) {
-		return a.iden ~ "(" ~ reg(a.reg) ~ ")";
+	override uint width() {
+		if (iden.length > 0) {
+			// FIXME
+			return 0;
+		}
+		return reg.width();
 	}
-	return to!string(a.offs) ~ "(" ~ reg(a.reg) ~ ")";
+
+	override string emit() {
+		if (iden.length > 0) {
+			return iden ~ "(" ~ reg.emit() ~ ")";
+		}
+		return to!string(offs) ~ "(" ~ reg.emit() ~ ")";
+	}
 }
 
 string type_name(uint width) {
@@ -149,12 +173,20 @@ uint get_width(X64_Register a) {
 }
 
 class X64_Writer : X64_Code {
+	// things to think about
+	// movzb al, eax
+	// movq rax, rax
 	void mov(Memory_Location src, Memory_Location dest) {
-		emitt("mov");
+		uint w = min(src.width(), dest.width());
+		if (w == 0) {
+			w = max(src.width(), dest.width());
+		}
+		emitt("mov{} {}, {}", suffix(w), src.emit(), dest.emit());
 	}
 
 	void add(Memory_Location val, Memory_Location dst) {
-		emitt("add");
+		uint w = max(val.width(), dst.width());
+		emitt("add{} {}, {}", suffix(w), val.emit(), dst.emit());
 	}
 
 	void ret() {
@@ -206,11 +238,11 @@ class X64_Writer : X64_Code {
 	}
 
 	void push(Memory_Location r) {
-		emitt("push");
+		emitt("push{} {}", suffix(r.width()), r.emit());
 	}
 
 	void pop(Memory_Location r) {
-		emitt("pop");
+		emitt("pop{} {}", suffix(r.width()), r.emit());
 	}
 
 	void call(string addr) {
