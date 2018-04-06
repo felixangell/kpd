@@ -65,7 +65,7 @@ class X64_Code : Generated_Output {
 
 	void dump_to_stdout() {
 		foreach (seg; segments) {
-			foreach (i, line; seg.data) {
+			foreach (i, line; seg.data[0..seg.index]) {
 				if (line.length == 0) {
 					continue;
 				}
@@ -98,20 +98,5 @@ class X64_Code : Generated_Output {
 		uint emit_addr = current_seg.index++;
 		emitt_at(emit_addr, fmt, s);
 		return emit_addr;
-	}
-
-	void push(int width, string[] p...) {
-		string instr_width;
-		final switch (width) {
-		case 32: 
-			instr_width = "l";
-			break;
-		case 64: 
-			instr_width = "q";
-			break;
-		}
-
-		emit("{}", sfmt("push{}", instr_width));
-		emit("{}", p);
 	}
 }

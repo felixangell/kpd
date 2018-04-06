@@ -14,6 +14,8 @@ import logger;
 
 import gen.x64.output;
 import gen.x64.mangler;
+import gen.x64.x64_writer;
+import gen.x64.instr;
 
 import kt;
 import kir.ir_mod;
@@ -55,29 +57,16 @@ class Block_Context {
 	}
 }
 
-string width_to_const_type(uint width) {
-	final switch (width) {
-	case 1:
-		return "byte";
-	case 2:
-		return "short";
-	case 4:
-		return "long";
-	case 8:
-		return "quad";
-	}
-}
-
 class X64_Generator {
 	IR_Module mod;
-	X64_Code code;
+	X64_Writer writer;
 	Function curr_func;
 
 	Block_Context[string] ctx;
 	Block_Context curr_ctx;
 
 	this() {
-		code = new X64_Code;
+		writer = new X64_Writer;
 	}
 
 	// gets the address of the given
@@ -89,31 +78,20 @@ class X64_Generator {
 		return curr_ctx.get_addr(name);
 	}
 
-	string get_instr_suffix(uint width) {
-		switch (width) {
-		case 1: return "b";
-		case 2: return "s";
-		case 4: return "l";
-		case 8: return "q";
-		default: 
-			writeln("warn no suffix!");
-			return "";
-		}
-	}
-
-	string get_const(Constant c) {
+	Memory_Location get_const(Constant c) {
 		auto type = c.get_type();
 		if (auto integer = cast(Integer_Type) type) {
-			return "$" ~ c.value;
+			return new Const(c.value);
 		}
 		else if (auto floating = cast(Floating_Type) type) {
 			// todo mangle properly?
 			string name = "_FC_" ~ thisProcessID.to!string(36) ~ "_" ~ uniform!uint.to!string(36);
 			emit_data_const(name, c);
-			return name ~ "(%rip)";
+			return new Address(name, X64_Register.RIP);
 		}
 
-		return "; unhandled constant, -- " ~ to!string(c);
+		logger.fatal("unhandled constant, -- " ~ to!string(c));
+		assert(0);
 	}
 
 	// FIXME
@@ -124,7 +102,7 @@ class X64_Generator {
 			logger.fatal("emit_data_const: unhandled value ", to!string(v));
 		}
 
-		string constant_type = width_to_const_type(c.get_type().get_width());
+		string constant_type = type_name(c.get_type().get_width());
 
 		// we can just set the value for most constants
 		string constant_val = c.value;
@@ -157,28 +135,28 @@ class X64_Generator {
 		// data constants are written
 		// in the data segment. this is restored
 		// back to text.
-		code.set_segment(Segment.Data);
+		writer.set_segment(Segment.Data);
 
-		code.emit("{}:", name);
-		code.emitt(".{} {}", constant_type, constant_val);
+		writer.emit("{}:", name);
+		writer.emitt(".{} {}", constant_type, constant_val);
 
 		// restore back to the text segment.
-		code.set_segment(Segment.Text);
+		writer.set_segment(Segment.Text);
 	}
 
-	string add_binary_op(Binary_Op b) {
-		string left = get_val(b.a);
-		string right = get_val(b.b);
+	Memory_Location add_binary_op(Binary_Op b) {
+		auto left = get_val(b.a);
+		get_val(b.b);
 		return left;
 	}
 
-	string get_val(Value v) {
+	Memory_Location get_val(Value v) {
 		if (auto c = cast(Constant) v) {
 			return get_const(c);
 		}
 		else if (auto a = cast(Alloc) v) {
 			long addr = get_alloc_addr(a);
-			return to!string(addr) ~ "(%rsp)";
+			return new Address(addr, X64_Register.RSP);
 		}
 		else if (auto r = cast(Identifier) v) {
 			// first check if this is a param
@@ -186,14 +164,7 @@ class X64_Generator {
 			if (index != -1) {
 				auto param = curr_ctx.parent.params[index];
 				if (index < registers.length) {
-					// TODO get the type here.
-					// for now just load the 64 bit reg
-					string suff = get_instr_suffix(param.get_type().get_width());
-					string which_reg = "r";
-					if (suff == "l") which_reg = "e";
-					// TOOD
-
-					return "%" ~ which_reg ~ registers[index];
+					return get_reg(registers[index]);
 				}
 
 				// VERY IMPORTANT NOTE:
@@ -206,12 +177,12 @@ class X64_Generator {
 				// by registers[i]!
 				auto arg_index = index - registers.length;
 				auto addr = curr_ctx.get_addr("__arg_" ~ to!string(arg_index));
-				return to!string(addr) ~ "(%rsp)";
+				return new Address(addr, get_reg(X64_Register.RSP));
 			}
 
 			long addr = get_alloc_addr_by_name(r.name);
 			if (addr != -1) {
-				return to!string(addr) ~ "(%rsp)";				
+				return new Address(addr, get_reg(X64_Register.RBP));
 			}
 
 			// look for the value in the globals.
@@ -219,32 +190,32 @@ class X64_Generator {
 			// out the name?
 			if (r.name in mod.constants) {
 				// FIXME
-				return "" ~ r.name ~ "(%rip)";
+				return new Address(r.name, get_reg(X64_Register.RIP));
 			}
 
-			return "error!";
+			assert(0);
 		}
 		else if (auto c = cast(Constant_Reference) v) {
-			return c.name ~ "(%rip)";
+			return new Address(c.name, get_reg(X64_Register.RIP));
 		}
 		else if (auto i = cast(Call) v) {
 			// eax or rax ?
 			emit_call(i);
-			return "%eax";
+			return get_reg(X64_Register.EAX);
 		}
 
 		logger.fatal("unimplemented get_val " ~ to!string(v) ~ " ... " ~ to!string(typeid(v)));
-		return "%eax, %eax # unimplemented get_val " ~ to!string(v);
+		assert(0);
 	}
 
 	void emit_cmp(Store s) {
 		auto bin = cast(Binary_Op) s.val;
 
 		// mov bin.left into eax
-		code.emitt("movl {}, %eax", get_val(bin.a));
+		writer.mov(get_val(bin.a), get_reg(X64_Register.EAX));
 		
 		// cmp bin.right with eax
-		code.emitt("cmpl {}, %eax", get_val(bin.b));
+		writer.cmp(get_val(bin.b), X64_Register.EAX);
 
 		// one opt i've noticed here is it seems to be
 		// cheaper instruction wise to emit a jump i.e.
@@ -255,32 +226,32 @@ class X64_Generator {
 
 		switch (bin.op.lexeme) {
 		case ">":
-			code.emitt("setg %al");
+			writer.emitt("setg %al");
 			break;
 		case "<":
-			code.emitt("setb %al");
+			writer.emitt("setb %al");
 			break;
 
 		case ">=":
-			code.emitt("setge %al");
+			writer.emitt("setge %al");
 			break;
 		case "<=":
-			code.emitt("setle %al");
+			writer.emitt("setle %al");
 			break;
 
 		case "==":
-			code.emitt("sete %al");
+			writer.emitt("sete %al");
 			break;
 		case "!=":
-			code.emitt("setne %al");
+			writer.emitt("setne %al");
 			break;
 
 		default:
 			assert(0, "unhandled op!");
 		}
 
-		code.emitt("movzb %al, %eax");
-		code.emitt("movl %eax, {}", get_val(s.address));
+		writer.mov(get_reg(X64_Register.AL), get_reg(X64_Register.EAX));
+		writer.mov(get_reg(X64_Register.EAX), get_val(s.address));
 	}
 
 	// a store where the value is
@@ -292,13 +263,17 @@ class X64_Generator {
 		// here based on the width of the type
 		// we are dealing with
 
+		// the new x64 gen will really
+		// help this writer...
+
+		uint type_width = s.get_type().get_width();
 		auto bin = cast(Binary_Op) s.val;
-		code.emitt("movl {}, %eax", get_val(bin.a));
+		writer.mov(get_val(bin.a), get_reg(X64_Register.EAX));
 
-		string instruction;
+		// FIXME!
+		// this should gen an instr.
+		string arith_instr;
 		switch (bin.op.lexeme) {
-
-		// hm!
 		case ">":
 		case "<":
 		case ">=":
@@ -308,27 +283,23 @@ class X64_Generator {
 			return emit_cmp(s);
 
 		case "+":
-			instruction = "add";
+			arith_instr = "add";
 			break;
 		case "-":
-			instruction = "sub";
+			arith_instr = "sub";
 			break;
 		case "/":
 			// TODO DIVISION!
 			assert(0);
 		case "*":
-			instruction = "imul";
+			arith_instr = "imul";
 			break;
 		default:
 			logger.fatal("Unhandled instr selection for binary op ", to!string(bin));
 			break;
 		}
 
-		auto width_bytes = s.get_type().get_width();
-		instruction ~= get_instr_suffix(width_bytes);
-
-		code.emitt("{} {}, %eax", instruction, get_val(bin.b));
-		code.emitt("movl %eax, {}", get_val(s.address));
+		writer.mov(get_reg(X64_Register.EAX), get_val(s.address));
 	}
 
 	void emit_store(Store s) {
@@ -340,17 +311,17 @@ class X64_Generator {
 
 		IR_Type t = s.get_type();
 
-		string val = get_val(s.val);
-		string addr = get_val(s.address);
+		auto val = get_val(s.val);
+		auto addr = get_val(s.address);
 
-		code.emitt("movl {}, %eax", val);
-		code.emitt("movl %eax, {}", addr);
+		writer.mov(val, get_reg(X64_Register.EAX));
+		writer.mov(get_reg(X64_Register.EAX), addr);
 	}
 
 	void emit_ret(Return ret) {
 		if (ret.results !is null) {
 			Value v = ret.results[0];
-			code.emitt("movl {}, %eax", get_val(v));
+			writer.mov(get_val(v), get_reg(X64_Register.EAX));
 		}
 
 		// FIXME this wont work all the time...
@@ -363,29 +334,35 @@ class X64_Generator {
 		// when we emit the _initial_ subq allocation
 		// instruction we don't know how much space
 		// has been pushed to the stack!
-		code.emitt_at(curr_ctx.alloc_instr_addr, "subq ${}, %rsp", to!string(curr_ctx.size()));
-		code.emitt("addq ${}, %rsp", to!string(curr_ctx.size()));
+		writer.emitt_at(curr_ctx.alloc_instr_addr, "subq ${}, %rsp", to!string(curr_ctx.size()));
 
-		code.emitt("popq %rbp");
-		code.emitt("ret");
+		writer.add(new Const(to!string(curr_ctx.size())), X64_Register.RSP);
+
+		writer.pop(X64_Register.RBP);
+		writer.ret();
 	}
 
 	void emit_if(If iff) {
 		// emit the condition and 
 		// check if it's true
-		string condish = get_val(iff.condition);
-		code.emitt("cmpb $1, {}", condish);
+		auto condish = get_val(iff.condition);
+		writer.cmp(new Const("1"), condish);
 
-		code.emitt("je {}", mangle(iff.a));
-		code.emitt("jmp {}", mangle(iff.b));
+		writer.je(mangle(iff.a));
+		writer.jmp(mangle(iff.b));
 	}
 
 	void emit_jmp(Jump j) {
-		code.emitt("jmp {}", mangle(j.label));
+		writer.jmp(mangle(j.label));
 	}
 
-	static string[] registers = [
-		"di", "si", "dx", "cx", "r8", "r9"
+	static X64_Register[] registers = [
+		X64_Register.RDI,
+		X64_Register.RSI,
+		X64_Register.RDX,
+		X64_Register.RCX,
+		X64_Register.R8,
+		X64_Register.R9,
 	];
 
 	void emit_call(Call c) {
@@ -437,38 +414,23 @@ class X64_Generator {
 		Block_Context call_frame_ctx = ctx[call_name];
 
 		foreach (i, arg; c.args[0..min(c.args.length,registers.length)]) {
-			auto w = arg.get_type().get_width();
-			auto suffix = "q";
-
-			string reg;
-			if (i >= 4) {
-				reg = registers[i] ~ (suffix == "l" ? "d" : "");
-			} else {
-				reg = (suffix == "q" ? "r" : "e") ~ registers[i];
-			}
-
-			// HACK FIXME
-			string instr = "mov";
 			if (auto ptr = cast(Pointer_Type) arg.get_type()) {
-				instr = "lea";
+				// FIXME
+				// LEA.
 			}
-
-			// move the value into the register
-			string val = get_val(arg);
-			code.emitt("{}{} {}, %{}", instr, suffix, val, reg);
+			writer.mov(get_val(arg), get_reg(registers[i]));
 		}
 
 		if (c.args.length >= registers.length) {
 			foreach_reverse (i, arg; c.args[registers.length..$]) {
 				// move the value via. the stack
-				string val = get_val(arg);
 				long addr = call_frame_ctx.get_addr("__arg_" ~ to!string(i));
-				code.emitt("movq {}, {}(%rsp)", get_val(arg), to!string(addr));
+				writer.mov(get_val(arg), new Address(addr, X64_Register.RBP));
 			}
 		}		
 
-		code.emitt("xor %rax, %rax");
-		code.emitt("call {}", call_name);
+		writer.xor(get_reg(X64_Register.RAX), get_reg(X64_Register.RAX));
+		writer.call(call_name);
 	}
 
 	void emit_instr(Instruction i) {
@@ -497,7 +459,7 @@ class X64_Generator {
 	}
 
 	void emit_bb(Basic_Block bb) {
-		code.emit("{}:", mangle(bb));
+		writer.emit("{}:", mangle(bb));
 		foreach (instr; bb.instructions) {
 			emit_instr(instr);
 		}
@@ -506,12 +468,12 @@ class X64_Generator {
 	void emit_mod(IR_Module mod) {
 		this.mod = mod;
 
-		code.set_segment(Segment.Data);
+		writer.set_segment(Segment.Data);
 		foreach (k, v; mod.constants) {
 			emit_data_const(k, v);
 		}
 
-		code.set_segment(Segment.Text);
+		writer.set_segment(Segment.Text);
 		foreach (ref name, func; mod.c_funcs) {
 			setup_func_proto(func);
 		}
@@ -554,17 +516,17 @@ class X64_Generator {
 
 		curr_ctx = ctx[mangle(func)];
 
-		code.emit("{}:", mangle(func));
+		writer.emit("{}:", mangle(func));
 
-		code.emitt("pushq %rbp");
-		code.emitt("movq %rsp, %rbp");
+		writer.push(X64_Register.RBP);
+		writer.mov(X64_Register.RSP, X64_Register.RBP);
 
 		// PLACEHOLDER value here, we subtract 0 from the
 		// RSP but we later on MODIFY THIS to however much
 		// bytes we allocated (aligned to a 16 byte boundary).
 		// this is why we store the address which this instruction
 		// was written to
-		curr_ctx.alloc_instr_addr = code.emitt("subq $0, %rsp");
+		curr_ctx.alloc_instr_addr = writer.emitt("subq $0, %rsp");
 
 		foreach (ref bb; func.blocks) {
 			emit_bb(bb);

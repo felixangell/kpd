@@ -11,6 +11,7 @@ import cflags;
 import kir.ir_mod;
 
 import gen.backend;
+import gen.x64.instr;
 import gen.x64.output;
 import gen.x64.generator;
 import gen.x64.mangler;
@@ -18,6 +19,9 @@ import gen.x64.link;
 
 /*
 	the x64 backend generates x86_64 assembly. 
+
+	// TODO move all generation out of here
+	// because its mostly for hacky reasons!
 */
 class X64_Backend : Code_Generator_Backend {
 	bool has_c_symbols = false;
@@ -56,29 +60,29 @@ class X64_Backend : Code_Generator_Backend {
 			}
 		}
 
-		gen.code.emit(".global {}", entry_label);
-		gen.code.emit("{}:", entry_label);
-		gen.code.emitt("pushq %rbp");
-		gen.code.emitt("movq %rsp, %rbp");
+		gen.writer.emit(".global {}", entry_label);
+		gen.writer.emit("{}:", entry_label);
+		gen.writer.emitt("pushq %rbp");
+		gen.writer.emitt("movq %rsp, %rbp");
 
 		{
 			auto main_func = mod.get_function("main");
 			if (main_func !is null) {
-				gen.code.emitt("call {}", mangle(main_func));
+				gen.writer.emitt("call {}", mangle(main_func));
 			}			
 		}
 
-		gen.code.emitt("popq %rbp");
+		gen.writer.emitt("popq %rbp");
 		if (has_c_symbols) {
-			gen.code.emitt("ret");
-			return gen.code;
+			gen.writer.ret();
+			return gen.writer;
 		}
 
 		// WE ARENT linking with gcc so we have
 		// to handle the returns properly..
 
 		version (OSX) {
-			gen.code.emitt("ret");
+			gen.writer.ret();
 		}
 		else version (Posix) {
 			// http://blog.rchapman.org/posts/Linux_System_Call_Table_for_x86_64/
@@ -87,22 +91,22 @@ class X64_Backend : Code_Generator_Backend {
 			// rax is the return value of the function
 			// invoked from the main entry point
 			// store this for later
-			gen.code.emitt("pushq %rax");
+			gen.writer.emitt("pushq %rax");
 
 			// invoke the sys_exit syscall (60)
-			gen.code.emitt("movq $60, %rax");
+			gen.writer.emitt("movq $60, %rax");
 
 			// the exit code (param to the sys_exit syscall)
 			// is the value in rsi, which was thej return value
 			// from the function called from this main entry
 			// point
-			gen.code.emitt("popq %rdi");
+			gen.writer.pop(X64_Register.RDI);
 
 			// invoke the syscall
-			gen.code.emitt("syscall");
+			gen.writer.syscall();
 		}
 
-		return gen.code;
+		return gen.writer;
 	}
 
 	void write(Generated_Output[] output) {
