@@ -1,4 +1,8 @@
-D_COMPILER := dmd
+ifeq ($(DC),)
+	D_COMPILER := dmd
+else
+	D_COMPILER := $(DC)
+endif
 
 ifeq ($(D_COMPILER), ldc2)
 	D_FLAGS := -cache=krug_cache/ -march=x86-64 -d-debug -g -w
@@ -18,7 +22,10 @@ VM_CC_SRC_FILES := $(wildcard vm/src/*.c)
 VM_CC_OBJ_FILES := $(patsubst %.c,%.o,$(VM_CC_SRC_FILES))
 VM_OUT := vm/krugvm.a
 
-CC := clang
+ifeq ($(CC),)
+	CC := clang
+endif
+
 CC_FLAGS := -Wall -Wextra -g3 -std=c99 -Wno-unused-function
 
 %.o: %.c
