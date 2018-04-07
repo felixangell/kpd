@@ -296,6 +296,10 @@ class Name_Resolve_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 		visit_block(while_loop.block);
 	}
 
+	void analyze_loop_stat(ast.Loop_Statement_Node loop) {
+		visit_block(loop.block);
+	}
+
 	void analyze_if_stat(ast.If_Statement_Node if_stat) {
 		analyze_expr(if_stat.condition);
 		visit_block(if_stat.block);
@@ -328,6 +332,9 @@ class Name_Resolve_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 		else if (auto while_loop = cast(ast.While_Statement_Node) stat) {
 			analyze_while_stat(while_loop);
 		}
+		else if (auto loop = cast(ast.Loop_Statement_Node) stat) {
+			analyze_loop_stat(loop);
+		}
 		else if (auto if_stat = cast(ast.If_Statement_Node) stat) {
 			analyze_if_stat(if_stat);
 		}
@@ -355,9 +362,6 @@ class Name_Resolve_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 			// NOP
 		}
 		else if (auto brk = cast(ast.Break_Statement_Node) stat) {
-			// NOP
-		}
-		else if (auto loop = cast(ast.Loop_Statement_Node) stat) {
 			// NOP
 		}
 		else {
