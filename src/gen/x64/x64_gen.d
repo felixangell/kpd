@@ -105,10 +105,10 @@ class X64_Generator {
 
 	Memory_Location get_const(Constant c) {
 		auto type = c.get_type();
-		if (auto integer = cast(Type_Operator /*FIXME int*/) type) {
+		if (auto integer = cast(Integer) type) {
 			return new Const(c.value);
 		}
-		else if (auto floating = cast(Type_Operator /*FIXME float*/) type) {
+		else if (auto floating = cast(Floating) type) {
 			// todo mangle properly?
 			string name = "_FC_" ~ thisProcessID.to!string(36) ~ "_" ~ uniform!uint.to!string(36);
 			emit_data_const(name, c);
@@ -135,7 +135,7 @@ class X64_Generator {
 		// floats we have to convert the floating value
 		// into its float representation and spit it out
 		// as an integer constant.
-		if (auto f = cast(Type) c.get_type()) {
+		if (auto f = cast(Floating) c.get_type()) {
 			final switch (f.get_width()) {
 			case 4:
 				FloatRep flt_rep;
@@ -151,9 +151,10 @@ class X64_Generator {
 				break;
 			}
 		}
-
-		// TODO
-		// if pointer type, asciz!
+		else if (c.get_type().cmp(new Pointer(prim_type("u8")))) {
+			constant_type = "asciz";
+		}
+		// TODO pascal style string i.e the struct { len, ptr_to_raw_str }
 
 		// data constants are written
 		// in the data segment. this is restored
@@ -338,7 +339,9 @@ class X64_Generator {
 		auto val = get_val(s.val);
 		auto addr = get_val(s.address);
 
-		Reg ax_temp = temp_ax[cast(ulong)log2(s.address.get_type().get_width())];
+		auto addr_width = s.address.get_type().get_width();
+
+		Reg ax_temp = temp_ax[cast(ulong)log2(addr_width)];
 		writer.mov(val, ax_temp);
 		writer.mov(ax_temp, addr);
 	}

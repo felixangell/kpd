@@ -53,14 +53,13 @@ class Type {
 		this.types = types;
 	}
 
-	uint get_width() {
-		// FIXME
-		return 0;
-	}
+	abstract bool cmp(Type other);
 
 	string get_name() {
 		return name;
 	}
+
+	abstract uint get_width();
 
 	abstract override string toString() const;
 }
@@ -83,9 +82,12 @@ class Type_Variable : Type {
 		return name;
 	}
 
+	override bool cmp(Type other) {
+		assert(0);
+	}
+
 	override uint get_width() {
-		// FIXME
-		return 0;
+		assert(0);
 	}
 
 	override string get_name() {
@@ -108,6 +110,14 @@ class Type_Operator : Type {
 		super(name, []);
 	}
 
+	override bool cmp(Type other) {
+		assert(0);
+	}
+
+	override uint get_width() {
+		return 0;
+	}
+
 	override string toString() const {
 		switch (types.length) {
 		case 0:
@@ -118,11 +128,6 @@ class Type_Operator : Type {
 			return to!string(types);
 		}
 	}
-
-	override uint get_width() {
-		// FIXME
-		return 0;
-	}
 }
 
 class Void : Type_Operator {
@@ -130,10 +135,17 @@ class Void : Type_Operator {
 		super("void");
 	}
 
-	override uint get_width() {
-		// FIXME
-		return 0;
+	override bool cmp(Type other) {
+		if (cast(Void)other) {
+			return true;
+		}
+		return false;
 	}
+
+	override uint get_width() {
+		return 1;
+	}
+
 
 	override string toString() const {
 		return "void";
@@ -146,10 +158,19 @@ class Integer : Type_Operator {
 
 	this(bool signed, uint width) {
 		super((signed ? "s" : "u") ~ to!string(width));
+		this.signed = signed;
+		this.width = width;
+	}
+
+	override bool cmp(Type other) {
+		if (auto o = cast(Integer)other) {
+			return signed == o.signed && width == o.width;
+		}
+		return false;
 	}
 
 	override uint get_width() {
-		return width;
+		return width / 8;
 	}
 
 	override string toString() const {
@@ -163,10 +184,19 @@ class Floating : Type_Operator {
 
 	this(bool signed, uint width) {
 		super((signed ? "s" : "u") ~ to!string(width));
+		this.signed = signed;
+		this.width = width;
+	}
+
+	override bool cmp(Type other) {
+		if (auto o = cast(Floating)other) {
+			return signed == o.signed && width == o.width;
+		}
+		return false;
 	}
 
 	override uint get_width() {
-		return width;
+		return width / 8;
 	}
 
 	override string toString() const {
@@ -182,9 +212,17 @@ class Array : Type {
 		this.base = base;
 	}
 
+	override bool cmp(Type other) {
+		if (auto a = cast(Array)other) {
+			return a.base.cmp(base);
+		}
+		return false;
+	}
+
 	override uint get_width() {
-		// FIXME
-		return 0;
+		// FIXME sizeof should be 
+		// with the length of the array.
+		return base.get_width();
 	}
 
 	override string toString() const {
@@ -197,9 +235,16 @@ class Structure : Type {
 		super("struct", args);
 	}
 
+	override bool cmp(Type other) {
+		assert(0);
+	}
+
 	override uint get_width() {
-		// FIXME
-		return 0;
+		uint size = 0;
+		foreach (t; types) {
+			size += t.get_width();
+		}
+		return size;
 	}
 
 	override string toString() const {
@@ -215,9 +260,15 @@ class Pointer : Type {
 		this.base = base;
 	}
 
+	override bool cmp(Type other) {
+		if (auto ptr = cast(Pointer)other) {
+			return ptr.base.cmp(base);
+		}
+		return false;
+	}
+
 	override uint get_width() {
-		// FIXME
-		return 0;
+		return 8;
 	}
 
 	override string toString() const {
@@ -233,9 +284,12 @@ class Fn : Type {
 		this.ret = ret;
 	}
 
+	override bool cmp(Type other) {
+		assert(0);
+	}
+
 	override uint get_width() {
-		// FIXME
-		return 0;
+		assert(0);
 	}
 
 	override string toString() const {

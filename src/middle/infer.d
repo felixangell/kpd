@@ -101,9 +101,16 @@ Type fresh(Type t, Type_Variable[string] generics) {
 			return var;
 		}
 		else if (auto op = cast(Type_Operator) pt) {
+			// there is no need to copy 
+			// primitive types...
+			if (op.name in PRIMITIVE_TYPES) {
+				return op;
+			}
+
+			// ... FIXME!
+
 			Type[] types;
 			types.length = op.types.length;
-
 			foreach (i, typ; op.types) {
 				types[i] = fresh_type(typ, generics);
 			}

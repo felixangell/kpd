@@ -77,8 +77,7 @@ class IR_Builder : Top_Level_Node_Visitor {
 	}
 
 	Type conv_prim_type(ast.Primitive_Type_Node node) {
-		
-		assert(0);
+		return prim_type(node.type_name.lexeme);		
 	}
 
 	// convert an AST type to a krug ir type
