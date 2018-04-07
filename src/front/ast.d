@@ -380,6 +380,7 @@ class Symbol_Node : Expression_Node {
 
 	this(Token value) {
 		this.value = value;
+		this.set_tok_info(value);
 	}
 
 	override string toString() const {

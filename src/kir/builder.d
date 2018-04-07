@@ -140,7 +140,8 @@ class IR_Builder : Top_Level_Node_Visitor {
 
 	kt.IR_Type get_sym_type(ast.Symbol_Node sym) {
 		if (sym.resolved_symbol is null) {
-			logger.fatal("Unresolved symbol node leaking! ", to!string(sym));
+			logger.fatal("Unresolved symbol node leaking! ", to!string(sym), " ... ", to!string(typeid(sym)),
+				"\n", logger.blame_token(sym.get_tok_info().get_tok()));
 			return VOID_TYPE;
 		}
 
@@ -174,6 +175,11 @@ class IR_Builder : Top_Level_Node_Visitor {
 		}
 		else if (auto ptr = cast(Pointer_Type_Node) t) {
 			return new kt.Pointer_Type(get_type(ptr.base_type));
+		}
+
+		else if (auto i = cast(Integer_Constant_Node) t) {
+			// FIXME
+			return get_int(32);
 		}
 
 		else if (auto path = cast(Path_Expression_Node) t) {
