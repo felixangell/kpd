@@ -76,7 +76,8 @@ class IR_Builder : Top_Level_Node_Visitor {
 		assert(0);
 	}
 
-	Type conv_prim_type(ast.Node node) {
+	Type conv_prim_type(ast.Primitive_Type_Node node) {
+		
 		assert(0);
 	}
 

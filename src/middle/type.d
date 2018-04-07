@@ -2,17 +2,29 @@ module sema.type;
 
 import std.conv;
 
-static Type_Operator[string] PRIMITIVE_TYPES;
+static Type[string] PRIMITIVE_TYPES;
 
 static this() {
-	register_types(
-		"s8", "s16", "s32", "s64", 
-		"u8", "u16", "u32", "u64", 
-		"f32", "f64", 
-		"string", 
-		"rune", 
-		"bool", 
-		"void",
+	PRIMITIVE_TYPES = [
+		"s8": new Integer(true, 8),
+		"s16": new Integer(true, 16),
+		"s32": new Integer(true, 32),
+		"s64": new Integer(true, 64),
+
+		"u8": new Integer(false, 8),
+		"u16": new Integer(false, 16),
+		"u32": new Integer(false, 32),
+		"u64": new Integer(false, 64),
+
+		"bool": new Integer(false, 8),
+		"rune": new Integer(true, 32),
+		"void": new Void(),
+	];
+
+	PRIMITIVE_TYPES["string"] = new Structure(
+		// len, pointer to string
+		prim_type("u64"),
+		new Pointer(prim_type("u8")),
 	);
 }
 
@@ -23,7 +35,7 @@ static void register_types(string...)(string types) {
 	}
 }
 
-static Type_Operator prim_type(string type_name) {
+static Type prim_type(string type_name) {
 	assert(type_name in PRIMITIVE_TYPES);
 	return PRIMITIVE_TYPES[type_name];
 }
@@ -110,6 +122,55 @@ class Type_Operator : Type {
 	override uint get_width() {
 		// FIXME
 		return 0;
+	}
+}
+
+class Void : Type_Operator {
+	this() {
+		super("void");
+	}
+
+	override uint get_width() {
+		// FIXME
+		return 0;
+	}
+
+	override string toString() const {
+		return "void";
+	}
+}
+
+class Integer : Type_Operator {
+	bool signed;
+	uint width;
+
+	this(bool signed, uint width) {
+		super((signed ? "s" : "u") ~ to!string(width));
+	}
+
+	override uint get_width() {
+		return width;
+	}
+
+	override string toString() const {
+		return name;
+	}
+}
+
+class Floating : Type_Operator {
+	bool signed;
+	uint width;
+
+	this(bool signed, uint width) {
+		super((signed ? "s" : "u") ~ to!string(width));
+	}
+
+	override uint get_width() {
+		return width;
+	}
+
+	override string toString() const {
+		return name;
 	}
 }
 
