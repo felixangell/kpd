@@ -16,6 +16,9 @@ static this() {
 		"u32": new Integer(false, 32),
 		"u64": new Integer(false, 64),
 
+		"f32": new Floating(true, 32),
+		"f64": new Floating(true, 64),
+
 		"bool": new Integer(false, 8),
 		"rune": new Integer(true, 32),
 		"void": new Void(),

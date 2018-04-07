@@ -323,8 +323,8 @@ struct Type_Inferrer {
 			auto type = path_type.values[0];
 			Type t = e.lookup_type(type.lexeme);
 			if (t is null) {
-				logger.error("Failed to resolve type '" ~ colour.Bold(
-						type.lexeme) ~ "':", blame_token(type));
+				logger.error("Failed to resolve type '" ~ colour.Bold(type.lexeme) ~ "':\n", 
+					blame_token(type));
 			}
 			return t;
 		}

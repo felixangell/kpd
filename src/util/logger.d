@@ -145,8 +145,13 @@ static void log(Log_Level lvl, string[] str...) {
 	out_stream.writeln(result);
 
 	if (lvl == Log_Level.Fatal) {
-		import core.stdc.stdlib : exit;
-		exit(0);
+		debug {
+			assert(0);
+		}
+		else {
+			import core.stdc.stdlib : exit;
+			exit(0);
+		}
 	}
 }
 

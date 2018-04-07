@@ -164,6 +164,7 @@ class Name_Resolve_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 			auto sym = cast(ast.Symbol_Node) e;
 			if (!sym) {
 				// what do we do here?
+				logger.fatal("this is a bit odd!\n", logger.blame_token(e.get_tok_info().get_tok()));
 				continue;
 			}
 
@@ -254,6 +255,7 @@ class Name_Resolve_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 		}
 		else if (auto c = cast(ast.Cast_Expression_Node) expr) {
 			resolve_type(c.type);
+			analyze_expr(c.left);
 		}
 		else if (cast(ast.Integer_Constant_Node) expr) {
 			// NOOP
