@@ -8,13 +8,13 @@ import std.container.array;
 import ast;
 import logger;
 import krug_module;
+import sema.type;
 
 import logger;
 
 import gen.kurby.output;
 import gen.kurby.opcode;
 
-import kt;
 import kir.ir_mod;
 import kir.instr;
 
@@ -55,7 +55,7 @@ class Kurby_Generator {
 	}
 
 	void emit_push_const(Constant c) {
-		if (auto integer = cast(Integer_Type) c.get_type()) {
+		if (auto integer = cast(Type) c.get_type()) {
 			switch (integer.get_width()) {
 			case 4:
 				uint val = to!uint(c.value);

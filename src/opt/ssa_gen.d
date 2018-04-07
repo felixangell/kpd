@@ -10,7 +10,6 @@ import std.file;
 import std.process;
 import std.random;
 
-import kt;
 import kir.ir_mod;
 import kir.instr;
 import kir.cfg;

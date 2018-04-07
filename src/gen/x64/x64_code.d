@@ -6,7 +6,6 @@ import std.array : replicate;
 
 import logger;
 import gen.backend;
-import kt;
 import kir.instr;
 
 import gen.x64.formatter;

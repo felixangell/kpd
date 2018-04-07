@@ -13,12 +13,13 @@ import std.random;
 
 import logger;
 
+import sema.type;
+
 import gen.x64.output;
 import gen.x64.mangler;
 import gen.x64.x64_writer;
 import gen.x64.instr;
 
-import kt;
 import kir.ir_mod;
 import kir.instr;
 
@@ -104,10 +105,10 @@ class X64_Generator {
 
 	Memory_Location get_const(Constant c) {
 		auto type = c.get_type();
-		if (auto integer = cast(Integer_Type) type) {
+		if (auto integer = cast(Type_Operator /*FIXME int*/) type) {
 			return new Const(c.value);
 		}
-		else if (auto floating = cast(Floating_Type) type) {
+		else if (auto floating = cast(Type_Operator /*FIXME float*/) type) {
 			// todo mangle properly?
 			string name = "_FC_" ~ thisProcessID.to!string(36) ~ "_" ~ uniform!uint.to!string(36);
 			emit_data_const(name, c);
@@ -134,7 +135,7 @@ class X64_Generator {
 		// floats we have to convert the floating value
 		// into its float representation and spit it out
 		// as an integer constant.
-		if (auto f = cast(Floating_Type) c.get_type()) {
+		if (auto f = cast(Type) c.get_type()) {
 			final switch (f.get_width()) {
 			case 4:
 				FloatRep flt_rep;
@@ -151,10 +152,8 @@ class X64_Generator {
 			}
 		}
 
-		// FIXME better type/string comparison
-		else if (c.get_type().cmp(new Pointer_Type(get_uint(8)))) {
-			constant_type = "asciz";
-		}
+		// TODO
+		// if pointer type, asciz!
 
 		// data constants are written
 		// in the data segment. this is restored
@@ -334,7 +333,7 @@ class X64_Generator {
 			return;
 		}
 
-		IR_Type t = s.get_type();
+		Type t = s.get_type();
 
 		auto val = get_val(s.val);
 		auto addr = get_val(s.address);
@@ -431,7 +430,7 @@ class X64_Generator {
 		Block_Context call_frame_ctx = ctx[call_name];
 
 		foreach (i, arg; c.args[0..min(c.args.length,SYS_V_CALL_CONV_REG.length)]) {
-			if (auto ptr = cast(Pointer_Type) arg.get_type()) {
+			if (auto ptr = cast(Pointer) arg.get_type()) {
 				// FIXME
 				// LEA.
 			}
@@ -552,7 +551,7 @@ class X64_Generator {
 		// if there is no return instr
 		// slap one on the end.
 		if (!(cast(Return) func.last_instr())) {
-			emit_ret(new Return(VOID_TYPE));
+			emit_ret(new Return(prim_type("void")));
 		}
 	}
 }

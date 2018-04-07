@@ -41,6 +41,11 @@ class Type {
 		this.types = types;
 	}
 
+	uint get_width() {
+		// FIXME
+		return 0;
+	}
+
 	string get_name() {
 		return name;
 	}
@@ -64,6 +69,11 @@ class Type_Variable : Type {
 			return to!string(instance);
 		}
 		return name;
+	}
+
+	override uint get_width() {
+		// FIXME
+		return 0;
 	}
 
 	override string get_name() {
@@ -96,6 +106,11 @@ class Type_Operator : Type {
 			return to!string(types);
 		}
 	}
+
+	override uint get_width() {
+		// FIXME
+		return 0;
+	}
 }
 
 class Array : Type {
@@ -106,8 +121,28 @@ class Array : Type {
 		this.base = base;
 	}
 
+	override uint get_width() {
+		// FIXME
+		return 0;
+	}
+
 	override string toString() const {
 		return "arr " ~ to!string(base);
+	}
+}
+
+class Structure : Type {
+	this(Type[] args...) {
+		super("struct", args);
+	}
+
+	override uint get_width() {
+		// FIXME
+		return 0;
+	}
+
+	override string toString() const {
+		return "struct " ~ to!string(types);
 	}
 }
 
@@ -119,17 +154,27 @@ class Pointer : Type {
 		this.base = base;
 	}
 
+	override uint get_width() {
+		// FIXME
+		return 0;
+	}
+
 	override string toString() const {
 		return "ptr " ~ to!string(base);
 	}
 }
 
-class Function : Type {
+class Fn : Type {
 	Type ret;
 
 	this(Type ret, Type[] args) {
 		super("fn", args);
 		this.ret = ret;
+	}
+
+	override uint get_width() {
+		// FIXME
+		return 0;
 	}
 
 	override string toString() const {

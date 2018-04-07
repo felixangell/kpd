@@ -109,7 +109,7 @@ Type fresh(Type t, Type_Variable[string] generics) {
 			}
 			return new Type_Operator(op.get_name(), types);
 		}
-		else if (auto fn = cast(Function) pt) {
+		else if (auto fn = cast(Fn) pt) {
 			Type[] types;
 			types.length = fn.types.length;
 
@@ -117,7 +117,7 @@ Type fresh(Type t, Type_Variable[string] generics) {
 				types[i] = fresh_type(typ, generics);
 			}
 
-			return new Function(fresh_type(fn.ret, generics), types);
+			return new Fn(fresh_type(fn.ret, generics), types);
 		}
 
 		logger.fatal("bad type!");
@@ -231,7 +231,7 @@ struct Type_Inferrer {
 		Type func = analyze(call.left, e, generics);
 		assert(func !is null);
 
-		if (auto f = cast(Function) func) {
+		if (auto f = cast(Fn) func) {
 			// TODO check length of arguments
 
 			foreach (i, arg; f.types) {
@@ -262,7 +262,7 @@ struct Type_Inferrer {
 			args ~= param_type;
 		}
 
-		return new Function(ret_type, args);
+		return new Fn(ret_type, args);
 	}
 
 	Type analyze_variable(Variable_Statement_Node node, Type_Variable[string] generics) {

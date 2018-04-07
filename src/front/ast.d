@@ -10,7 +10,6 @@ import diag.engine;
 import tok;
 import logger;
 import colour;
-import kt;
 import sema.symbol;
 import krug_module;
 

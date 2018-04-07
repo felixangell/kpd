@@ -4,8 +4,8 @@ import std.conv;
 import std.stdio;
 import std.container.array;
 
+import sema.type;
 import colour;
-import kt;
 import kir.instr;
 
 /*
@@ -55,7 +55,7 @@ class IR_Module {
 		return null;
 	}
 
-	Function add_function(string name, IR_Type type = VOID_TYPE) {
+	Function add_function(string name, Type type = prim_type("void")) {
 		auto func = new Function(name, type, this);
 		functions[func.name] = func;
 		recent_func = func;

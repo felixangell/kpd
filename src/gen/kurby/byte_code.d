@@ -8,7 +8,6 @@ import gen.backend;
 import gen.kurby.opcode;
 
 import logger;
-import kt;
 import kir.instr;
 
 class Kurby_Byte_Code : Generated_Output {

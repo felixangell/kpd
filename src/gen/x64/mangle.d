@@ -3,7 +3,7 @@ module gen.x64.mangler;
 import std.conv : to;
 import std.traits : isInstanceOf;
 
-import kt;
+import sema.type;
 import kir.instr;
 
 // NOTE
@@ -32,17 +32,15 @@ string mangle_join(T...)(T values...) {
 	return res;
 }
 
-string mangle(IR_Type t) {
-	if (cast(Integer_Type) t) {
-		return "s" ~ to!string(t.get_width() * 8);
+string mangle(Type t) {
+	if (cast(Type_Operator) t) {
+		// FIXME;
+		return to!string(t);
 	}
-	else if (cast(Floating_Type) t) {
-		return "f" ~ to!string(t.get_width() * 8);
-	}
-	else if (auto ptr = cast(Pointer_Type) t) {
+	else if (auto ptr = cast(Pointer) t) {
 		return "p" ~ mangle(ptr.base);
 	}
-	else if (auto arr = cast(Array_Type) t) {
+	else if (auto arr = cast(Array) t) {
 		return "A" ~ mangle(arr.base);
 	}
 

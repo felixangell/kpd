@@ -15,7 +15,6 @@ import sema.type;
 
 import diag.engine;
 import compiler_error;
-import kt;
 import logger;
 import ast;
 import logger;
@@ -50,99 +49,11 @@ class IR_Builder : Top_Level_Node_Visitor {
 		return new Label(bb.name(), bb);
 	}	 
 
-	kt.IR_Type conv_type_op(Type_Operator to) {
-		final switch (to.name) {
-		case "s8": return get_int(8);
-		case "s16": return get_int(16);
-		case "s32": return get_int(32);
-		case "s64": return get_int(64);
-
-		case "u8": return get_uint(8);
-		case "u16": return get_uint(16);
-		case "u32": return get_uint(32);
-		case "u64": return get_uint(64);
-
-		case "f32": return get_float(32);
-		case "f64": return get_float(64);
-
-		case "bool": return get_uint(8);
-		case "rune": return get_int(32);
-
-		case "void": return VOID_TYPE;
-
-		case "string": return STRING_TYPE;
-		}
-
-		assert(0);
-	}
-
-	// convert a type from the type system
-	// used in the type infer/check pass
-	// into a krug IR or KIR type.
-	kt.IR_Type conv(Type t) {
-		if (auto to = cast(Type_Operator) t) {
-			return conv_type_op(to);
-		}
-		else if (auto ptr = cast(Pointer) t) {
-			return new Pointer_Type(conv(ptr.base));
-		}
-
-		logger.fatal("IR_Builder: unhandled type conversion from\t", to!string(t));
-		assert(0);
-	}
-
-	kt.IR_Type conv_prim_type(ast.Primitive_Type_Node prim) {
-		switch (prim.type_name.lexeme) {
-			// signed integers
-		case "s8":
-			return get_int(8);
-		case "s16":
-			return get_int(16);
-		case "s32":
-			return get_int(32);
-		case "s64":
-			return get_int(64);
-
-			// unsigned integers
-		case "u8":
-			return get_uint(8);
-		case "u16":
-			return get_uint(16);
-		case "u32":
-			return get_uint(32);
-		case "u64":
-			return get_uint(64);
-
-		case "bool":
-			return get_uint(8);
-		case "rune":
-			return get_int(32);
-
-		case "f32":
-			return get_float(32);
-		case "f64":
-			return get_float(64);
-
-		case "void": return VOID_TYPE;
-
-		case "string": return STRING_TYPE;
-
-		default:
-			break;
-		}
-
-		// TODO f32 and f64.
-
-		logger.error("Unhandled conversion of primitive type to kir type ", to!string(
-				prim));
-		return null;
-	}
-
-	kt.IR_Type get_sym_type(ast.Symbol_Node sym) {
+	Type get_sym_type(ast.Symbol_Node sym) {
 		if (sym.resolved_symbol is null) {
 			logger.fatal("Unresolved symbol node leaking! ", to!string(sym), " ... ", to!string(typeid(sym)),
 				"\n", logger.blame_token(sym.get_tok_info().get_tok()));
-			return VOID_TYPE;
+			return prim_type("void");
 		}
 
 		if (auto sym_val = cast(Symbol_Value) sym.resolved_symbol) {
@@ -152,7 +63,7 @@ class IR_Builder : Top_Level_Node_Visitor {
 		assert(0, "shit!");
 	}
 
-	kt.IR_Type get_array_type(Array_Type_Node arr) {
+	Type get_array_type(Array_Type_Node arr) {
 		import kir.eval;
 		auto res = try_evaluate_expr(arr.value);
 		if (res.failed) {
@@ -160,11 +71,17 @@ class IR_Builder : Top_Level_Node_Visitor {
 			Diagnostic_Engine.throw_error(COMPILE_TIME_EVAL, arr.value.get_tok_info(), arr.value.get_tok_info());
 			res.value = 0;
 		}
-		return new kt.Array_Type(get_type(arr.base_type), res.value);
+		// return new kt.Array_Type(get_type(arr.base_type), res.value);
+		// FIXME!
+		assert(0);
+	}
+
+	Type conv_prim_type(ast.Node node) {
+		assert(0);
 	}
 
 	// convert an AST type to a krug ir type
-	kt.IR_Type get_type(Node t) {
+	Type get_type(Node t) {
 		assert(t !is null, "get_type null type!");
 
 		if (auto prim = cast(Primitive_Type_Node) t) {
@@ -174,12 +91,11 @@ class IR_Builder : Top_Level_Node_Visitor {
 			return get_array_type(arr);
 		}
 		else if (auto ptr = cast(Pointer_Type_Node) t) {
-			return new kt.Pointer_Type(get_type(ptr.base_type));
+			return new Pointer(get_type(ptr.base_type));
 		}
 
 		else if (auto i = cast(Integer_Constant_Node) t) {
-			// FIXME
-			return get_int(32);
+			return prim_type("s32");
 		}
 
 		else if (auto path = cast(Path_Expression_Node) t) {
@@ -199,12 +115,12 @@ class IR_Builder : Top_Level_Node_Visitor {
 				logger.error(var.get_tok_info(), "Un-inferred type is leaking!");
 				assert(0);
 			}
-			return conv(inferred_type);
+			return inferred_type;
 		}
 		else if (auto fn = cast(Function_Node) t) {
 			// void...
 			if (fn.return_type is null) {
-				return VOID_TYPE;
+				return prim_type("void");
 			}
 			return get_type(fn.return_type);
 		}
@@ -222,8 +138,8 @@ class IR_Builder : Top_Level_Node_Visitor {
 
 		logger.error("Leaking unresolved type:\n\t", to!string(t), "\n\t", to!string(typeid(t)));
 
-		// FIXME just pretend it's an integer for now!
-		return get_int(32);
+		// FIXME
+		assert(0);
 	}
 
 	// we generate one control flow graph per function
@@ -238,7 +154,7 @@ class IR_Builder : Top_Level_Node_Visitor {
 	// 2. any instruction that is the target of a jump is a leader.
 	// 3. any instruction that follows a jump is a leader.
 	override void analyze_function_node(ast.Function_Node func) {
-		IR_Type return_type = VOID_TYPE;
+		Type return_type = prim_type("void");
 		if (func.return_type !is null) {
 			return_type = get_type(func.return_type);
 		}
@@ -285,7 +201,7 @@ class IR_Builder : Top_Level_Node_Visitor {
 		// OR if the last instruction is not a return!
 		if (curr_func.curr_block.instructions.length == 0 || !cast(Return) curr_func
 				.last_instr()) {
-			curr_func.add_instr(new Return(new Void_Type()));
+			curr_func.add_instr(new Return(prim_type("void")));
 		}
 	}
 
@@ -389,7 +305,7 @@ class IR_Builder : Top_Level_Node_Visitor {
 		auto bb = push_bb("_yield");
 
 		// TODO type here is not a s32!!
-		Alloc a = new Alloc(get_int(32), bb.name() ~ "_" ~ gen_temp());
+		Alloc a = new Alloc(prim_type("void"), bb.name() ~ "_" ~ gen_temp());
 		curr_func.add_instr(a);
 
 		build_block(curr_func, eval.block);
@@ -411,8 +327,8 @@ class IR_Builder : Top_Level_Node_Visitor {
 		// generate a constant 
 		// as well as a reference to the
 		// constant
-		string const_ref = add_constant(new Constant(new Pointer_Type(get_uint(8)), str.value));
-		auto string_data_ptr = new Constant_Reference(new Pointer_Type(get_uint(8)), const_ref);
+		string const_ref = add_constant(new Constant(new Pointer(prim_type("u8")), str.value));
+		auto string_data_ptr = new Constant_Reference(new Pointer(prim_type("u8")), const_ref);
 
 		// c-style string is simply a raw unsigned
 		// 8 bit integer pointer
@@ -423,8 +339,8 @@ class IR_Builder : Top_Level_Node_Visitor {
 		// TODO we assume its pascal here..
 		// pascal type is the pointer as well as the length of
 		// the array as a struct.
-		auto val = new Composite(STRING_TYPE);
-		val.add_value(new Constant(get_uint(64), to!string(str.value.length)));
+		auto val = new Composite(prim_type("FIXME"));
+		val.add_value(new Constant(prim_type("u64"), to!string(str.value.length)));
 		val.add_value(string_data_ptr);
 		return val;
 	}
@@ -432,15 +348,15 @@ class IR_Builder : Top_Level_Node_Visitor {
 	Value build_expr(ast.Expression_Node expr) {
 		if (auto integer_const = cast(Integer_Constant_Node) expr) {
 			// FIXME
-			return new Constant(get_int(32), to!string(integer_const.value));
+			return new Constant(prim_type("s32"), to!string(integer_const.value));
 		}
 		else if (auto float_const = cast(Float_Constant_Node) expr) {
 			// FIXME
-			return new Constant(get_float(64), to!string(float_const.value));
+			return new Constant(prim_type("f64"), to!string(float_const.value));
 		}
 		else if (auto rune_const = cast(Rune_Constant_Node) expr) {
 			// runes are a 4 byte signed integer.
-			return new Constant(get_int(32), to!string(rune_const.value));
+			return new Constant(prim_type("s32"), to!string(rune_const.value));
 		}
 		else if (auto index = cast(Index_Expression_Node) expr) {
 			return build_index_expr(index);
@@ -477,7 +393,7 @@ class IR_Builder : Top_Level_Node_Visitor {
 		}
 		else if (auto bool_const = cast(Boolean_Constant_Node) expr) {
 			string value = bool_const.value ? "1" : "0";
-			return new Constant(get_uint(8), value);
+			return new Constant(prim_type("u8"), value);
 		}
 
 		logger.fatal("IR_Builder: unhandled build_expr ", to!string(expr), " -> ", to!string(typeid(expr)));
@@ -485,7 +401,7 @@ class IR_Builder : Top_Level_Node_Visitor {
 	}
 
 	void analyze_return_node(ast.Return_Statement_Node ret) {
-		auto ret_instr = new Return(new Void_Type());
+		auto ret_instr = new Return(prim_type("void"));
 
 		// its not a void type
 		if (ret.value !is null) {
@@ -570,7 +486,7 @@ class IR_Builder : Top_Level_Node_Visitor {
 	}
 
 	override void analyze_let_node(ast.Variable_Statement_Node var) {
-		IR_Type type = get_type(var);
+		Type type = get_type(var);
 		if (curr_func.curr_block is null) {
 			// it's a global
 			analyze_global(var);

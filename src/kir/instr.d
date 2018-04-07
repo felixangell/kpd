@@ -6,32 +6,15 @@ import std.string;
 import std.array : replicate;
 import std.range.primitives;
 
+import sema.type;
 import kir.ir_mod;
 import kir.cfg;
 import ast;
 import tok;
-import kt;
-
-kt.Void_Type VOID_TYPE;
-
-// string type is a struct of
-// a length and an array of bytes
-// i.e.
-// struct { u64, [u8] };
-kt.Structure_Type STRING_TYPE;
-
-// *u8
-kt.Pointer_Type CSTRING_TYPE;
-
-static this() {
-	VOID_TYPE = new Void_Type();
-	STRING_TYPE = new kt.Structure_Type(get_uint(64), new Pointer_Type(get_uint(8)));
-	CSTRING_TYPE = new kt.Pointer_Type(get_uint(8));
-}
 
 interface Instruction {
-	IR_Type get_type();
-	void set_type(IR_Type type);
+	Type get_type();
+	void set_type(Type type);
 
 	// TODO do we need this on _Every_
 	// instruction? probably not, later
@@ -51,12 +34,12 @@ interface Instruction {
 }
 
 interface Value {
-	IR_Type get_type();
-	void set_type(IR_Type t);
+	Type get_type();
+	void set_type(Type t);
 }
 
 class Basic_Instruction : Instruction {
-	protected IR_Type type;
+	protected Type type;
 	protected string code;
 	protected Attribute[string] dirs;
 
@@ -71,7 +54,7 @@ class Basic_Instruction : Instruction {
 		return (name in dirs) !is null;
 	}
 
-	this(IR_Type type) {
+	this(Type type) {
 		this.type = type;
 	}
 
@@ -87,18 +70,18 @@ class Basic_Instruction : Instruction {
 		return to!string(type);
 	}
 
-	override void set_type(IR_Type t) {
+	override void set_type(Type t) {
 		this.type = t;
 	}
-	override IR_Type get_type() {
+	override Type get_type() {
 		return type;
 	}
 }
 
 class Basic_Value : Value {
-	protected IR_Type type;
+	protected Type type;
 
-	this(IR_Type type) {
+	this(Type type) {
 		this.type = type;
 	}
 
@@ -106,10 +89,10 @@ class Basic_Value : Value {
 		return to!string(type);
 	}
 
-	override void set_type(IR_Type t) {
+	override void set_type(Type t) {
 		this.type = t;
 	}
-	override IR_Type get_type() {
+	override Type get_type() {
 		return type;
 	}
 }
@@ -170,7 +153,7 @@ class Basic_Block {
 class Constant_Reference : Basic_Value {
 	string name;
 
-	this(IR_Type type, string name) {
+	this(Type type, string name) {
 		super(type);
 		this.name = name;
 	}
@@ -183,7 +166,7 @@ class Constant_Reference : Basic_Value {
 class Identifier : Basic_Value {
 	string name;
 
-	this(IR_Type type, string name) {
+	this(Type type, string name) {
 		super(type); // fixme
 		this.name = name;
 	}
@@ -197,16 +180,16 @@ class Index : Basic_Instruction, Value {
 	Value addr;
 	Value index;
 
-	this(IR_Type t, Value addr, Value index) {
+	this(Type t, Value addr, Value index) {
 		super(t);
 		this.addr = addr;
 		this.index = index;
 	}
 
-	override void set_type(IR_Type t) {
+	override void set_type(Type t) {
 		this.type = t;
 	}
-	override IR_Type get_type() {
+	override Type get_type() {
 		return type;
 	}
 
@@ -218,7 +201,7 @@ class Index : Basic_Instruction, Value {
 class Composite : Basic_Value {
 	Value[] values;
 
-	this(IR_Type t, Value[] values...) {
+	this(Type t, Value[] values...) {
 		super(t);
 		this.values.length = values.length;
 		foreach (v; values) {
@@ -245,7 +228,7 @@ class Constant : Basic_Value {
 	// storing this! for now it's strings
 	string value;
 
-	this(IR_Type t, string value) {
+	this(Type t, string value) {
 		super(t);
 		this.value = value;
 	}
@@ -268,7 +251,7 @@ class Function : Basic_Instruction {
 
 	Basic_Block curr_block;
 
-	this(string name, IR_Type return_type, IR_Module parent) {
+	this(string name, Type return_type, IR_Module parent) {
 		super(return_type);
 		this.name = name;
 		this.parent_mod = parent;
@@ -322,7 +305,7 @@ class Phi : Basic_Value {
 	Value[] users;
 
 	this() {
-		super(VOID_TYPE);
+		super(prim_type("void"));
 	}
 
 	void add_edge(Value v) {
@@ -342,7 +325,7 @@ class Phi : Basic_Value {
 
 class Undef : Basic_Value {
 	this() {
-		super(VOID_TYPE);
+		super(prim_type("void"));
 	}
 }
 
@@ -350,15 +333,15 @@ class Undef : Basic_Value {
 class Alloc : Basic_Instruction, Value {
 	string name;
 
-	this(IR_Type type, string name) {
+	this(Type type, string name) {
 		super(type);
 		this.name = name;
 	}
 
-	override void set_type(IR_Type t) {
+	override void set_type(Type t) {
 		this.type = t;
 	}
-	override IR_Type get_type() {
+	override Type get_type() {
 		return type;
 	}
 
@@ -371,16 +354,16 @@ class Call : Basic_Instruction, Value {
 	Value left;
 	Value[] args;
 
-	this(IR_Type type, Value left, Value[] args) {
+	this(Type type, Value left, Value[] args) {
 		super(type);
 		this.left = left;
 		this.args = args;
 	}
 
-	override void set_type(IR_Type t) {
+	override void set_type(Type t) {
 		this.type = t;
 	}
-	override IR_Type get_type() {
+	override Type get_type() {
 		return type;
 	}
 
@@ -400,16 +383,16 @@ class Store : Basic_Instruction, Value {
 	Value address;
 	Value val;
 
-	this(IR_Type type, Value address, Value val) {
+	this(Type type, Value address, Value val) {
 		super(type);
 		this.address = address;
 		this.val = val;
 	}
 
-	override void set_type(IR_Type t) {
+	override void set_type(Type t) {
 		this.type = t;
 	}
-	override IR_Type get_type() {
+	override Type get_type() {
 		return type;
 	}
 
@@ -427,17 +410,17 @@ class Binary_Op : Basic_Instruction, Value {
 	Token op;
 	Value a, b;
 
-	this(IR_Type type, Token op, Value a, Value b) {
+	this(Type type, Token op, Value a, Value b) {
 		super(type);
 		this.op = op;
 		this.a = a;
 		this.b = b;
 	}
 
-	override void set_type(IR_Type t) {
+	override void set_type(Type t) {
 		this.type = t;
 	}
-	override IR_Type get_type() {
+	override Type get_type() {
 		return type;
 	}
 
@@ -464,7 +447,7 @@ class Addr_Of : Basic_Value {
 	Value v;
 
 	this(Value v) {
-		super(new Pointer_Type(v.get_type()));
+		super(new Pointer(v.get_type()));
 		this.v = v;
 	}
 
@@ -484,10 +467,10 @@ class Unary_Op : Basic_Instruction, Value {
 		this.op = op;
 	}
 
-	override void set_type(IR_Type t) {
+	override void set_type(Type t) {
 		this.type = t;
 	}
-	override IR_Type get_type() {
+	override Type get_type() {
 		return type;
 	}
 
@@ -498,7 +481,7 @@ class Unary_Op : Basic_Instruction, Value {
 
 class NOP : Basic_Instruction {
 	this() {
-		super(VOID_TYPE);
+		super(prim_type("void"));
 	}
 }
 
@@ -507,7 +490,7 @@ class Jump : Basic_Instruction {
 	Label label;
 
 	this(Label label) {
-		super(new Void_Type());
+		super(prim_type("void"));
 		this.label = label;
 	}
 
@@ -521,13 +504,13 @@ class Label : Basic_Value {
 	Basic_Block reference;
 
 	this(Basic_Block bb) {
-		super(new Void_Type());
+		super(prim_type("void"));
 		this.name = bb.name();
 		this.reference = bb;
 	}
 
 	this(string name, Basic_Block reference) {
-		super(new Void_Type());
+		super(prim_type("void"));
 		this.name = name;
 		this.reference = reference;
 	}
@@ -544,7 +527,7 @@ class If : Basic_Instruction {
 	Label a, b;
 
 	this(Value condition) {
-		super(get_uint(8)); // ?
+		super(prim_type("u8")); // FIXME ?
 		this.condition = condition;
 	}
 
@@ -558,7 +541,7 @@ class If : Basic_Instruction {
 class Return : Basic_Instruction {
 	Value[] results;
 
-	this(IR_Type type) {
+	this(Type type) {
 		super(type);
 	}
 
