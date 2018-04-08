@@ -1,3 +1,6 @@
+#{c_func}
+func printf() s32;
+
 func sqrt(a s32, b s32) s32 {
 	let aa = 3;
 	let zz = 5;
@@ -9,6 +12,15 @@ func main() {
 	let b s32 = 15;
 	let a s32 = 3;
 	let c s32 = 24;
+
+	printf(c"a is %d\n", a);
+
+	if a == 3 {
+		printf(c"a is %d\n", a);	
+	}
+	else {
+		printf(c"a is %d\n", a);	
+	}
 
 	loop {
 		c = c + 2;
@@ -25,10 +37,10 @@ func main() {
 	}
 
 	if a == 2 {
-		
+		printf(c"a is 2\n");		
 	} 
 	else {
-
+		printf(c"a is not 2\n");		
 	}
 
 	if a == a {
