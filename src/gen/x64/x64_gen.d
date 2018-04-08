@@ -38,6 +38,16 @@ class Block_Context {
 		return addr_ptr;
 	}
 
+	long push_local(string name, Type t) {
+		// floating types are stored in xmm0 ... xmmN
+		// registers which are 128 bits or 16 bytes
+		// in size.
+		if (cast(Floating)t) {
+			return push_local(name, 16);
+		}
+		return push_local(name, t.get_width());
+	}
+
 	long push_local(string name, int width) {
 		long alloc_addr = addr_ptr;
 		locals[name] = alloc_addr;
@@ -60,9 +70,11 @@ class Block_Context {
 }
 
 Reg[] SYS_V_CALL_CONV_REG;
+Reg[] SYS_V_CALL_CONV_REG_FLOATS;
 
 // indexed as log2(width) !
 Reg[] temp_ax;
+Reg[] floats;
 
 static this() {
 	SYS_V_CALL_CONV_REG = [
@@ -74,11 +86,36 @@ static this() {
 		R9,
 	];
 
+	SYS_V_CALL_CONV_REG_FLOATS = [
+		XMM0,
+		XMM1,
+		XMM2,
+		XMM3,
+		XMM4,
+		XMM5,
+		XMM6,
+		XMM7,
+	];
+
 	temp_ax = [
 		AL,		// log2(1) = 0
 		AX,		// log2(2) = 1
 		EAX,	// log2(4) = 2
 		RAX,	// log2(8) = 3
+	];
+
+	// HACK
+	// we have to store
+	// five here because we
+	// access with log2(N)
+	// and the largest value we will
+	// get is log2(16) which is 4.
+	floats = [
+		XMM0, 
+		XMM0,
+		XMM0,
+		XMM0,
+		XMM0,  // 4!
 	];
 }
 
@@ -290,8 +327,13 @@ class X64_Generator {
 	void emit_temp(Store s) {
 		auto bin = cast(Binary_Op) s.val;
 
-		Reg reg = temp_ax[cast(ulong)log2(bin.a.get_type().get_width())];
-		// TODO floating types.
+		Reg[] source = temp_ax[];
+		bool is_floating = (cast(Floating)s.get_type()) !is null;
+		if (is_floating) {
+			source = floats[];
+		}
+
+		Reg reg = source[cast(ulong)log2(bin.a.get_type().get_width())];
 
 		writer.mov(get_val(bin.a), reg);
 
@@ -307,7 +349,11 @@ class X64_Generator {
 			return emit_cmp(s);
 
 		case "+":
-			writer.add(get_val(bin.b), reg);
+			if (is_floating) {
+				writer.addsd(get_val(bin.b), reg);
+			} else {
+				writer.add(get_val(bin.b), reg);
+			}
 			break;
 
 		case "-":
@@ -343,7 +389,13 @@ class X64_Generator {
 
 		auto addr_width = s.address.get_type().get_width();
 
-		Reg ax_temp = temp_ax[cast(ulong)log2(addr_width)];
+		Reg[] source = temp_ax[];
+		bool is_floating = (cast(Floating)s.get_type()) !is null;
+		if (is_floating) {
+			source = floats[];
+		}
+
+		Reg ax_temp = source[cast(ulong)log2(addr_width)];
 		writer.mov(val, ax_temp);
 		writer.mov(ax_temp, addr);
 	}
@@ -434,12 +486,15 @@ class X64_Generator {
 		// we're calling.
 		Block_Context call_frame_ctx = ctx[call_name];
 
+		uint next_float = 0;
+
 		// mov all of the args into the register
 		// for the calling convention
 		foreach (i, arg; c.args[0..min(c.args.length,SYS_V_CALL_CONV_REG.length)]) {
-			// FIXME
-			if (auto ptr = cast(Pointer) arg.get_type()) {
-				// if the argument is of a pointer type
+			if (auto flt = cast(Floating) arg.get_type()) {
+				writer.mov(get_val(arg), SYS_V_CALL_CONV_REG_FLOATS[next_float++]);
+			}
+			else if (auto ptr = cast(Pointer) arg.get_type()) {
 				writer.lea(get_val(arg), SYS_V_CALL_CONV_REG[i]);
 			}
 			else {
@@ -455,13 +510,13 @@ class X64_Generator {
 			}
 		}		
 
-		writer.xor(RAX, RAX);
+		writer.mov(new Const(to!string(next_float)), AL);
 		writer.call(call_name);
 	}
 
 	void emit_instr(Instruction i) {
 		if (auto alloc = cast(Alloc)i) {
-			auto addr = curr_ctx.push_local(alloc.name, alloc.get_type().get_width());
+			auto addr = curr_ctx.push_local(alloc.name, alloc.get_type());
 			logger.verbose("Emitting local ", to!string(alloc), " at addr ", to!string(addr), "(%rsp)");
 		}
 		else if (auto ret = cast(Return)i) {

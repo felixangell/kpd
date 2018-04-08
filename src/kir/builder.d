@@ -413,15 +413,55 @@ class IR_Builder : Top_Level_Node_Visitor {
 		curr_func.add_instr(ret_instr);
 	}
 
+	If last_if = null;
+	If last_else_if = null;
+
+	/*
+		if {
+			E:
+		} else if {
+			D:
+		} else if {
+			C:
+		} else {
+			B:
+		}
+
+		A:
+	*/
 	void analyze_if_node(ast.If_Statement_Node if_stat) {
 		Value condition = build_expr(if_stat.condition);
 
 		If jmp = new If(condition);
 		curr_func.add_instr(jmp);
 		jmp.a = build_block(curr_func, if_stat.block);
-
-		// new block for else stuff
 		jmp.b = new Label(push_bb());
+
+		last_if = jmp;
+	}
+
+	/*
+		else if foo {
+			
+		}
+	*/
+	void analyze_else_if_node(ast.Else_If_Statement_Node else_if) {
+		Value condition = build_expr(else_if.condition);
+
+		If jmp = new If(condition);
+		curr_func.add_instr(jmp);
+
+		jmp.a = build_block(curr_func, else_if.block);
+		jmp.b = new Label(push_bb());
+
+		last_else_if = jmp;
+	}
+
+	void analyze_else_node(ast.Else_Statement_Node else_stat) {
+		// ideally it would be easier to bottom up
+		// generate the IR instead of doing some
+		// crazy back patching stuff.
+		// TODO
 	}
 
 	void analyze_loop_node(ast.Loop_Statement_Node loop) {
@@ -542,16 +582,24 @@ class IR_Builder : Top_Level_Node_Visitor {
 		if (auto let = cast(ast.Variable_Statement_Node) node) {
 			analyze_let_node(let);
 		}
-		// NOTE! TODO FIXME ?HACK..
 		else if (auto yield = cast(ast.Yield_Statement_Node) node) {
+			// NOTE! TODO FIXME ?HACK..
 			analyze_yield(yield);
 		}
 		else if (auto ret = cast(ast.Return_Statement_Node) node) {
 			analyze_return_node(ret);
 		}
+		
 		else if (auto if_stat = cast(ast.If_Statement_Node) node) {
 			analyze_if_node(if_stat);
 		}
+		else if (auto else_if_stat = cast(ast.Else_If_Statement_Node) node) {
+			analyze_else_if_node(else_if_stat);
+		}
+		else if (auto else_stat = cast(ast.Else_Statement_Node) node) {
+			analyze_else_node(else_stat);
+		}
+		
 		else if (auto loop = cast(ast.Loop_Statement_Node) node) {
 			analyze_loop_node(loop);
 		}

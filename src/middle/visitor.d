@@ -5,6 +5,7 @@ import logger;
 import sema.symbol;
 import sema.infer : Type_Environment;
 
+import std.stdio;
 import std.conv;
 
 class AST_Visitor {

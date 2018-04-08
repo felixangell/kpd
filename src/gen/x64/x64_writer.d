@@ -59,6 +59,7 @@ static this() {
 	R13 = new Reg(X64_Register.R13);
 	R14 = new Reg(X64_Register.R14);
 	R15 = new Reg(X64_Register.R15);
+
 	XMM0 = new Reg(X64_Register.XMM0);
 	XMM1 = new Reg(X64_Register.XMM1);
 	XMM2 = new Reg(X64_Register.XMM2);
@@ -80,6 +81,10 @@ class Reg : Memory_Location {
 
 	this(X64_Register reg) {
 		this.reg = reg;
+	}
+
+	bool is_floating() {
+		return reg >= X64_Register.XMM0 && reg <= X64_Register.XMM15;
 	}
 
 	override uint width() {
@@ -157,9 +162,23 @@ string type_name(uint width) {
 
 string suffix(uint width) {
 	if (width == 0) {
-		return "";
+		return "b";
 	}
 	return to!string(type_name(width)[0]);
+}
+
+string suffix(uint width, Memory_Location a, Memory_Location b) {
+	if (auto ar = cast(Reg) a) {
+		if (ar.is_floating()) {
+			return "sd";
+		}
+	}
+	else if (auto br = cast(Reg) b) {
+		if (br.is_floating()) {
+			return "sd";
+		}
+	}
+	return suffix(width);
 }
 
 uint get_width(X64_Register a) {
@@ -214,7 +233,7 @@ class X64_Writer : X64_Code {
 		if (cast(Address)src || cast(Address) dest) {
 			w = nzmax(src.width(), dest.width());
 		}
-		emitt("mov{} {}, {}", suffix(w), src.emit(), dest.emit());
+		emitt("mov{} {}, {}", suffix(w, src, dest), src.emit(), dest.emit());
 	}
 
 	void movz(Memory_Location src, Memory_Location dest) {
@@ -239,6 +258,11 @@ class X64_Writer : X64_Code {
 			w = nzmax(src.width(), dest.width());
 		}
 		emitt("add{} {}, {}", suffix(w), src.emit(), dest.emit());
+	}
+
+	// FIXME
+	void addsd(Memory_Location src, Memory_Location dest) {
+		emitt("addsd {}, {}", src.emit(), dest.emit());
 	}
 
 	void sub(Memory_Location src, Memory_Location dest) {
