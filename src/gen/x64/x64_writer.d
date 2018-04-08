@@ -260,17 +260,45 @@ class X64_Writer : X64_Code {
 		emitt("add{} {}, {}", suffix(w), src.emit(), dest.emit());
 	}
 
-	// FIXME
-	void addsd(Memory_Location src, Memory_Location dest) {
-		emitt("addsd {}, {}", src.emit(), dest.emit());
-	}
-
 	void sub(Memory_Location src, Memory_Location dest) {
 		uint w = nzmin(src.width(), dest.width());
 		if (cast(Address)src || cast(Address) dest) {
 			w = nzmax(src.width(), dest.width());
 		}
 		emitt("sub{} {}, {}", suffix(w), src.emit(), dest.emit());
+	}
+
+	void idiv(Memory_Location src, Memory_Location dest) {
+		uint w = nzmin(src.width(), dest.width());
+		if (cast(Address)src || cast(Address) dest) {
+			w = nzmax(src.width(), dest.width());
+		}
+		emitt("idiv{} {}, {}", suffix(w), src.emit(), dest.emit());
+	}
+
+	void imul(Memory_Location src, Memory_Location dest) {
+		uint w = nzmin(src.width(), dest.width());
+		if (cast(Address)src || cast(Address) dest) {
+			w = nzmax(src.width(), dest.width());
+		}
+		emitt("imul{} {}, {}", suffix(w), src.emit(), dest.emit());
+	}
+
+	// FIXME
+	void addsd(Memory_Location src, Memory_Location dest) {
+		emitt("addsd {}, {}", src.emit(), dest.emit());
+	}
+
+	void subsd(Memory_Location src, Memory_Location dest) {
+		emitt("subsd {}, {}", src.emit(), dest.emit());
+	}
+
+	void divsd(Memory_Location src, Memory_Location dest) {
+		emitt("divsd {}, {}", src.emit(), dest.emit());
+	}
+
+	void mulsd(Memory_Location src, Memory_Location dest) {
+		emitt("mulsd {}, {}", src.emit(), dest.emit());
 	}
 
 	void cmp(Memory_Location src, Memory_Location dest) {

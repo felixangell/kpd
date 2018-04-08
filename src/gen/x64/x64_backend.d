@@ -138,7 +138,7 @@ class X64_Backend : Code_Generator_Backend {
 		foreach (as_file; as_files) {
 			string obj_file_path = baseName(as_file.name, ".as") ~ ".o";
 
-			string[] args = ["as", as_file.name, "-o", obj_file_path];
+			string[] args = ["as", "-f", as_file.name, "-o", obj_file_path];
 			writeln("Assembler running: ", args);
 
 			auto as_pid = execute(args);

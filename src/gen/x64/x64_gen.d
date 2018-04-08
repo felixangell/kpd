@@ -357,14 +357,27 @@ class X64_Generator {
 			break;
 
 		case "-":
-			writer.sub(get_val(bin.b), reg);
+			if (is_floating) {
+				writer.subsd(get_val(bin.b), reg);
+			} else {
+				writer.sub(get_val(bin.b), reg);
+			}
 			break;
 
 		case "/":
-			// TODO DIVISION!
-			assert(0);
+			if (is_floating) {
+				writer.divsd(get_val(bin.b), reg);
+			} else {
+				writer.idiv(get_val(bin.b), reg);
+			}
+			break;
 
 		case "*":
+			if (is_floating) {
+				writer.mulsd(get_val(bin.b), reg);
+			} else {
+				writer.imul(get_val(bin.b), reg);
+			}
 			break;
 
 		default:
