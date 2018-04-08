@@ -129,13 +129,7 @@ class Address : Memory_Location {
 	}
 
 	override uint width() {
-		if (iden.length > 0) {
-			if (iden in constant_sizes) {
-				return constant_sizes[iden];
-			}
-			return 0;
-		}
-		return reg.width();
+		return 0;
 	}
 
 	override string emit() {
@@ -147,7 +141,7 @@ class Address : Memory_Location {
 }
 
 string type_name(uint width) {
-	final switch (width) {
+	switch (width) {
 	case 8:
 		return "quad";
 	case 4:
@@ -156,10 +150,15 @@ string type_name(uint width) {
 		return "short";
 	case 1:
 		return "byte";
+	default:
+		return "";
 	}
 }
 
 string suffix(uint width) {
+	if (width == 0) {
+		return "";
+	}
 	return to!string(type_name(width)[0]);
 }
 
@@ -179,7 +178,7 @@ uint get_width(X64_Register a) {
 	assert(0);
 }
 
-uint nzpick(uint a, uint b) {
+uint nzmax(uint a, uint b) {
 	// pick non zero
 	if (a == 0) {
 		return b;
@@ -188,7 +187,21 @@ uint nzpick(uint a, uint b) {
 		return a;
 	}
 
-	// otherwise pick smallest
+	if (a > b) {
+		return a;
+	}
+	return b;
+}
+
+uint nzmin(uint a, uint b) {
+	// pick non zero
+	if (a == 0) {
+		return b;
+	}
+	if (b == 0) {
+		return a;
+	}
+
 	if (a < b) {
 		return a;
 	}
@@ -196,22 +209,52 @@ uint nzpick(uint a, uint b) {
 }
 
 class X64_Writer : X64_Code {
-	// things to think about
-	// movzb al, eax
-	// movq rax, rax
 	void mov(Memory_Location src, Memory_Location dest) {
-		uint w = nzpick(src.width(), dest.width());
+		uint w = nzmin(src.width(), dest.width());
+		if (cast(Address)src || cast(Address) dest) {
+			w = nzmax(src.width(), dest.width());
+		}
 		emitt("mov{} {}, {}", suffix(w), src.emit(), dest.emit());
 	}
 
-	void add(Memory_Location val, Memory_Location dst) {
-		uint w = max(val.width(), dst.width());
-		emitt("add{} {}, {}", suffix(w), val.emit(), dst.emit());
+	void movz(Memory_Location src, Memory_Location dest) {
+		uint w = nzmin(src.width(), dest.width());
+		if (cast(Address)src || cast(Address) dest) {
+			w = nzmax(src.width(), dest.width());
+		}
+		emitt("movz{} {}, {}", suffix(w), src.emit(), dest.emit());
 	}
 
-	void sub(Memory_Location val, Memory_Location dst) {
-		uint w = max(val.width(), dst.width());
-		emitt("sub{} {}, {}", suffix(w), val.emit(), dst.emit());
+	void lea(Memory_Location src, Memory_Location dest) {
+		uint w = nzmin(src.width(), dest.width());
+		if (cast(Address)src || cast(Address) dest) {
+			w = nzmax(src.width(), dest.width());
+		}
+		emitt("lea{} {}, {}", suffix(w), src.emit(), dest.emit());
+	}
+
+	void add(Memory_Location src, Memory_Location dest) {
+		uint w = nzmin(src.width(), dest.width());
+		if (cast(Address)src || cast(Address) dest) {
+			w = nzmax(src.width(), dest.width());
+		}
+		emitt("add{} {}, {}", suffix(w), src.emit(), dest.emit());
+	}
+
+	void sub(Memory_Location src, Memory_Location dest) {
+		uint w = nzmin(src.width(), dest.width());
+		if (cast(Address)src || cast(Address) dest) {
+			w = nzmax(src.width(), dest.width());
+		}
+		emitt("sub{} {}, {}", suffix(w), src.emit(), dest.emit());
+	}
+
+	void cmp(Memory_Location src, Memory_Location dest) {
+		uint w = nzmin(src.width(), dest.width());
+		if (cast(Address)src || cast(Address) dest) {
+			w = nzmax(src.width(), dest.width());
+		}
+		emitt("cmp{} {}, {}", suffix(w), src.emit(), dest.emit());
 	}
 
 	void ret() {
@@ -256,11 +299,6 @@ class X64_Writer : X64_Code {
 
 	void jne(string iden) {
 		emitt("jne {}", iden);
-	}
-
-	void cmp(Memory_Location val, Memory_Location r) {
-		uint w = max(val.width(), r.width());
-		emitt("cmp{} {}, {}", suffix(w), val.emit(), r.emit());
 	}
 
 	void push(Memory_Location r) {

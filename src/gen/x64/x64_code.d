@@ -63,15 +63,12 @@ class X64_Code : Generated_Output {
 	}
 
 	void dump_to_stdout() {
-		uint offs = 0;
-		foreach (seg; segments) {
-			foreach (i, line; seg.data[0..seg.index]) {
-				if (line.length == 0) {
-					continue;
-				}
-				writefln("%04d:\t\t%s", i + offs, line);
-			}
-			offs += seg.index;
+		import std.string : splitLines;
+		foreach (i, line; splitLines(assembly_code)) {
+			// we add one because we dont have
+			// the newline at the end of the file
+			// so we have to offset the line numbers.
+			writefln("%04d:\t%s", i + 1, line);
 		}
 	}
 

@@ -2,7 +2,20 @@
 func printf() s32;
 
 func main() {
-	let a = 3;
-	let b = a + 6;
+
+	let pi f64 = 3.141;
+	printf(c"Hello world %f\n", pi);
+	
+	let a = 5;
+	let b = a + 5 - 2;
+	b = b + 4;
+
 	printf(c"Hello %d\n", b);
+
+	if a == 5 {
+		printf(c"wasteman\n");
+	}
+	else {
+		printf(c"nevermind\n");
+	}
 }

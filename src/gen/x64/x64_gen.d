@@ -279,7 +279,7 @@ class X64_Generator {
 			assert(0, "unhandled op!");
 		}
 
-		writer.mov(AL, EAX);
+		writer.movz(AL, EAX);
 		writer.mov(EAX, get_val(s.address));
 	}
 
@@ -297,7 +297,6 @@ class X64_Generator {
 
 		// FIXME!
 		// this should gen an instr.
-		string arith_instr;
 		switch (bin.op.lexeme) {
 		case ">":
 		case "<":
@@ -308,17 +307,20 @@ class X64_Generator {
 			return emit_cmp(s);
 
 		case "+":
-			arith_instr = "add";
+			writer.add(get_val(bin.b), reg);
 			break;
+
 		case "-":
-			arith_instr = "sub";
+			writer.sub(get_val(bin.b), reg);
 			break;
+
 		case "/":
 			// TODO DIVISION!
 			assert(0);
+
 		case "*":
-			arith_instr = "imul";
 			break;
+
 		default:
 			logger.fatal("Unhandled instr selection for binary op ", to!string(bin));
 			break;
@@ -432,12 +434,17 @@ class X64_Generator {
 		// we're calling.
 		Block_Context call_frame_ctx = ctx[call_name];
 
+		// mov all of the args into the register
+		// for the calling convention
 		foreach (i, arg; c.args[0..min(c.args.length,SYS_V_CALL_CONV_REG.length)]) {
+			// FIXME
 			if (auto ptr = cast(Pointer) arg.get_type()) {
-				// FIXME
-				// LEA.
+				// if the argument is of a pointer type
+				writer.lea(get_val(arg), SYS_V_CALL_CONV_REG[i]);
 			}
-			writer.mov(get_val(arg), SYS_V_CALL_CONV_REG[i]);
+			else {
+				writer.mov(get_val(arg), SYS_V_CALL_CONV_REG[i]);
+			}
 		}
 
 		if (c.args.length >= SYS_V_CALL_CONV_REG.length) {
