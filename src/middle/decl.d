@@ -13,6 +13,7 @@ import tok;
 import sema.analyzer;
 import sema.infer : Type_Environment;
 import sema.symbol;
+import sema.type;
 import sema.visitor;
 import krug_module;
 
@@ -54,6 +55,15 @@ class Declaration_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 		return table;
 	}
 
+	void visit_structure_destructure(ast.Structure_Destructuring_Statement_Node stat) {
+		foreach (name; stat.values) {
+			auto existing = curr_sym_table.register_sym(new Symbol(stat, name));
+			if (existing !is null) {
+				Diagnostic_Engine.throw_error(SYMBOL_CONFLICT, new Absolute_Token(name), existing.get_tok_info());
+			}	
+		}
+	}
+
 	override void visit_stat(ast.Statement_Node stat) {
 		if (auto var = cast(Variable_Statement_Node) stat) {
 			analyze_let_node(var);
@@ -63,6 +73,9 @@ class Declaration_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 		}
 		else if (auto if_stat = cast(ast.If_Statement_Node) stat) {
 			visit_block(if_stat.block);
+		}
+		else if (auto structure_destructure = cast(ast.Structure_Destructuring_Statement_Node) stat) {
+			visit_structure_destructure(structure_destructure);
 		}
 		else {
 			this.log(Log_Level.Warning, "decl: Unhandled statement " ~ to!string(stat));
@@ -144,6 +157,7 @@ class Declaration_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 		// then it might be a bit more complicated and the first
 		// option is definitely the way to go.
 
+		// FIXME!!
 		string symbol_name = node.name.lexeme;
 		if (node.func_recv !is null) {
 			// we have a function recv, this is a method.

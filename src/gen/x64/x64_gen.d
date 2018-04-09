@@ -365,10 +365,16 @@ class X64_Generator {
 			break;
 
 		case "/":
+			// FIXME
+			// a / b
+			// dividend / divisor
+
 			if (is_floating) {
 				writer.divsd(get_val(bin.b), reg);
 			} else {
-				writer.idiv(get_val(bin.b), reg);
+				// TODO pick CX reg
+				writer.mov(get_val(bin.b), ECX);
+				writer.idiv(ECX);
 			}
 			break;
 

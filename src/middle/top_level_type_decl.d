@@ -19,8 +19,27 @@ import compiler_error;
 class Top_Level_Type_Decl_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 	Type_Inferrer inferrer;
 
-	override void analyze_named_type_node(ast.Named_Type_Node node) {
+	void declare_structure(string name, ast.Structure_Type_Node s) {
+		Type[] types;
+		types.length = s.fields.length;
 
+		foreach (field; s.fields) {
+			types ~= inferrer.analyze(field.type, curr_sym_table.env);
+		}
+
+		auto s_type = new Structure();
+		curr_sym_table.env.register_type(name, s_type);
+	}
+
+	override void analyze_named_type_node(ast.Named_Type_Node node) {
+		const auto name = node.twine.lexeme;
+
+		if (auto structure = cast(Structure_Type_Node) node.type) {
+			declare_structure(name, structure);
+		}
+		else {
+			this.log(Log_Level.Error, "unimplemented!");
+		}
 	}
 
 	override void analyze_let_node(ast.Variable_Statement_Node var) {
@@ -29,7 +48,6 @@ class Top_Level_Type_Decl_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 
 	override void analyze_function_node(ast.Function_Node func) {
 		auto func_type = inferrer.analyze(func, curr_sym_table.env);
-		writeln("function inferred as ", func_type);
 		curr_sym_table.env.register_type(func.name.lexeme, func_type);
 	}
 

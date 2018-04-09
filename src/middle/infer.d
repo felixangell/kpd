@@ -126,8 +126,12 @@ Type fresh(Type t, Type_Variable[string] generics) {
 
 			return new Fn(fresh_type(fn.ret, generics), types);
 		}
+		else if (auto st = cast(Structure) pt) {
+			// TODO
+			return st;
+		}
 
-		logger.fatal("bad type!");
+		logger.fatal("unimplemented fresh type!");
 		assert(0);
 	}
 
@@ -196,8 +200,8 @@ struct Type_Inferrer {
 		foreach (entry; e.data.byKeyValue()) {
 			logger.verbose(entry.key, " is ", to!string(entry.value));
 		}
-		
-		assert(0);
+
+		return null;
 	}
 
 	Type analyze_primitive(ast.Primitive_Type_Node node, Type_Variable[string] generics) {
@@ -313,25 +317,34 @@ struct Type_Inferrer {
 			return analyze(paren.value, e, generics);
 		}
 		else if (auto sym = cast(Symbol_Node) node) {
-			return get_symbol_type(sym.value.lexeme, generics);
-		} // this is mostly like
+			auto sym_type = get_symbol_type(sym.value.lexeme, generics);
+			if (sym_type is null) {
+				logger.error(sym.get_tok_info().get_tok(), "failed to lookup symbol!");
+			}
+			return sym_type;
+		} 
+
+		// this is mostly like
 		// module.sub_mod.Type
 		// Type
 		// etc.
 		// TODO: support module access		
+		
 		else if (auto path_type = cast(ast.Type_Path_Node) node) {
 			auto type = path_type.values[0];
 			Type t = e.lookup_type(type.lexeme);
 			if (t is null) {
-				logger.error("Failed to resolve type '" ~ colour.Bold(type.lexeme) ~ "':\n", 
-					blame_token(type));
+				logger.error("Failed to resolve type '" ~ colour.Bold(type.lexeme) ~ "':\n", blame_token(type));
+				assert(0);
 			}
 			return t;
 		}
+
 		else if (auto path = cast(ast.Path_Expression_Node) node) {
 			// TODO!
 			return analyze_path(path, generics);
 		}
+
 		else if (auto unary = cast(ast.Unary_Expression_Node) node) {
 			return analyze(unary.value, e, generics);
 		}
@@ -340,7 +353,9 @@ struct Type_Inferrer {
 		}
 		else if (auto call = cast(ast.Call_Node) node) {
 			return analyze_call(call, generics);
-		} // constants
+		} 
+
+		// constants
 		else if (cast(Integer_Constant_Node) node) {
 			return prim_type("s32");
 		}
@@ -360,6 +375,7 @@ struct Type_Inferrer {
 		else if (cast(Rune_Constant_Node) node) {
 			return prim_type("rune");
 		}
+
 		else if (auto ptr = cast(Pointer_Type_Node) node) {
 			return new Pointer(analyze(ptr.base_type, e, generics));
 		}

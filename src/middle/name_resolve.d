@@ -233,8 +233,9 @@ class Name_Resolve_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 	// let { foo, bar, baz } = blah;
 	// we look for foo bar and baz in the right hand
 	// blah symbol tables.
-	void resolve_structure_destructure(ast.Structure_Destructuring_Statement_Node structure_destructure) {
-		this.log(Log_Level.Error, "unimplemented!");
+	void resolve_structure_destructure(ast.Structure_Destructuring_Statement_Node stat) {
+		// TODO
+		analyze_expr(stat.rhand);
 	}
 
 	void analyze_expr(ast.Expression_Node expr) {
@@ -365,6 +366,14 @@ class Name_Resolve_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 		}
 		else if (auto brk = cast(ast.Break_Statement_Node) stat) {
 			// NOP
+		}
+		else if (auto defer = cast(ast.Defer_Statement_Node) stat) {
+			visit_stat(defer.stat);
+		}
+		else if (auto block = cast(ast.Block_Node) stat) {
+			// TODO
+			// i feel like this is not supposed to be here
+			visit_block(block);
 		}
 		else {
 			this.log(Log_Level.Error, "unhandled statement " ~ to!string(stat), " ... ", to!string(typeid(stat)),

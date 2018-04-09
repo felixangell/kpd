@@ -30,17 +30,55 @@ uint temp = 0;
 string gen_temp() {
 	return "t" ~ to!string(temp++);
 }
+
+class Defer_Context {
+	Statement_Node[] stat;
+}
 		
 class IR_Builder : Top_Level_Node_Visitor {
 
 	IR_Module ir_mod;
 	kir.instr.Function curr_func;
 
+	Defer_Context[] defer_ctx;
+	uint defer_ctx_ptr = -1;
+
+	void push_defer_ctx() {
+		if (defer_ctx_ptr >= defer_ctx.length) {
+			defer_ctx.length *= 2;
+		}
+		logger.verbose("- push defer");
+		defer_ctx[++defer_ctx_ptr] = new Defer_Context();
+	}
+
+	Defer_Context curr_defer_ctx() {
+		assert(defer_ctx_ptr != -1);
+		return defer_ctx[defer_ctx_ptr];
+	}
+
+	void pop_defer_ctx() {
+		logger.verbose("- pop defer");
+		defer_ctx_ptr--;
+	}
+
 	this(string mod_name, string sub_mod_name) {
 		ir_mod = new IR_Module(sub_mod_name);
+		defer_ctx.length = 32;
 	}
 
 	override void analyze_named_type_node(ast.Named_Type_Node) {
+	}
+
+	override void visit_block(ast.Block_Node block, void delegate(Symbol_Table curr_stab) stuff = null) {
+		push_defer_ctx();
+		super.visit_block(block, stuff);
+
+		logger.verbose("- running defer");
+		foreach_reverse (ref stat; curr_defer_ctx().stat) {
+			visit_stat(stat);
+		}
+
+		pop_defer_ctx();
 	}
 
 	Label build_block(kir.instr.Function current_func, ast.Block_Node block, Basic_Block b = null) {
@@ -78,6 +116,17 @@ class IR_Builder : Top_Level_Node_Visitor {
 
 	Type conv_prim_type(ast.Primitive_Type_Node node) {
 		return prim_type(node.type_name.lexeme);		
+	}
+
+	Type get_type_path_type(Type_Path_Node t) {
+		assert(t.values.length == 1);
+
+		auto type = curr_sym_table.env.lookup_type(t.values[0].lexeme);
+		if (type is null) {
+			logger.error(t.get_tok_info(), "Un-declared type is leaking!");
+			assert(0);
+		}
+		return type;
 	}
 
 	// convert an AST type to a krug ir type
@@ -135,8 +184,12 @@ class IR_Builder : Top_Level_Node_Visitor {
 		else if (auto param = cast(Function_Parameter) t) {
 			return get_type(param.type);
 		}
+		else if (auto type_path = cast(Type_Path_Node) t) {
+			return get_type_path_type(type_path);
+		}
 
-		logger.error("Leaking unresolved type:\n\t", to!string(t), "\n\t", to!string(typeid(t)));
+		logger.error(t.get_tok_info().get_tok(),
+			"Leaking unresolved type:\n\t" ~ to!string(t) ~ "\n\t" ~ to!string(typeid(t)));
 
 		// FIXME
 		assert(0);
@@ -169,11 +222,6 @@ class IR_Builder : Top_Level_Node_Visitor {
 		}
 		else {
 			curr_func = ir_mod.add_function(func.name.lexeme, return_type);
-		}
-
-		writeln("ATTRIBS FOR FUNC ", func.name);
-		foreach (name; func.get_attribs().byKey) {
-			writeln(" - ", name);
 		}
 
 		curr_func.set_attributes(func.get_attribs());
@@ -235,6 +283,7 @@ class IR_Builder : Top_Level_Node_Visitor {
 			writeln(v);
 		}
 
+		logger.error(path.get_tok_info().get_tok(), "unimplemented!");
 		assert(0);
 	}
 
@@ -572,8 +621,22 @@ class IR_Builder : Top_Level_Node_Visitor {
 		}
 	}
 
+	// deferred statements run at block level rather than
+	// function level.
+	void analyze_defer_node(ast.Defer_Statement_Node defer) {
+		logger.verbose("registering defer ", to!string(defer));
+		curr_defer_ctx().stat ~= defer.stat;
+	}
+
 	void analyze_yield(ast.Yield_Statement_Node yield) {
-		// TODO
+		logger.error(yield.get_tok_info(), "unhandled");
+		assert(0);
+	}
+
+	void analyze_structure_destructure(ast.Structure_Destructuring_Statement_Node stat) {
+		foreach (v; stat.values) {
+			auto addr = curr_func.add_alloc(new Alloc(prim_type("void"), v.lexeme));
+		}
 	}
 
 	override void visit_stat(ast.Statement_Node node) {
@@ -589,6 +652,9 @@ class IR_Builder : Top_Level_Node_Visitor {
 		else if (auto ret = cast(ast.Return_Statement_Node) node) {
 			analyze_return_node(ret);
 		}
+		else if (auto defer = cast(ast.Defer_Statement_Node) node) {
+			analyze_defer_node(defer);
+		}
 		
 		else if (auto if_stat = cast(ast.If_Statement_Node) node) {
 			analyze_if_node(if_stat);
@@ -599,7 +665,10 @@ class IR_Builder : Top_Level_Node_Visitor {
 		else if (auto else_stat = cast(ast.Else_Statement_Node) node) {
 			analyze_else_node(else_stat);
 		}
-		
+
+		else if (auto structure_destructure = cast(ast.Structure_Destructuring_Statement_Node) node) {
+			analyze_structure_destructure(structure_destructure);
+		}
 		else if (auto loop = cast(ast.Loop_Statement_Node) node) {
 			analyze_loop_node(loop);
 		}
@@ -622,7 +691,8 @@ class IR_Builder : Top_Level_Node_Visitor {
 			build_block(curr_func, b);
 		}
 		else {
-			logger.warn("IR_Builder: unhandled node: ", to!string(node));
+			logger.error(node.get_tok_info(), "unimplemented node '" ~ to!string(typeid(node)) ~ "':");
+			assert(0);
 		}
 
 		if (block_sample.instructions.length == 0) {

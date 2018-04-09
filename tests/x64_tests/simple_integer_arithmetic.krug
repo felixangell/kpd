@@ -1,0 +1,16 @@
+#{c_func}
+func printf() s32;
+
+func main() {
+	let a s32 = 6;
+	printf(c"a is %d\n", a);
+
+	a = a - 3;
+	printf(c"sub a - 3 %d\n", a);
+
+	a = a * 2;
+	printf(c"imul (a * 2) %d\n", a);
+
+	a = a / 2;
+	printf(c"idiv a / 2 %d\n", a);
+}

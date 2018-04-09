@@ -29,7 +29,7 @@ class Type_Infer_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 	Type_Inferrer inferrer;
 
 	override void analyze_named_type_node(ast.Named_Type_Node node) {
-		
+		// TODO?
 	}
 
 	// FIXME!
@@ -40,12 +40,6 @@ class Type_Infer_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 		// doesn't have anything to work with.
 		if (var.value is null && var.type is null) {
 			Diagnostic_Engine.throw_error(NO_TYPE_ANNOTATION, var.get_tok_info());
-			return;
-		}
-
-		// there is no value to infer from.
-		// but we _should_ have a type.
-		if (var.value is null) {
 			return;
 		}
 
@@ -78,7 +72,7 @@ class Type_Infer_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 	}
 
 	void analyze_else_stat(ast.Else_Statement_Node else_stat) {
-		// NOP
+		assert(0);
 	}
 
 	void analyze_ret(ast.Return_Statement_Node ret) {
@@ -108,6 +102,10 @@ class Type_Infer_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 		});
 	}
 
+	void analyze_structure_destructure(ast.Structure_Destructuring_Statement_Node stat) {
+		analyze_expr(stat.rhand);		
+	}
+
 	override void visit_stat(ast.Statement_Node stat) {
 		if (auto variable = cast(ast.Variable_Statement_Node) stat) {
 			analyze_let_node(variable);
@@ -120,6 +118,9 @@ class Type_Infer_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 		}
 		else if (auto else_if = cast(ast.Else_If_Statement_Node) stat) {
 			analyze_else_if_stat(else_if);
+		}
+		else if (auto structure_destructure = cast(ast.Structure_Destructuring_Statement_Node) stat) {
+			analyze_structure_destructure(structure_destructure);
 		}
 		else if (auto else_stat = cast(ast.Else_Statement_Node) stat) {
 			analyze_else_stat(else_stat);
@@ -135,6 +136,12 @@ class Type_Infer_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 		}
 		else if (auto loop = cast(ast.Loop_Statement_Node) stat) {
 			// NOP
+		}
+		else if (auto defer = cast(ast.Defer_Statement_Node) stat) {
+			visit_stat(defer.stat);
+		}
+		else if (auto block = cast(ast.Block_Node) stat) {
+			visit_block(block);
 		}
 		else {
 			this.log(Log_Level.Error, "unhandled statement " ~ to!string(stat) ~ " ... " ~ to!string(typeid(stat)),

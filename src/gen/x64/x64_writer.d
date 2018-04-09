@@ -268,12 +268,8 @@ class X64_Writer : X64_Code {
 		emitt("sub{} {}, {}", suffix(w), src.emit(), dest.emit());
 	}
 
-	void idiv(Memory_Location src, Memory_Location dest) {
-		uint w = nzmin(src.width(), dest.width());
-		if (cast(Address)src || cast(Address) dest) {
-			w = nzmax(src.width(), dest.width());
-		}
-		emitt("idiv{} {}, {}", suffix(w), src.emit(), dest.emit());
+	void idiv(Memory_Location divisor) {
+		emitt("idiv{} {}", suffix(divisor.width()), divisor.emit());
 	}
 
 	void imul(Memory_Location src, Memory_Location dest) {

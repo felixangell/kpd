@@ -39,7 +39,7 @@ static void register_types(string...)(string types) {
 }
 
 static Type prim_type(string type_name) {
-	assert(type_name in PRIMITIVE_TYPES);
+	assert(type_name in PRIMITIVE_TYPES, to!string(type_name) ~ " not in primitives?!");
 	return PRIMITIVE_TYPES[type_name];
 }
 

@@ -1,16 +1,29 @@
 #{c_func}
 func printf() s32;
 
+type Person struct {
+	age u32 = 1,
+	number_of_children u32,
+};
+
+func (p *Person) print_age() {
+	// printf(c"person age is %d\n", p.age);
+}
+
 func main() {
-	let a f64 = 6.0;
-	printf(c"a is %f\n", a);
+	printf(c"Hello 1\n");
+	printf(c"Hello 2\n");
+	printf(c"Hello 3\n");
+	
+	defer printf(c"Hello 4\n");
+	defer printf(c"Hello 5\n");
+	defer printf(c"Hello 6\n");
 
-	a = a - 3.0;
-	printf(c"subsd a - 3.0 %f\n", a);
+	let p Person;
+	let { age, kids } = p;
 
-	a = a * 2.0;
-	printf(c"mulsd (a * 2.0) %f\n", a);
+	// let rgb (u8, u8, u8);
+	// let { r, g, b} = rgb;
 
-	a = a / 2.0;
-	printf(c"divsd a / 2.0 %f\n", a);
+	// let thingy = 3.4444 as u32;
 }
