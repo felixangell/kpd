@@ -61,6 +61,14 @@ class Build_Command : Command {
 			"opt|O", &OPTIMIZATION_LEVEL,
 			"out|o", &OUT_NAME,
 			"target", &BUILD_TARGET,
+			"out_type", &OUT_TYPE,
+			
+			"c", function(string option) {
+				OUT_TYPE = Output_Type.Object_Files;	
+			},
+			"S", function(string option) {
+				OUT_TYPE = Output_Type.Assembly;
+			},
 		);
 
 		write_krug_info();

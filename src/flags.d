@@ -15,6 +15,13 @@ string ARCH = arch_type();
 string OPERATING_SYSTEM = os_name();
 string OUT_NAME = "main";
 
+enum Output_Type {
+	Assembly,
+	Object_Files,
+	Executable,
+}
+Output_Type OUT_TYPE = Output_Type.Executable;
+
 // prints krug compiler info (i.e. relevant flags)
 // to the stdout only in debug mode.
 void write_krug_info() {
