@@ -290,7 +290,7 @@ class X64_Generator {
 		// but because we cant really do this reasily right now
 		// im doing it naively like so:
 
-		switch (bin.op.lexeme) {
+		switch (bin.op) {
 		case ">":
 			writer.setg(AL);
 			break;
@@ -337,9 +337,7 @@ class X64_Generator {
 
 		writer.mov(get_val(bin.a), reg);
 
-		// FIXME!
-		// this should gen an instr.
-		switch (bin.op.lexeme) {
+		switch (bin.op) {
 		case ">":
 		case "<":
 		case ">=":

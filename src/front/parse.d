@@ -1128,6 +1128,73 @@ class Parser : Compilation_Phase {
 		return new While_Statement_Node(cond, block);
 	}
 
+	// for var; condition; step {}
+	/*
+		i dont like the variable
+	
+
+		for i < 10; i = i + 1 {
+	
+		}
+	*/
+	ast.Loop_Statement_Node parse_for() {
+		logger.error(peek(), "unimplemented");
+		assert(0);
+	}
+
+	ast.Match_Statement_Node parse_match() {
+		if (!peek().cmp(keyword.Match)) {
+			return null;
+		}
+		expect(keyword.Match);
+
+		auto condition = parse_expr();
+		if (condition is null) {
+			logger.error(peek(), "expected condition in match criteria:");
+		}
+
+		Match_Arm_Node[] arms;
+
+		expect("{");
+		while (has_next() && !peek().cmp("}")) {
+			auto arm = new Match_Arm_Node;
+
+			while (has_next() && !peek().cmp("{")) {
+				// TODO default
+				// peek.cmp("_")
+
+				auto val = parse_expr();
+				if (val is null) {
+					logger.error(peek(), "fixme");
+					break;
+				}
+
+				arm.expressions ~= val;
+
+				// TODO trailing commas etc
+				if (peek().cmp(",")) {
+					consume();
+				}
+			}
+
+			arm.block = parse_block();
+			if (arm.block is null) {
+				logger.error(peek(), "expected block after match arm");
+				break;
+			}
+
+			arms ~= arm;
+
+			// TODO trailing commas
+			if (peek().cmp(",")) {
+				consume();
+			}
+		}
+		expect("}");
+
+		return new Match_Statement_Node(condition, arms);
+	}
+
 	ast.Loop_Statement_Node parse_loop() {
 		if (!peek().cmp(keyword.Loop)) {
 			return null;
@@ -1238,6 +1305,9 @@ class Parser : Compilation_Phase {
 		case keyword.Let:
 			result = parse_let();
 			break;
+		case keyword.Match:
+			result = parse_match();
+			break;
 		case keyword.Defer:
 			result = parse_defer();
 			break;
@@ -1255,6 +1325,9 @@ class Parser : Compilation_Phase {
 			else {
 				result = parse_else();
 			}
+			break;
+		case keyword.For:
+			result = parse_for();
 			break;
 		case keyword.Loop:
 			result = parse_loop();

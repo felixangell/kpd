@@ -106,6 +106,18 @@ class Type_Infer_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 		analyze_expr(stat.rhand);		
 	}
 
+	void analyze_match(ast.Match_Statement_Node match) {
+		analyze_expr(match.condition);
+
+		// TODO scope etc.
+		foreach (a; match.arms) {
+			foreach (v; a.expressions) {
+				analyze_expr(v);
+			}
+			visit_block(a.block);
+		}
+	}
+
 	override void visit_stat(ast.Statement_Node stat) {
 		if (auto variable = cast(ast.Variable_Statement_Node) stat) {
 			analyze_let_node(variable);
@@ -142,6 +154,9 @@ class Type_Infer_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 		}
 		else if (auto block = cast(ast.Block_Node) stat) {
 			visit_block(block);
+		}
+		else if (auto match = cast(ast.Match_Statement_Node) stat) {
+			analyze_match(match);	
 		}
 		else {
 			this.log(Log_Level.Error, "unhandled statement " ~ to!string(stat) ~ " ... " ~ to!string(typeid(stat)),

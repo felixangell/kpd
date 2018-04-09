@@ -639,6 +639,62 @@ class IR_Builder : Top_Level_Node_Visitor {
 		}
 	}
 
+	// FIXME
+	// this is slow and expensive...
+	// esp for multiple expressions
+	// also its hard to read/understand
+	// as it jumps all over the place.
+	void build_match(ast.Match_Statement_Node match) {
+		Value cond = build_expr(match.condition);
+
+		Jump[] jump_to_ends;
+
+		If last_if = null;
+		foreach (ref i, a; match.arms) {
+			auto arm_start_bb = new Label(push_bb());
+
+			If[] rewrite_jumpto_true;
+
+			foreach (ref j, expr; a.expressions) {
+				auto check = new Label(push_bb());
+
+				// cond == val
+				auto val = build_expr(expr);
+				auto cmp = new Binary_Op(cond.get_type(), "==", cond, val);
+
+				// gen temp
+				string alloc_name = gen_temp();
+				auto temp = new Alloc(cond.get_type(), alloc_name);
+				curr_func.add_instr(temp);
+				curr_func.add_instr(new Store(temp.get_type(), temp, cmp));
+
+				If jmp = new If(new Identifier(temp.get_type(), alloc_name));
+				curr_func.add_instr(jmp);
+
+				if (last_if !is null) {
+					last_if.b = check;
+				}
+
+				last_if = jmp;
+
+				rewrite_jumpto_true ~= jmp;
+			}
+
+			auto arm_body = build_block(curr_func, a.block);
+			jump_to_ends ~= cast(Jump) curr_func.add_instr(new Jump(null));
+
+			foreach (ref iff; rewrite_jumpto_true) {
+				iff.a = arm_body;
+			}
+		}
+
+		auto match_end = new Label(push_bb());
+		last_if.b = match_end;
+		foreach (ref jte; jump_to_ends) {
+			jte.label = match_end;
+		}
+	}
+
 	override void visit_stat(ast.Statement_Node node) {
 		Basic_Block block_sample = curr_func.curr_block;
 
@@ -665,7 +721,9 @@ class IR_Builder : Top_Level_Node_Visitor {
 		else if (auto else_stat = cast(ast.Else_Statement_Node) node) {
 			analyze_else_node(else_stat);
 		}
-
+		else if (auto match = cast(ast.Match_Statement_Node) node) {
+			build_match(match);	
+		}
 		else if (auto structure_destructure = cast(ast.Structure_Destructuring_Statement_Node) node) {
 			analyze_structure_destructure(structure_destructure);
 		}

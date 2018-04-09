@@ -407,14 +407,18 @@ class Store : Basic_Instruction, Value {
 
 // a op b
 class Binary_Op : Basic_Instruction, Value {
-	Token op;
+	string op;
 	Value a, b;
 
-	this(Type type, Token op, Value a, Value b) {
+	this(Type type, string op, Value a, Value b) {
 		super(type);
 		this.op = op;
 		this.a = a;
 		this.b = b;
+	}
+
+	this(Type type, Token op, Value a, Value b) {
+		this(type, op.lexeme, a, b);
 	}
 
 	override void set_type(Type t) {
@@ -425,7 +429,7 @@ class Binary_Op : Basic_Instruction, Value {
 	}
 
 	override string toString() {
-		return to!string(a) ~ " " ~ op.lexeme ~ " " ~ to!string(b);
+		return to!string(a) ~ " " ~ op ~ " " ~ to!string(b);
 	}
 }
 

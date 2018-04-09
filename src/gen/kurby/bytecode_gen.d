@@ -74,7 +74,7 @@ class Kurby_Generator {
 		emit_value(b.a);
 		emit_value(b.b);
 
-		switch (b.op.lexeme) {
+		switch (b.op) {
 		case "+":
 			code.emit(encode(OP.ADDI));
 			break;

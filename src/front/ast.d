@@ -101,6 +101,29 @@ class Defer_Statement_Node : Statement_Node {
 	}
 }
 
+class Match_Arm_Node : Node {
+	Expression_Node[] expressions;
+	Block_Node block;
+
+	override string toString() {
+		return "[" ~ to!string(expressions) ~ "] => " ~ to!string(block);
+	}
+}
+
+class Match_Statement_Node : Statement_Node {
+	Expression_Node condition;
+	Match_Arm_Node[] arms;
+
+	this(Expression_Node condition, Match_Arm_Node[] arms...) {
+		this.condition = condition;
+		this.arms = arms;
+	}
+
+	override string toString() {
+		return "match " ~ to!string(arms);
+	}
+}
+
 class Loop_Statement_Node : Statement_Node {
 	Block_Node block;
 

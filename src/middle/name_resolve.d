@@ -325,6 +325,18 @@ class Name_Resolve_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 		}
 	}
 
+	void resolve_match(ast.Match_Statement_Node match) {
+		analyze_expr(match.condition);
+
+		// TODO scope etc.
+		foreach (a; match.arms) {
+			foreach (v; a.expressions) {
+				analyze_expr(v);
+			}
+			visit_block(a.block);
+		}
+	}
+
 	override void visit_stat(ast.Statement_Node stat) {
 		if (auto variable = cast(ast.Variable_Statement_Node) stat) {
 			analyze_let_node(variable);
@@ -354,6 +366,9 @@ class Name_Resolve_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 			if (ret.value !is null) {
 				analyze_expr(ret.value);
 			}
+		}
+		else if (auto match = cast(ast.Match_Statement_Node) stat) {
+			resolve_match(match);
 		}
 		else if (auto structure_destructure = cast(ast.Structure_Destructuring_Statement_Node) stat) {
 			resolve_structure_destructure(structure_destructure);

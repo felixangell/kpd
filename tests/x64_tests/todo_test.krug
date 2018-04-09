@@ -1,0 +1,29 @@
+#{c_func}
+func printf() s32;
+
+type Person struct {
+	age u32 = 1,
+	number_of_children u32,
+};
+
+func (p *Person) print_age() {
+	// printf(c"person age is %d\n", p.age);
+}
+
+func main() {
+	printf(c"Hello 1\n");
+	printf(c"Hello 2\n");
+	printf(c"Hello 3\n");
+
+	defer printf(c"Hello 4\n");
+	defer printf(c"Hello 5\n");
+	defer printf(c"Hello 6\n");
+
+	let p Person;
+	let { age, kids } = p;
+
+	// let rgb (u8, u8, u8);
+	// let { r, g, b} = rgb;
+
+	// let thingy = 3.4444 as u32;
+}
