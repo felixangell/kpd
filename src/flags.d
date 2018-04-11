@@ -14,6 +14,7 @@ bool RELEASE_MODE = false;
 string ARCH = arch_type();
 string OPERATING_SYSTEM = os_name();
 string OUT_NAME = "main";
+bool SHOW_WARNINGS = false;
 
 enum Output_Type {
 	Assembly,

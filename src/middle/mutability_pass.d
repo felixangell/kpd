@@ -55,18 +55,6 @@ class Mutability_Pass : Top_Level_Node_Visitor, Semantic_Pass {
         Diagnostic_Engine.throw_error(IMMUTABLE_ASSIGN, expr.get_tok_info());
 	}
 
-	// here we compare arguments and check if 
-	// the arguments are mutable and whether
-	// that is satisfied by the function being called
-	// or in other words if the function wants a mutable
-	// variable or not.
-	//
-	// for example:
-	// foo(a, b, c, d, e)
-	void analyze_mutation(ast.Call_Node call) {
-		logger.verbose("checking for mutation on call ", to!string(call));
-	}
-
 	void analyze_expr(ast.Expression_Node expr) {
 		if (auto binary = cast(ast.Binary_Expression_Node) expr) {
 			if (binary.operand.lexeme == "=") {
@@ -78,7 +66,7 @@ class Mutability_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 			analyze_expr(binary.right);
 		}
 		else if (auto call = cast(ast.Call_Node) expr) {
-			analyze_mutation(call);
+			// NOP
 		}
 		else if (auto paren = cast(ast.Paren_Expression_Node) expr) {
 			analyze_expr(paren.value);
@@ -105,7 +93,7 @@ class Mutability_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 			// NOP
 		}
 		else {
-			writeln(" moanning about ", to!string(expr));
+			writeln("moaning about ", to!string(expr));
 			this.log(Log_Level.Error, expr.get_tok_info(), "unhandled expr " ~ to!string(typeid(expr)));
 		}
 	}

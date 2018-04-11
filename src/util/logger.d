@@ -135,6 +135,10 @@ static void log(Log_Level lvl, string[] str...) {
 		return;
 	}
 
+	if (lvl == Log_Level.Warning && !SHOW_WARNINGS) {
+		return;
+	}
+
 	auto out_stream = (lvl == Log_Level.Error || lvl == Log_Level.Fatal) ? stderr : stdout;
 
 	auto col = colour.RESET;

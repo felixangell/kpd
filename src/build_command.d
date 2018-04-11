@@ -62,6 +62,8 @@ class Build_Command : Command {
 			"out|o", &OUT_NAME,
 			"target", &BUILD_TARGET,
 			"out_type", &OUT_TYPE,
+
+			"sw", &SHOW_WARNINGS,
 			
 			"c", function(string option) {
 				OUT_TYPE = Output_Type.Object_Files;	

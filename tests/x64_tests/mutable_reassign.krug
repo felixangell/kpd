@@ -5,6 +5,8 @@ func main() {
 	// ok!
 	y = 4;
 
+	x = x + 1;
+
 	// should error since x
 	// is not mutable
 	x = x * 3;
