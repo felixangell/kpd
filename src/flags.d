@@ -2,7 +2,9 @@ module cflags;
 
 import std.stdio;
 import std.conv : to;
+import std.array : replicate;
 
+import colour;
 import gen.target : Target;
 
 enum VERSION = "0.0.1";
@@ -23,17 +25,33 @@ enum Output_Type {
 }
 Output_Type OUT_TYPE = Output_Type.Executable;
 
+void write_fancy_string(A, B)(A left_raw, B right_raw) {
+	string left = to!string(left_raw);
+	string right = to!string(right_raw);
+
+	auto tab = replicate(" ", 4);
+
+	auto console_width = 80;
+	auto rem_space = console_width - (tab.length * 2); // we have two tabs
+	rem_space -= left.length;
+	rem_space -= right.length;
+
+	string dots = replicate(".", rem_space - 2);
+
+	writeln(tab, colour.Bold(left), " ", dots, " ", colour.Colourize(colour.GREEN, right));
+}
+
 // prints krug compiler info (i.e. relevant flags)
 // to the stdout only in debug mode.
 void write_krug_info() {
 	debug {
-		writeln("KRUG COMPILER, VERSION ", VERSION);
-		writeln("Executing compiler");
-		writeln("* Optimization level O", to!string(OPTIMIZATION_LEVEL));
-		writeln("* Operating system: ", os_name());
-		writeln("* Architecture: ", ARCH);
-		writeln("* Target Architecture: ", BUILD_TARGET);
-		writeln("* Compiler is in ", (RELEASE_MODE ? "release" : "debug"), " mode");
+		writeln();
+		write_fancy_string("KRUG COMPILER", "v" ~ VERSION);
+		write_fancy_string("Optimization level", "O" ~ to!string(OPTIMIZATION_LEVEL));
+		write_fancy_string("Operating system", os_name());
+		write_fancy_string("Architecture", ARCH);
+		write_fancy_string("Target Architecture", BUILD_TARGET);
+		write_fancy_string("Release Mode", (RELEASE_MODE ? "release" : "debug") ~ " mode");
 		writeln();
 	}
 }
