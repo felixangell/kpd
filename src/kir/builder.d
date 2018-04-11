@@ -150,6 +150,15 @@ class IR_Builder : Top_Level_Node_Visitor {
 			return prim_type("s32");
 		}
 
+		else if (auto idx = cast(Index_Expression_Node) t) {
+			Type type = get_type(idx.array);	
+			if (auto a = cast(Array) type) {
+				return a.base;
+			}
+			// weird
+			assert(0);
+		}
+
 		else if (auto path = cast(Path_Expression_Node) t) {
 			// FIXME
 			return get_type(path.values[$-1]);
@@ -293,7 +302,7 @@ class IR_Builder : Top_Level_Node_Visitor {
 	Value build_index_expr(ast.Index_Expression_Node node) {
 		Value addr = build_expr(node.array);
 		Value sub = build_expr(node.index);
-		return new Index(addr.get_type(), addr, sub);
+		return new Index(get_type(node), addr, sub);
 	}
 
 	Value value_at(ast.Expression_Node e) {

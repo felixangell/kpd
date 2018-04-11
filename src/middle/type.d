@@ -230,7 +230,7 @@ class Array : Type {
 	}
 
 	override string toString() const {
-		return "arr " ~ to!string(base) ~ " * " ~ to!string(length);
+		return "arr (" ~ to!string(base) ~ ") * " ~ to!string(length);
 	}
 }
 

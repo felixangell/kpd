@@ -269,6 +269,10 @@ class X64_Generator {
 			emit_call(i);
 			return EAX;
 		}
+		else if (auto idx = cast(Index) v) {
+			Memory_Location mloc = get_val(idx.addr);
+			return mloc;
+		}
 
 		logger.fatal("unimplemented get_val " ~ to!string(v) ~ " ... " ~ to!string(typeid(v)));
 		assert(0);

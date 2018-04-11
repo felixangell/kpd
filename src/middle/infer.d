@@ -130,8 +130,11 @@ Type fresh(Type t, Type_Variable[string] generics) {
 			// TODO
 			return st;
 		}
+		else if (auto ar = cast(Array) pt) {
+			return ar;
+		}
 
-		logger.fatal("unimplemented fresh type!");
+		logger.fatal("unimplemented fresh type! ", to!string(typeid(pt)));
 		assert(0);
 	}
 
@@ -236,6 +239,15 @@ struct Type_Inferrer {
 		auto fst = path.values[0];
 		Type t = analyze(fst, e, generics);
 		return t;
+	}
+
+	Type analyze_index(ast.Index_Expression_Node index, Type_Variable[string] generics) {
+		Type left = analyze(index.array, e, generics);
+		assert(left !is null);
+		if (auto a = cast(Array) left) {
+			return a.base;
+		}
+		assert(0);
 	}
 
 	Type analyze_call(Call_Node call, Type_Variable[string] generics) {
@@ -354,6 +366,9 @@ struct Type_Inferrer {
 		else if (auto call = cast(ast.Call_Node) node) {
 			return analyze_call(call, generics);
 		} 
+		else if (auto idx = cast(Index_Expression_Node) node) {
+			return analyze_index(idx, generics);
+		}
 
 		// constants
 		else if (cast(Integer_Constant_Node) node) {
