@@ -103,6 +103,7 @@ class IR_Builder : Top_Level_Node_Visitor {
 
 	Type get_array_type(Array_Type_Node arr) {
 		import kir.eval;
+
 		auto res = try_evaluate_expr(arr.value);
 		if (res.failed) {
 			auto blame = arr.get_tok_info();
@@ -110,11 +111,10 @@ class IR_Builder : Top_Level_Node_Visitor {
 				blame = arr.value.get_tok_info();
 			}
 			Diagnostic_Engine.throw_error(COMPILE_TIME_EVAL, blame, blame);
-			res.value = 0;
+			assert(0);
 		}
-		// return new kt.Array_Type(get_type(arr.base_type), res.value);
-		// FIXME!
-		assert(0);
+
+		return new Array(get_type(arr.base_type), res.value);
 	}
 
 	Type conv_prim_type(ast.Primitive_Type_Node node) {

@@ -208,10 +208,12 @@ class Floating : Type_Operator {
 }
 
 class Array : Type {
+	ulong length;
 	Type base;
 
-	this(Type base, Type[] args = []) {
+	this(Type base, ulong length, Type[] args = []) {
 		super("arr", args);
+		this.length = length;
 		this.base = base;
 	}
 
@@ -223,13 +225,12 @@ class Array : Type {
 	}
 
 	override uint get_width() {
-		// FIXME sizeof should be 
-		// with the length of the array.
-		return base.get_width();
+		// FIXME ulong here.
+		return base.get_width() * cast(uint)(length);
 	}
 
 	override string toString() const {
-		return "arr " ~ to!string(base);
+		return "arr " ~ to!string(base) ~ " * " ~ to!string(length);
 	}
 }
 

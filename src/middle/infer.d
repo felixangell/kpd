@@ -380,7 +380,21 @@ struct Type_Inferrer {
 			return new Pointer(analyze(ptr.base_type, e, generics));
 		}
 		else if (auto arr = cast(Array_Type_Node) node) {
-			return new Array(analyze(arr.base_type, e, generics));
+			// FIXME this is a straightup copy/paste from the builder.d
+
+			import kir.eval;
+
+			auto res = try_evaluate_expr(arr.value);
+			if (res.failed) {
+				auto blame = arr.get_tok_info();
+				if (arr.value !is null) {
+					blame = arr.value.get_tok_info();
+				}
+				Diagnostic_Engine.throw_error(COMPILE_TIME_EVAL, blame, blame);
+				assert(0);
+			}
+
+			return new Array(analyze(arr.base_type, e, generics), res.value);
 		}
 
 		logger.error(node.get_tok_info(), "infer: unhandled node " ~ to!string(node) ~ " ... " ~ to!string(typeid(node)));

@@ -717,14 +717,17 @@ class Parser : Compilation_Phase {
 	}
 
 	ast.Index_Expression_Node parse_index_expr(Expression_Node left) {
-		expect("[");
+		auto start = expect("[");
 		auto index = parse_expr();
 		if (index is null) {
 			logger.error(peek(), "expected indexing expression, found: ");
 			recovery_skip("]");
 		}
-		expect("]");
-		return new Index_Expression_Node(left, index);
+		auto end = expect("]");
+		
+		auto result = new Index_Expression_Node(left, index);
+		result.set_tok_info(start, end);
+		return result;
 	}
 
 	// FIXME this is really weird and we have some

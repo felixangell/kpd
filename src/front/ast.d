@@ -592,7 +592,7 @@ public:
 	}
 
 	override string toString() {
-		return "[" ~ to!string(base_type) ~ "]";
+		return "[" ~ to!string(base_type) ~ ";" ~ to!string(value) ~ "]";
 	}
 }
 
