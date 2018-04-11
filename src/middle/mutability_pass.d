@@ -37,6 +37,9 @@ class Mutability_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 		else if (auto sym = cast(ast.Symbol_Node) e) {
 			return is_mutable(sym);
 		}
+		else if (auto idx = cast(ast.Index_Expression_Node) e) {
+			return is_mutable(idx.array);
+		}
 
 		this.log(Log_Level.Error, e.get_tok_info(), "unhandled expr " ~ to!string(typeid(e)));			
 		assert(0);

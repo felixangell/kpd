@@ -7,7 +7,7 @@ type Foo struct {
 };
 
 func main() {
-	let values [s32; 32];
+	mut values [s32; 32];
 
 	let index = 3;
 	values[index] = 0;
