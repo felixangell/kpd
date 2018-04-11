@@ -7,7 +7,10 @@ type Foo struct {
 };
 
 func main() {
-	let ages [s32; (50+50)];
-	ages[0] = 19;
-	ages[1] = 18;
+	let values [s32; 32];
+
+	let index = 3;
+	values[index] = 0;
+
+	printf(c"values[%d] = %d\n", index, values[index]);
 }

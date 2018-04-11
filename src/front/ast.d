@@ -53,7 +53,7 @@ class Statement_Node : Node {
 }
 
 // examples...
-// #{inline(always)}
+// #{inline(always), rep(align=4)}
 // #{repr(align="4")}
 
 // attribute_value = identifier [ "=" (string | identifier) ]

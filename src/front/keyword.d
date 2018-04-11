@@ -3,7 +3,7 @@ module keyword;
 // KEYWORDS
 static const string Function = "func";
 static const string Type = "type";
-static const string Mutable = "mut";
+static const string Mut = "mut";
 static const string Eval = "eval";
 static const string Let = "let";
 static const string Yield = "yield";

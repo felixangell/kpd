@@ -117,14 +117,17 @@ class Const : Memory_Location {
 // among modules.
 uint[string] constant_sizes;
 
+// seg:displace(reg, index, scale)
 class Address : Memory_Location {
-	long offs;
+	long disp;
 	string iden;
 
 	Reg reg;
+	Memory_Location index;
+	ulong scale;
 
-	this(long offs, Reg r) {
-		this.offs = offs;
+	this(long disp, Reg r) {
+		this.disp = disp;
 		this.reg = r;
 	}
 
@@ -141,7 +144,13 @@ class Address : Memory_Location {
 		if (iden.length > 0) {
 			return iden ~ "(" ~ reg.emit() ~ ")";
 		}
-		return to!string(offs) ~ "(" ~ reg.emit() ~ ")";
+		if (index !is null) {
+			if (scale > 0) {
+				return sfmt("{}({}, {}, {})", to!string(disp), reg.emit(), index.emit(), to!string(scale));
+			}
+			return sfmt("{}({}, {})", to!string(disp), reg.emit(), index.emit());
+		}
+		return sfmt("{}({})", to!string(disp), reg.emit());
 	}
 }
 

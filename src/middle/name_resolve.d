@@ -275,6 +275,7 @@ class Name_Resolve_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 		}
 		else if (auto index = cast(ast.Index_Expression_Node) expr) {
 			analyze_expr(index.array);
+			analyze_expr(index.index);
 		}
 		else {
 			this.log(Log_Level.Error, "name_resolve: unhandled node " ~ to!string(expr) ~ "..." ~ to!string(typeid(expr)),

@@ -62,6 +62,9 @@ class Mutability_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 		else if (auto path = cast(ast.Path_Expression_Node) expr) {
 			analyze_expr(path.values[$-1]);
 		}
+		else if (auto index = cast(ast.Index_Expression_Node) expr) {
+			// TODO
+		}
 		else if (cast(ast.Integer_Constant_Node) expr) {
 			// NOP
 		}
@@ -108,6 +111,12 @@ class Mutability_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 		}
 		else if (auto sd = cast(ast.Structure_Destructuring_Statement_Node) stat) {
 			// TODO NOP?
+		}
+		else if (auto w = cast(ast.While_Statement_Node) stat) {
+			visit_block(w.block);
+		}
+		else if (cast(ast.Return_Statement_Node) stat) {
+			// NOP
 		}
 		else {
 			this.log(Log_Level.Error, stat.get_tok_info(), "unhandled statement " ~ to!string(typeid(stat)));			

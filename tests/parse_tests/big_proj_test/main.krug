@@ -96,7 +96,7 @@ func main(mut a s32, b s32) s32 {
         age us32,
     };
 
-    let mut {a, b} = person_data;
+    mut {a, b} = person_data;
     let {pname, page} = person_data;
 
     let foo_anon = func() {};

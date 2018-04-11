@@ -302,6 +302,7 @@ class IR_Builder : Top_Level_Node_Visitor {
 	Value build_index_expr(ast.Index_Expression_Node node) {
 		Value addr = build_expr(node.array);
 		Value sub = build_expr(node.index);
+		writeln(node.array, " => ", addr, " is ", typeid(addr));
 		return new Index(get_type(node), addr, sub);
 	}
 

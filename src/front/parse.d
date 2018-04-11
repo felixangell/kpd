@@ -543,7 +543,7 @@ class Parser : Compilation_Phase {
 
 	ast.Function_Parameter parse_func_param() {
 		bool mutable = false;
-		if (peek().cmp(keyword.Mutable)) {
+		if (peek().cmp(keyword.Mut)) {
 			mutable = true;
 			consume();
 		}
@@ -1010,15 +1010,11 @@ class Parser : Compilation_Phase {
 		return node;
 	}
 
-	ast.Statement_Node parse_let() {
-		if (!peek().cmp(keyword.Let)) {
+	ast.Statement_Node parse_var() {
+		if (!peek().cmp(keyword.Let) && !peek().cmp(keyword.Mut)) {
 			return null;
 		}
-		consume();
-
-		// FIXME how will mutability
-		// work regarding destructuring statements?
-		bool mutable = mutable_check();
+		bool mutable = consume().cmp(keyword.Mut);
 
 		auto tok = peek();
 		switch (tok.lexeme) {
@@ -1315,7 +1311,8 @@ class Parser : Compilation_Phase {
 		ast.Statement_Node result = null;
 		switch (tok.lexeme) {
 		case keyword.Let:
-			result = parse_let();
+		case keyword.Mut:
+			result = parse_var();
 			break;
 		case keyword.Match:
 			result = parse_match();
@@ -1416,7 +1413,7 @@ class Parser : Compilation_Phase {
 
 	bool mutable_check() {
 		bool mutable = false;
-		if (peek().cmp(keyword.Mutable)) {
+		if (peek().cmp(keyword.Mut)) {
 			consume();
 			mutable = true;
 		}
@@ -1560,7 +1557,8 @@ class Parser : Compilation_Phase {
 			result = parse_func();
 			break;
 		case keyword.Let:
-			result = parse_let();
+		case keyword.Mut:
+			result = parse_var();
 			break;
 		default:
 			logger.verbose("unhandled top level node parse_node " ~ to!string(peek()));

@@ -216,6 +216,21 @@ class X64_Generator {
 		return left;
 	}
 
+	Memory_Location get_index_addr(Index i) {
+		// we get the address of the array
+		// we have to offset it by the value
+		auto v = get_val(i.index);
+		writer.mov(v, R9);
+
+		if (auto addr = cast(Address) get_val(i.addr)) {
+			addr.index = R9;
+			addr.scale = i.get_type().get_width();
+			return addr;
+		}
+
+		assert(0);
+	}
+
 	Memory_Location get_val(Value v) {
 		if (auto c = cast(Constant) v) {
 			return get_const(c);
@@ -270,8 +285,7 @@ class X64_Generator {
 			return EAX;
 		}
 		else if (auto idx = cast(Index) v) {
-			Memory_Location mloc = get_val(idx.addr);
-			return mloc;
+			return get_index_addr(idx);
 		}
 
 		logger.fatal("unimplemented get_val " ~ to!string(v) ~ " ... " ~ to!string(typeid(v)));

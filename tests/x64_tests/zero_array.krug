@@ -1,0 +1,23 @@
+#{c_func}
+func printf() s32;
+
+type Foo struct {
+	a s32,
+	b f64,
+};
+
+func main() {
+	let values [s32; 32];
+
+	printf(c"values[16] == %d\n", values[16]);
+	
+	let index = 0;
+	while index < 32 {
+		printf(c"values[%d] = 0\n", index);
+		values[index] = 0;
+		index = index + 1;
+	}
+
+	values[16] = 23;
+	printf(c"values[16] == %d\n", values[16]);
+}
