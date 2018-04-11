@@ -135,8 +135,7 @@ class Lexer : Compilation_Phase {
 				.Integer_Literal);
 		tok.lexeme = sign ~ tok.lexeme;
 
-		if (peek() == '.' && (peek(1) == 'e' || peek(1) == 'E') || is_decimal(peek(
-				1))) {
+		if (peek() == '.' && ((peek(1) == 'e' || peek(1) == 'E') || is_decimal(peek(1)))) {
 			consume();
 			string precision = "." ~ consume_while(is_decimal);
 
@@ -272,9 +271,6 @@ class Lexer : Compilation_Phase {
 				recognized_token = recognize_raw_str();
 			}
 			else if (isNumber(peek())) {
-				recognized_token = recognize_num();
-			} // (-|+)digit or just digit
-			else if ((curr == '+' || curr == '-') && isNumber(peek(1))) {
 				recognized_token = recognize_num();
 			}
 			else if (to!string(curr) in SYMBOLS || (to!string(curr) ~ to!string(peek(
