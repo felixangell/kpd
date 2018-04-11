@@ -7,6 +7,42 @@ import std.typetuple;
 
 import diag.engine;
 
+/*
+    COMPILER ERROR GUIDELINES
+    -------------------------
+
+    to create an error, you must use the mixin/template make_err
+
+        mixin(make_err!("ERROR_NAME", "XXXXu", `Shown when ./krug explain EXXXX.`, 
+            "Compiler message here before code sample '%s':",
+            "Compiler message here before another code sample '%s':"));
+
+        Note the %s is the TOKEN that we pass to the compiler error.
+        The code sample is taken from the token. So the first message
+        will show the code sample for the first %s, and the second
+        message will show the code sample for second %s, and so on.
+
+    errors are invoked in the code with ERROR_NAME, for example
+
+        Diagnostic_Engine.throw_error(SYMBOL_CONFLICT, param.get_tok_info(), conflicting_param.get_tok_info());
+
+    The XXXXu is the identifier of the error. This should not be a duplicate of any existing
+    error codes. Manually increment the previous error id when creating an error.
+
+    COMPILE ERROR MESSAGE GUIDELINES
+    --------------------------------
+
+    The compiler error _must_ clearly explain the error.
+    The compiler error _must_ have a *code* example of what causes the error.
+    The compiler error _must_ have a way to resolve the error (with code sample).
+    The compiler code samples _must_ be runnable on their own!
+
+    An error message can be caused by a variety of reasons. Bonus points for providing
+    _multiple_ causes of an error. However, prefer the most common cause of the error
+    first.
+
+*/
+
 struct Compiler_Error {
 	ushort id;
 	string detail;
@@ -157,13 +193,31 @@ an invalid index for an array or tuple."
 `, "Attempted out of bounds index on symbol '%s':"));
 
 mixin(make_err!("TYPE_MISMATCH", "0003u",
-		`This occurs when two types mismatch.`,
-		"Type '%s':", "Mismatch with type '%s':"));
+	`This occurs when two types mismatch.`,
+	"Type '%s':", "Mismatch with type '%s':"));
 
 mixin(make_err!("NO_TYPE_ANNOTATION", "0004u",
-        `TODO.`,
-        "No type annotation for binding '%s':"));
+    `TODO.`,
+    "No type annotation for binding '%s':"));
 
 mixin(make_err!("COMPILE_TIME_EVAL", "0005u",
-        `TODO.`,
-        "Failed to evaluate expression at compile-time '%s':"));
+    `TODO.`,
+    "Failed to evaluate expression at compile-time '%s':"));
+
+mixin(make_err!("IMMUTABLE_ASSIGN", "0006u", `This occurs when attempting to re-assign an immutable variable.
+
+For example:
+    
+    func main() {
+        let x = 3;
+        x = 4; // error, re-assignment of immutable variable
+    }
+
+To resolve this issue, make the variable mutable with the 'mut' keyword:
+
+    func main() {
+        mut x = 3;
+        x = 4; // ok!
+    }
+
+`, "Cannot assign to immutable variable '%s':"));

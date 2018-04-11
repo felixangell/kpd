@@ -1,0 +1,12 @@
+func add(a s32, b s32) {
+	// return void
+	// so return {expr} is invalid here.
+	return a + b;
+}
+
+func main() {
+	// should error here too
+	// since we're assigning a void
+	// value.
+	let a = add(3, 5);
+}

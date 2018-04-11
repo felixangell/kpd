@@ -1019,9 +1019,13 @@ class Parser : Compilation_Phase {
 		auto tok = peek();
 		switch (tok.lexeme) {
 		case "{":
-			return parse_structure_destructure();
+			auto sd = parse_structure_destructure();
+			sd.mutable = mutable;
+			return sd;
 		case "(":
-			return parse_tuple_destructure();
+			auto td = parse_tuple_destructure();
+			td.mutable = mutable;
+			return td;
 		default:
 			break;
 		}

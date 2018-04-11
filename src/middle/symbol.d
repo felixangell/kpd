@@ -11,15 +11,18 @@ class Symbol_Value {
 	ast.Node reference;
 	Token tok;
 	string name;
+	bool mutable;
 
-	this(ast.Node reference, Token tok) {
-		this(reference, tok.lexeme);
+	this(ast.Node reference, Token tok, bool mutable) {
+		this(reference, tok.lexeme, mutable);
 		this.tok = tok;
+		this.mutable = mutable;
 	}
 
-	this(ast.Node reference, string name) {
+	this(ast.Node reference, string name, bool mutable) {
 		this.reference = reference;
 		this.name = name;
+		this.mutable = mutable;
 	}
 
 	this() {
@@ -49,12 +52,15 @@ class Symbol_Table : Symbol_Value {
 	uint id;
 	Type_Environment env;
 
+	// FIXME symbol tables are
+	// probably? mutable.
+
 	this(ast.Node reference, Token tok) {
-		this(reference, tok.lexeme);
+		super(reference, tok.lexeme, true);
 	}
 
 	this(ast.Node reference, string name) {
-		super(reference, name);
+		super(reference, name, true);
 	}
 
 	this(Symbol_Table outer = null) {
@@ -112,12 +118,12 @@ class Symbol_Table : Symbol_Value {
 // is this even necessary?
 class Symbol : Symbol_Value {
 	// bog standard entry really.
-	this(ast.Node reference, Token tok) {
-		super(reference, tok);
+	this(ast.Node reference, Token tok, bool mutable) {
+		super(reference, tok, mutable);
 	}
 
-	this(ast.Node reference, string name) {
-		super(reference, name);
+	this(ast.Node reference, string name, bool mutable) {
+		super(reference, name, mutable);
 	}
 
 	override string toString() const {

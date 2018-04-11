@@ -1,0 +1,15 @@
+func change_params(a s32, mut b s32, c rune) {
+	// ok! b is mutable
+	b = c as s32;
+
+	// not ok! a is _not_ mutable!
+	a = b;
+}
+
+func main() {
+	let x = 3;
+	change_params(x, x, x as rune);
+
+	mut y = x;
+	change_params(x, y, x as rune);
+}

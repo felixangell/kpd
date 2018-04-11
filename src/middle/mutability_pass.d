@@ -17,7 +17,29 @@ import compiler_error;
 class Mutability_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 
 	void analyze_sym(ast.Symbol_Node sym) {
+		logger.verbose("mut pass: anlayzing sym: ", to!string(sym));
+	}
 
+	bool is_mutable(ast.Symbol_Node sym) {
+		if (sym.resolved_symbol is null) {
+			this.log(Log_Level.Error, sym.get_tok_info(), "unresolved symbol leaking " ~ to!string(sym));
+			return false;
+		}
+
+		auto rs = cast(Symbol_Value) sym.resolved_symbol;
+		return rs.mutable;
+	}
+
+	bool is_mutable(ast.Expression_Node e) {
+		if (auto path = cast(ast.Path_Expression_Node) e) {
+			return is_mutable(path.values[$-1]);
+		}
+		else if (auto sym = cast(ast.Symbol_Node) e) {
+			return is_mutable(sym);
+		}
+
+		this.log(Log_Level.Error, e.get_tok_info(), "unhandled expr " ~ to!string(typeid(e)));			
+		assert(0);
 	}
 
 	// a = b
@@ -25,7 +47,12 @@ class Mutability_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 	// taking a and setting it to b. here we
 	// check if a is mutable or not
 	void analyze_mutation(ast.Binary_Expression_Node expr) {
+		if (is_mutable(expr.left)) {
+			return;
+		}
 
+		// its not mutable i cry
+        Diagnostic_Engine.throw_error(IMMUTABLE_ASSIGN, expr.get_tok_info());
 	}
 
 	// here we compare arguments and check if 
@@ -37,7 +64,7 @@ class Mutability_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 	// for example:
 	// foo(a, b, c, d, e)
 	void analyze_mutation(ast.Call_Node call) {
-
+		logger.verbose("checking for mutation on call ", to!string(call));
 	}
 
 	void analyze_expr(ast.Expression_Node expr) {

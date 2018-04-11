@@ -80,12 +80,14 @@ class Attribute {
 class Structure_Destructuring_Statement_Node : Statement_Node, Semicolon_Stat {
 	Token[] values;
 	Expression_Node rhand;
+	bool mutable;
 }
 
 // "let" "(" { iden "," } ")" "=" Expr
 class Tuple_Destructuring_Statement_Node : Statement_Node, Semicolon_Stat {
 	Token[] values;
 	Expression_Node rhand;
+	bool mutable;
 }
 
 // defer ( stat )
@@ -232,7 +234,7 @@ class Named_Type_Node : Statement_Node, Semicolon_Stat {
 	}
 }
 
-// let name [ Type ] [ "=" Expression ] ";"
+// {let|mut} name [ Type ] [ "=" Expression ] ";"
 class Variable_Statement_Node : Statement_Node, Semicolon_Stat {
 	Token twine;
 	Type_Node type;
