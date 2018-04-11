@@ -9,8 +9,11 @@ type Foo struct {
 func main() {
 	mut values [s32; 32];
 
-	let index = 3;
-	values[index] = 0;
+	values[0] = 9;
+	values[1] = 8;
+	values[2] = 7;
 
-	printf(c"values[%d] = %d\n", index, values[index]);
+	printf(c"values[0] = %d\n", values[0]);
+	printf(c"values[1] = %d\n", values[1]);
+	printf(c"values[2] = %d\n", values[2]);
 }

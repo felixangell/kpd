@@ -112,10 +112,10 @@ class Name_Resolve_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 				Token next_tok = type_path.values[i + 1];
 				// it's not a symbol table so there is no more
 				// places for us to search and we still have
-				// iterations left i.e. thinks to resolve.
+				// iterations left i.e. things to resolve.
 				// throw an unresolved error
 				Diagnostic_Engine.throw_error(compiler_error.UNRESOLVED_SYMBOL, new Absolute_Token(next_tok));
-				return null;
+				assert(0);
 			}
 		}
 		return last;
@@ -158,25 +158,40 @@ class Name_Resolve_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 		return null;
 	}
 
+	Symbol_Node unwrap_sym(ast.Expression_Node e) {
+		if (auto sym = cast(ast.Symbol_Node) e) {
+			return sym;
+		}
+		else if (auto path = cast(ast.Path_Expression_Node) e) {
+			return unwrap_sym(path.values[$-1]);
+		}
+		else if (auto call = cast(ast.Call_Node) e) {
+			return unwrap_sym(call.left);
+		}
+
+		logger.fatal(logger.blame_token(e.get_tok_info()), "unwrap_sym: unhandled expr ", to!string(typeid(e)));
+		assert(0);
+	}
+
 	void analyze_path_expr(ast.Path_Expression_Node path) {
 		Symbol_Table last = curr_sym_table;
 		foreach (i, e; path.values) {
-			auto sym = cast(ast.Symbol_Node) e;
+			auto sym = unwrap_sym(e);
 			if (!sym) {
 				// what do we do here?
-				logger.fatal("this is a bit odd!\n", logger.blame_token(e.get_tok_info()));
+				logger.fatal(logger.blame_token(e.get_tok_info()), "not a symbol_node?!", to!string(typeid(e)));
 				continue;
 			}
 
 			Symbol_Value found_sym;
-			if (i == 0) {
+			if (i != 0) {
+				found_sym = find_symbol_in_stab(last, sym.value.lexeme);
+			}
+			else {
 				// this will search MODULES too
 				// we only want this if we're at the
 				// start of the path.
 				found_sym = find_symbol(last, sym.value.lexeme);
-			}
-			else {
-				found_sym = find_symbol_in_stab(last, sym.value.lexeme);
 			}
 
 			e.resolved_symbol = found_sym;

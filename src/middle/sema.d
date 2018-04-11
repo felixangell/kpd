@@ -9,6 +9,7 @@ import tok;
 
 import sema.visitor;
 import sema.decl;
+import sema.method_decl;
 import sema.name_resolve;
 import sema.top_level_type_decl;
 import sema.mutability;
@@ -25,6 +26,7 @@ interface Semantic_Pass {
 // the semantic modules in order
 Semantic_Pass[] passes = [
 	new Declaration_Pass, 
+	new Method_Declaration_Pass,
 	new Name_Resolve_Pass,
 
 	// declare the types in the top level.

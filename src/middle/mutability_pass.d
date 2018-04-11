@@ -136,8 +136,11 @@ class Mutability_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 		else if (cast(ast.Return_Statement_Node) stat) {
 			// NOP
 		}
+		else if (cast(ast.Defer_Statement_Node) stat) {
+			// NOP
+		}
 		else {
-			this.log(Log_Level.Error, stat.get_tok_info(), "unhandled statement " ~ to!string(typeid(stat)));			
+			this.log(Log_Level.Warning, stat.get_tok_info(), "unhandled statement " ~ to!string(typeid(stat)));			
 		}
 	}
 

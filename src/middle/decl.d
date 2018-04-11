@@ -154,29 +154,10 @@ class Declaration_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 	}
 
 	override void analyze_function_node(ast.Function_Node node) {
-		// TODO:
-		// we have two options here:
-		// - change the sym_table structure so that
-		//   we can store methods
-		// - mangle the method and store it in the same sym table
-		//
-		// I feel like we should choose the first option because
-		// we dont have enough type information to mangle anything
-		// just yet, though mangling is a bit easier possibly to
-		// store, but if we can't suffice without the type info, etc.
-		// then it might be a bit more complicated and the first
-		// option is definitely the way to go.
-
-		// FIXME!!
-		string symbol_name = node.name.lexeme;
+		// this is a method, we have to handle these
+		// in a later pass.
 		if (node.func_recv !is null) {
-			// we have a function recv, this is a method.
-			// instead of storing the symbol, we are going to mangle
-			// the function receiver type and then mangle the function
-			// name and store the symbol with the mangled name instead.
-			// e.g. func (i int) do_stuff() will be stored and mangled as 
-			// __3int_do_stuff
-			symbol_name = "__" ~ mangle_type(node.func_recv.type) ~ "_" ~ mangle_word(symbol_name);
+			return;
 		}
 
 		// functions are mutable.
@@ -207,13 +188,6 @@ class Declaration_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 				}
 			}
 		});
-
-		// TODO check that the function receiver
-		// is a valid symbol
-
-		// TODO store a ptr to this method
-		// in the Structure it's a member of.
-		// if func recvr exists.
 	}
 
 	override void analyze_let_node(ast.Variable_Statement_Node node) {
