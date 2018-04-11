@@ -101,9 +101,9 @@ static string blame_token(Token tok) {
 	string underline = replicate(" ", prefix_size) ~ colour.Err(replicate("^", tok.lexeme.length));
 
 	string tab = replicate(" ", TAB_SIZE);
-	auto row_str = to!string(tok.position.start.row);
+	const string line_num = to!string(tok.position.start.row);
 
-	const auto padding = replicate(" ", cast(size_t) row_str.length);
+	const auto padding = replicate(" ", cast(size_t) line_num.length);
 
 	auto buff = new OutBuffer();
 
@@ -111,11 +111,10 @@ static string blame_token(Token tok) {
 	// rather than the individual line. have a flag
 	// option to disable this for when we get a LOT of errors!
 
-	buff.writefln("%s> %s:%d", replicate("-", cast(size_t) row_str.length + 1),
-			tok.parent.path, tok.position.start.row);
-	buff.writefln("%s| %s", tok.position.start.row,
-			tab ~ start ~ colour.Bold(colour.Err(tok.lexeme)) ~ end);
-	buff.writefln("%s| %s", padding, tab ~ underline);
+	buff.writefln("%-2s> %s:%s", replicate("-", cast(size_t) (line_num.length + 1)), tok.parent.path, line_num);
+	buff.writefln("%-2s|", replicate(" ", line_num.length));
+	buff.writefln("%-2s| %s", line_num, tab ~ start ~ colour.Bold(colour.Err(tok.lexeme)) ~ end);
+	buff.writefln("%-2s| %s", padding, tab ~ underline);
 
 	return buff.toString();
 }
