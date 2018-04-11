@@ -2,6 +2,7 @@ module logger;
 
 import std.conv;
 import std.stdio;
+import std.algorithm.comparison : min, max;
 import std.string;
 import std.array;
 import std.outbuffer;
@@ -36,47 +37,68 @@ static string get_line(const(Source_File*) file, ulong index) {
 	return strip(slice);
 }
 
-// FIXME
-// this code is very spaghetti but it works.
-static string blame_token(Token tok) {
-	if (tok is null) {
-		// little crazy string that looks similar
-		// to the error template.
-		return "?!|\n  |\t?!\n";
+static string blame_token_span(Token_Span span) {
+	// for now
+	return blame_token(span.get_tok());
+}
+
+static string blame_token(Token_Info tok_info) {
+	if (auto span = cast(Token_Span) tok_info) {
+		return blame_token_span(span);
+	}
+	else if (auto abs = cast(Absolute_Token) tok_info) {
+		return blame_token(abs.tok);
 	}
 
-	writeln("blaming token ", tok);
+	assert(0);
+}
+
+static string blame_token(Token tok) {
+	if (tok is null) {
+		debug {
+			assert(0);
+		}
+		else {
+			// little crazy string that looks similar
+			// to the error template.
+			return "?!|\n  |\t?!\n";
+		}
+	}
 
 	Source_File file = tok.parent;
-
 	const size_t index = tok.position.start.idx;
 
+	// capture to the previous line
+	// of the token.
 	long token_start = lastIndexOf(file.contents, '\n', cast(size_t) index);
-	if (token_start == -1)
-		token_start = 0;
+	token_start = max(0, token_start);
 
-	long prefix_size = tok.position.start.idx - token_start;
+	// size of the before token context
+	long prefix_size = index - token_start;
 
+	// capture up to the next newline
 	auto line_end_index = indexOf(file.contents, '\n', cast(size_t) index);
-	if (line_end_index == -1)
-		line_end_index = 0;
+	line_end_index = max(0, line_end_index);
 
 	if (line_end_index < token_start) {
 		line_end_index = file.contents.length;
 	}
 
-	auto start = file.contents[token_start .. token_start + prefix_size];
+	// slice the start context
+	auto start = file.contents[token_start .. (token_start + prefix_size)];
 
+	// strip out any padding stuff
 	auto old_start_len = start.length;
 	start = stripLeft(start);
-	auto end = file.contents[token_start + prefix_size + tok.lexeme.length .. line_end_index];
+
+	long token_end = token_start + prefix_size + tok.lexeme.length;
+	auto end = file.contents[token_end .. line_end_index];
 
 	// because we stripped the junk, we have to
 	// change the prefix size now for the formatting phase.
 	prefix_size -= old_start_len - start.length;
 
-	string underline = replicate(" ", prefix_size) ~ colour.Err(replicate("^", tok
-			.lexeme.length));
+	string underline = replicate(" ", prefix_size) ~ colour.Err(replicate("^", tok.lexeme.length));
 
 	string tab = replicate(" ", TAB_SIZE);
 	auto row_str = to!string(tok.position.start.row);
@@ -157,7 +179,7 @@ static void log(Log_Level lvl, string[] str...) {
 
 // TODO
 static void error(Token_Info t, string msg) {
-	error(msg, "\n", blame_token(t.get_tok()));
+	error(msg, "\n", blame_token(t));
 }
 
 static void error(Token t, string msg) {

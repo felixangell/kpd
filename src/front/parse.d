@@ -372,7 +372,7 @@ class Parser : Compilation_Phase {
 		if (!peek().cmp("[")) {
 			return null;
 		}
-		expect("[");
+		auto start = expect("[");
 		auto type = parse_type();
 		if (type is null) {
 			logger.error(peek(), "expected type in array type: ");
@@ -389,7 +389,8 @@ class Parser : Compilation_Phase {
 			}
 		}
 
-		expect("]");
+		auto end = expect("]");
+		a.set_tok_info(start, end);
 		return a;
 	}
 
@@ -568,14 +569,17 @@ class Parser : Compilation_Phase {
 		if (!peek().cmp("(")) {
 			return null;
 		}
-		expect("(");
+		auto start = expect("(");
 		auto expr = parse_expr();
 		if (expr is null) {
 			logger.error(peek(), "Expected an expression inside of parenthesis expression, found:");
 			recovery_skip(")");
 		}
-		expect(")");
-		return new Paren_Expression_Node(expr);
+		auto end = expect(")");
+
+		auto paren = new Paren_Expression_Node(expr);
+		paren.set_tok_info(start, end);
+		return paren;
 	}
 
 	ast.Slice_Expression_Node parse_slice(Expression_Node left) {
@@ -728,6 +732,8 @@ class Parser : Compilation_Phase {
 	ast.Expression_Node parse_path(Expression_Node left) {
 		auto pan = new Path_Expression_Node;
 
+		auto start = peek();
+
 		// append the left as a value of the path
 		pan.values ~= left;
 
@@ -755,8 +761,10 @@ class Parser : Compilation_Phase {
 				else {
 					pan.values ~= binary.left;
 				}
-				return new Binary_Expression_Node(pan, binary.operand, binary
-						.right);
+
+				auto result = new Binary_Expression_Node(pan, binary.operand, binary.right);
+				result.set_tok_info(start, peek());
+				return result;
 			}
 
 			// if we parse another path, flatten it into this 
@@ -772,6 +780,7 @@ class Parser : Compilation_Phase {
 		}
 		while (has_next());
 
+		pan.set_tok_info(start, peek());
 		return pan;
 	}
 

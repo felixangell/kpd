@@ -52,7 +52,7 @@ struct Diagnostic_Engine {
 				error_msg ~= "? compiler bug ?";
 			}
 			else {
-				error_msg ~= blame_token(context[idx].get_tok());			
+				error_msg ~= blame_token(context[idx]);
 			}
 		}
 

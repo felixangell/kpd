@@ -139,7 +139,7 @@ class Declaration_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 		}
 
 		this.log(Log_Level.Error, "mangle_type: unhandled type node ", to!string(t), " ... ", to!string(typeid(t)),
-			"\n", logger.blame_token(t.get_tok_info().get_tok()));
+			"\n", logger.blame_token(t.get_tok_info()));
 		assert(0);
 	}
 

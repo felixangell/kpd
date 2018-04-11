@@ -287,6 +287,7 @@ class String_Constant_Node : Constant_Node!string {
 
 	this(Token tok) {
 		super(tok, tok.lexeme);
+		set_tok_info(tok);
 	}
 
 	override string toString() {
@@ -297,6 +298,7 @@ class String_Constant_Node : Constant_Node!string {
 class Float_Constant_Node : Constant_Node!double {
 	this(Token tok) {
 		super(tok, to!double(tok.lexeme));
+		set_tok_info(tok);
 	}
 
 	override string toString() {
@@ -307,6 +309,7 @@ class Float_Constant_Node : Constant_Node!double {
 class Integer_Constant_Node : Constant_Node!BigInt {
 	this(Token tok) {
 		super(tok, BigInt(tok.lexeme));
+		set_tok_info(tok);
 	}
 
 	override string toString() {
@@ -320,6 +323,7 @@ class Boolean_Constant_Node : Constant_Node!bool {
 		// than "true"? this has to be validated before
 		// we create the node.
 		super(tok, tok.cmp("true") ? true : false);
+		set_tok_info(tok);
 	}
 
 	override string toString() {
@@ -330,6 +334,7 @@ class Boolean_Constant_Node : Constant_Node!bool {
 class Rune_Constant_Node : Constant_Node!dchar {
 	this(Token tok) {
 		super(tok, to!dchar(tok.lexeme[1]));
+		set_tok_info(tok);
 	}
 
 	override string toString() {
@@ -560,6 +565,19 @@ class Tuple_Type_Node : Type_Node {
 			res ~= to!string(v);
 		}
 		return '(' ~ res ~ ')';
+	}
+}
+
+class Mutable_Type_Node : Type_Node {
+public:
+	Type_Node base_type;
+
+	this(Type_Node base_type) {
+		this.base_type = base_type;
+	}
+
+	override string toString() {
+		return "mut " ~ to!string(base_type);
 	}
 }
 

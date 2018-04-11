@@ -1,0 +1,25 @@
+#{c_func}
+func printf() s32;
+
+func main() {
+	let x s32 = (4 + 5) - 4;
+	x = x + 3;
+
+	match x {
+		3 {
+			printf(c"three\n");
+		},
+		4, 5, 6 {
+			printf(c"four five six\n");
+		},
+		4 + 5 {
+			printf(c"4 + 5\n");
+		},
+		8 {
+			defer printf(c"1\n");
+			printf(c"3\n");
+			defer printf(c"2\n");
+			printf(c"EIGHT!\n");
+		}
+	}
+}

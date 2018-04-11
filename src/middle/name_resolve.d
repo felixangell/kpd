@@ -164,7 +164,7 @@ class Name_Resolve_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 			auto sym = cast(ast.Symbol_Node) e;
 			if (!sym) {
 				// what do we do here?
-				logger.fatal("this is a bit odd!\n", logger.blame_token(e.get_tok_info().get_tok()));
+				logger.fatal("this is a bit odd!\n", logger.blame_token(e.get_tok_info()));
 				continue;
 			}
 
@@ -278,7 +278,7 @@ class Name_Resolve_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 		}
 		else {
 			this.log(Log_Level.Error, "name_resolve: unhandled node " ~ to!string(expr) ~ "..." ~ to!string(typeid(expr)),
-				"\n", logger.blame_token(expr.get_tok_info().get_tok()));
+				"\n", logger.blame_token(expr.get_tok_info()));
 		}
 	}
 
@@ -392,7 +392,7 @@ class Name_Resolve_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 		}
 		else {
 			this.log(Log_Level.Error, "unhandled statement " ~ to!string(stat), " ... ", to!string(typeid(stat)),
-				"\n", logger.blame_token(stat.get_tok_info().get_tok()));
+				"\n", logger.blame_token(stat.get_tok_info()));
 		}
 	}
 

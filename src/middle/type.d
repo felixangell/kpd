@@ -255,6 +255,31 @@ class Structure : Type {
 	}
 }
 
+// hm!
+class Mutable : Type {
+	Type base;
+
+	this(Type base, Type[] args = []) {
+		super("mut", args);
+		this.base = base;
+	}
+
+	override bool cmp(Type other) {
+		if (auto mut = cast(Mutable)other) {
+			return mut.base.cmp(base);
+		}
+		return false;
+	}
+
+	override uint get_width() {
+		return base.get_width();
+	}
+
+	override string toString() const {
+		return "mut " ~ to!string(base);
+	}
+}
+
 class Pointer : Type {
 	Type base;
 

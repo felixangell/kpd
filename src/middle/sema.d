@@ -5,11 +5,13 @@ import std.conv;
 import ast;
 import logger;
 import krug_module;
+import tok;
 
 import sema.visitor;
 import sema.decl;
 import sema.name_resolve;
 import sema.top_level_type_decl;
+import sema.mutability;
 import sema.type_infer_pass;
 import sema.symbol;
 
@@ -33,11 +35,17 @@ Semantic_Pass[] passes = [
 	// done here..!
 	new Type_Infer_Pass,
 
+	new Mutability_Pass,
+
 	// type checking!
 ];
 
 void log(Semantic_Pass pass, Log_Level level, string[] msg...) {
 	logger.log(level, (to!string(pass) ~ ": ") ~ msg);
+}
+
+void log(Semantic_Pass pass, Log_Level level, Token_Info tok, string[] msg...) {
+	logger.log(level, (to!string(pass) ~ ": ") ~ msg ~ "\n" ~ logger.blame_token(tok));
 }
 
 struct Semantic_Analysis {

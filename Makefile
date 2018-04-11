@@ -35,8 +35,8 @@ $(VM_OUT): $(VM_CC_OBJ_FILES)
 $(KRUG_OUT): $(VM_OUT) $(D_SOURCES)
 	$(DC) -of$@ -dip1000 $(D_FLAGS) $(LD_FLAGS) $(D_SOURCES)
 	
-tests:
-	$(DC) -of$@_test -unittest $(D_FLAGS) $(LD_FLAGS) $(D_SOURCES)
+optimized: $(VM_OUT) $(D_SOURCES)
+	$(DC) -of$(KRUG_OUT) -O -dip1000 $(D_FLAGS) $(LD_FLAGS) $(D_SOURCES)
 
 clean:
 	-rm $(VM_CC_OBJ_FILES)

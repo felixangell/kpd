@@ -1,17 +1,11 @@
 #{c_func}
 func printf() s32;
 
+type Foo struct {
+	a s32,
+	b f64,
+};
+
 func main() {
-	let x = (4 + 5) - 4;
-	match x {
-		3 {
-			printf(c"three\n");
-		},
-		4, 5, 6 {
-			printf(c"four five six\n");
-		},
-		4 + 5 {
-			printf(c"4 + 5\n");
-		},
-	}
+	let ages [s32];
 }

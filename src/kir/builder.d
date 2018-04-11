@@ -90,7 +90,7 @@ class IR_Builder : Top_Level_Node_Visitor {
 	Type get_sym_type(ast.Symbol_Node sym) {
 		if (sym.resolved_symbol is null) {
 			logger.fatal("Unresolved symbol node leaking! ", to!string(sym), " ... ", to!string(typeid(sym)),
-				"\n", logger.blame_token(sym.get_tok_info().get_tok()));
+				"\n", logger.blame_token(sym.get_tok_info()));
 			return prim_type("void");
 		}
 
@@ -105,8 +105,11 @@ class IR_Builder : Top_Level_Node_Visitor {
 		import kir.eval;
 		auto res = try_evaluate_expr(arr.value);
 		if (res.failed) {
-			// TODO store the tokens for array types...
-			Diagnostic_Engine.throw_error(COMPILE_TIME_EVAL, arr.value.get_tok_info(), arr.value.get_tok_info());
+			auto blame = arr.get_tok_info();
+			if (arr.value !is null) {
+				blame = arr.value.get_tok_info();
+			}
+			Diagnostic_Engine.throw_error(COMPILE_TIME_EVAL, blame, blame);
 			res.value = 0;
 		}
 		// return new kt.Array_Type(get_type(arr.base_type), res.value);

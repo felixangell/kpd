@@ -55,7 +55,8 @@ class Type_Infer_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 	void analyze_expr(ast.Expression_Node expr) {
 		auto type = inferrer.analyze(expr, curr_sym_table.env);
 		if (type is null) {
-			this.log(Log_Level.Error, "unimplemented/failed to infer: ", to!string(expr), " ... ", to!string(typeid(expr)), "\n", logger.blame_token(expr.get_tok_info().get_tok()));
+			this.log(Log_Level.Error, "unimplemented/failed to infer: ", to!string(expr), " ... ", to!string(typeid(expr)), 
+				"\n", logger.blame_token(expr.get_tok_info()));
 		}
 	}
 
@@ -160,7 +161,7 @@ class Type_Infer_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 		}
 		else {
 			this.log(Log_Level.Error, "unhandled statement " ~ to!string(stat) ~ " ... " ~ to!string(typeid(stat)),
-				"\n", logger.blame_token(stat.get_tok_info().get_tok()));
+				"\n", logger.blame_token(stat.get_tok_info()));
 		}
 	}
 
