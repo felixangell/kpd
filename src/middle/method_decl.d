@@ -63,7 +63,7 @@ class Method_Declaration_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 		assert(0);
 	}
 
-	override void analyze_let_node(ast.Variable_Statement_Node node) {
+	override void analyze_var_stat_node(ast.Variable_Statement_Node node) {
 
 	}
 

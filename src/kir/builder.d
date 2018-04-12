@@ -500,7 +500,7 @@ class IR_Builder : Top_Level_Node_Visitor {
 		assert(0);
 	}
 
-	void analyze_return_node(ast.Return_Statement_Node ret) {
+	void build_return_node(ast.Return_Statement_Node ret) {
 		auto ret_instr = new Return(prim_type("void"));
 
 		// its not a void type
@@ -529,7 +529,7 @@ class IR_Builder : Top_Level_Node_Visitor {
 
 		A:
 	*/
-	void analyze_if_node(ast.If_Statement_Node if_stat) {
+	void build_if_node(ast.If_Statement_Node if_stat) {
 		Value condition = build_expr(if_stat.condition);
 
 		If jmp = new If(condition);
@@ -545,7 +545,7 @@ class IR_Builder : Top_Level_Node_Visitor {
 			
 		}
 	*/
-	void analyze_else_if_node(ast.Else_If_Statement_Node else_if) {
+	void build_else_if_node(ast.Else_If_Statement_Node else_if) {
 		Value condition = build_expr(else_if.condition);
 
 		If jmp = new If(condition);
@@ -557,14 +557,14 @@ class IR_Builder : Top_Level_Node_Visitor {
 		last_else_if = jmp;
 	}
 
-	void analyze_else_node(ast.Else_Statement_Node else_stat) {
+	void build_else_node(ast.Else_Statement_Node else_stat) {
 		// ideally it would be easier to bottom up
 		// generate the IR instead of doing some
 		// crazy back patching stuff.
 		// TODO
 	}
 
-	void analyze_loop_node(ast.Loop_Statement_Node loop) {
+	void build_loop_node(ast.Loop_Statement_Node loop) {
 		auto entry = new Label(push_bb());
 		build_block(curr_func, loop.block, entry.reference);
 		curr_func.add_instr(new Jump(entry));
@@ -600,13 +600,13 @@ class IR_Builder : Top_Level_Node_Visitor {
 	ulong[Basic_Block] break_rewrites;
 	ulong[Basic_Block] next_rewrites;
 
-	void analyze_next_node(ast.Next_Statement_Node n) {
+	void build_next_node(ast.Next_Statement_Node n) {
 		auto jmp_addr = curr_func.curr_block.instructions.length;
 		curr_func.add_instr(new Jump(null));
 		next_rewrites[curr_func.curr_block] = jmp_addr;
 	}
 
-	void analyze_break_node(ast.Break_Statement_Node b) {
+	void build_break_node(ast.Break_Statement_Node b) {
 		auto jmp_addr = curr_func.curr_block.instructions.length;
 		curr_func.add_instr(new Jump(null));
 		break_rewrites[curr_func.curr_block] = jmp_addr;
@@ -625,7 +625,7 @@ class IR_Builder : Top_Level_Node_Visitor {
 		ir_mod.constants[var.twine.lexeme] = v;
 	}
 
-	override void analyze_let_node(ast.Variable_Statement_Node var) {
+	override void analyze_var_stat_node(ast.Variable_Statement_Node var) {
 		Type type = get_type(var);
 		if (curr_func.curr_block is null) {
 			// it's a global
@@ -642,7 +642,7 @@ class IR_Builder : Top_Level_Node_Visitor {
 		}
 	}
 
-	void analyze_while_node(ast.While_Statement_Node loop) {
+	void build_while_loop_node(ast.While_Statement_Node loop) {
 		auto loop_check = new Label(push_bb());
 		Value v = build_expr(loop.condition);
 		If jmp = new If(v);
@@ -674,17 +674,17 @@ class IR_Builder : Top_Level_Node_Visitor {
 
 	// deferred statements run at block level rather than
 	// function level.
-	void analyze_defer_node(ast.Defer_Statement_Node defer) {
+	void build_defer_node(ast.Defer_Statement_Node defer) {
 		logger.verbose("registering defer ", to!string(defer));
 		curr_defer_ctx().stat ~= defer.stat;
 	}
 
-	void analyze_yield(ast.Yield_Statement_Node yield) {
+	void build_yield(ast.Yield_Statement_Node yield) {
 		logger.error(yield.get_tok_info(), "unhandled");
 		assert(0);
 	}
 
-	void analyze_structure_destructure(ast.Structure_Destructuring_Statement_Node stat) {
+	void build_structure_destructure(ast.Structure_Destructuring_Statement_Node stat) {
 		foreach (v; stat.values) {
 			auto addr = curr_func.add_alloc(new Alloc(prim_type("void"), v.lexeme));
 		}
@@ -750,45 +750,44 @@ class IR_Builder : Top_Level_Node_Visitor {
 		Basic_Block block_sample = curr_func.curr_block;
 
 		if (auto let = cast(ast.Variable_Statement_Node) node) {
-			analyze_let_node(let);
+			analyze_var_stat_node(let);
 		}
 		else if (auto yield = cast(ast.Yield_Statement_Node) node) {
-			// NOTE! TODO FIXME ?HACK..
-			analyze_yield(yield);
+			build_yield(yield);
 		}
 		else if (auto ret = cast(ast.Return_Statement_Node) node) {
-			analyze_return_node(ret);
+			build_return_node(ret);
 		}
 		else if (auto defer = cast(ast.Defer_Statement_Node) node) {
-			analyze_defer_node(defer);
+			build_defer_node(defer);
 		}
 		
 		else if (auto if_stat = cast(ast.If_Statement_Node) node) {
-			analyze_if_node(if_stat);
+			build_if_node(if_stat);
 		}
 		else if (auto else_if_stat = cast(ast.Else_If_Statement_Node) node) {
-			analyze_else_if_node(else_if_stat);
+			build_else_if_node(else_if_stat);
 		}
 		else if (auto else_stat = cast(ast.Else_Statement_Node) node) {
-			analyze_else_node(else_stat);
+			build_else_node(else_stat);
 		}
 		else if (auto match = cast(ast.Match_Statement_Node) node) {
 			build_match(match);	
 		}
 		else if (auto structure_destructure = cast(ast.Structure_Destructuring_Statement_Node) node) {
-			analyze_structure_destructure(structure_destructure);
+			build_structure_destructure(structure_destructure);
 		}
 		else if (auto loop = cast(ast.Loop_Statement_Node) node) {
-			analyze_loop_node(loop);
+			build_loop_node(loop);
 		}
 		else if (auto loop = cast(ast.While_Statement_Node) node) {
-			analyze_while_node(loop);
+			build_while_loop_node(loop);
 		}
 		else if (auto b = cast(ast.Break_Statement_Node) node) {
-			analyze_break_node(b);
+			build_break_node(b);
 		}
 		else if (auto n = cast(ast.Next_Statement_Node) node) {
-			analyze_next_node(n);
+			build_next_node(n);
 		}
 		else if (auto e = cast(ast.Expression_Node) node) {
 			auto v = build_expr(e);

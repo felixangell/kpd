@@ -35,7 +35,7 @@ class Type_Infer_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 	// FIXME!
 	// TODO think of a way to attach the sema types to ast 
 	// nodes without causing a weird cyclic dependency thing!
-	override void analyze_let_node(ast.Variable_Statement_Node var) {
+	override void analyze_var_stat_node(ast.Variable_Statement_Node var) {
 		// there is no value or type so the type inferrer
 		// doesn't have anything to work with.
 		if (var.value is null && var.type is null) {
@@ -121,7 +121,7 @@ class Type_Infer_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 
 	override void visit_stat(ast.Statement_Node stat) {
 		if (auto variable = cast(ast.Variable_Statement_Node) stat) {
-			analyze_let_node(variable);
+			analyze_var_stat_node(variable);
 		}
 		else if (auto loop = cast(ast.While_Statement_Node) stat) {
 			analyze_while_loop(loop);

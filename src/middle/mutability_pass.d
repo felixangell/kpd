@@ -105,7 +105,7 @@ class Mutability_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 
 	}
 
-	override void analyze_let_node(ast.Variable_Statement_Node var) {
+	override void analyze_var_stat_node(ast.Variable_Statement_Node var) {
 		if (var.value !is null) {
 			analyze_expr(var.value);
 		}
@@ -119,7 +119,7 @@ class Mutability_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 
 	override void visit_stat(ast.Statement_Node stat) {
 		if (auto var = cast(ast.Variable_Statement_Node) stat) {
-			analyze_let_node(var);
+			analyze_var_stat_node(var);
 		}
 		else if (auto match = cast(ast.Match_Statement_Node) stat) {
 			// TODO	

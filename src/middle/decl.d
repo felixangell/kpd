@@ -74,7 +74,7 @@ class Declaration_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 
 	override void visit_stat(ast.Statement_Node stat) {
 		if (auto var = cast(Variable_Statement_Node) stat) {
-			analyze_let_node(var);
+			analyze_var_stat_node(var);
 		}
 		else if (auto while_loop = cast(ast.While_Statement_Node) stat) {
 			visit_block(while_loop.block);
@@ -190,7 +190,7 @@ class Declaration_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 		});
 	}
 
-	override void analyze_let_node(ast.Variable_Statement_Node node) {
+	override void analyze_var_stat_node(ast.Variable_Statement_Node node) {
 		auto existing = curr_sym_table.register_sym(new Symbol(node, node.twine, node.mutable));
 		if (existing !is null) {
 			Diagnostic_Engine.throw_error(SYMBOL_CONFLICT, node.get_tok_info(), existing.get_tok_info());

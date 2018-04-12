@@ -42,7 +42,7 @@ class Top_Level_Type_Decl_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 		}
 	}
 
-	override void analyze_let_node(ast.Variable_Statement_Node var) {
+	override void analyze_var_stat_node(ast.Variable_Statement_Node var) {
 		
 	}
 

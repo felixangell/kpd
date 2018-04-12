@@ -70,7 +70,7 @@ class Name_Resolve_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 
 	}
 
-	override void analyze_let_node(ast.Variable_Statement_Node var) {
+	override void analyze_var_stat_node(ast.Variable_Statement_Node var) {
 		if (var.value !is null) {
 			analyze_expr(var.value);
 		}
@@ -355,7 +355,7 @@ class Name_Resolve_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 
 	override void visit_stat(ast.Statement_Node stat) {
 		if (auto variable = cast(ast.Variable_Statement_Node) stat) {
-			analyze_let_node(variable);
+			analyze_var_stat_node(variable);
 		}
 		else if (auto expr = cast(ast.Expression_Node) stat) {
 			analyze_expr(expr);

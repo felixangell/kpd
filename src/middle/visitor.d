@@ -20,7 +20,7 @@ class Top_Level_Node_Visitor : AST_Visitor {
 
 	abstract void analyze_named_type_node(ast.Named_Type_Node);
 	abstract void analyze_function_node(ast.Function_Node);
-	abstract void analyze_let_node(ast.Variable_Statement_Node);
+	abstract void analyze_var_stat_node(ast.Variable_Statement_Node);
 	abstract void visit_stat(ast.Statement_Node);
 
 	// kind of messy architecture
@@ -107,7 +107,7 @@ class Top_Level_Node_Visitor : AST_Visitor {
 			analyze_function_node(func_node);
 		}
 		else if (auto var_node = cast(ast.Variable_Statement_Node) node) {
-			analyze_let_node(var_node);
+			analyze_var_stat_node(var_node);
 		}
 		else {
 			logger.fatal("unhandled node in " ~ to!string(this) ~ " execution:\n" ~ to!string(
