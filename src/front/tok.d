@@ -1,7 +1,8 @@
 module tok;
 
 import std.conv : to;
-import std.algorithm.comparison : equal;
+import std.algorithm.comparison : equal, min, max;
+import std.string;
 
 import krug_module : Source_File;
 
@@ -21,6 +22,10 @@ enum Token_Type {
 interface Token_Info {
 	// get's the _root_ token
 	Token get_tok();
+
+	// convert the token info to 
+	// a printable string
+	string print_tok();
 }
 
 class Token {
@@ -57,6 +62,10 @@ class Absolute_Token : Token_Info {
 	Token get_tok() {
 		return tok;
 	}
+
+	string print_tok() {
+		return tok.lexeme;
+	}
 }
 
 class Token_Span : Token_Info {
@@ -69,6 +78,27 @@ class Token_Span : Token_Info {
 
 	Token get_tok() {
 		return start;
+	}
+
+	string print_tok() {
+		Source_File file = start.parent;
+		const size_t st_index = start.position.start.idx;
+		const size_t en_index = end.position.end.idx;
+
+		// capture to the previous line
+		// of the token.
+		long token_start = lastIndexOf(file.contents, '\n', cast(size_t) st_index);
+		token_start = max(0, token_start);
+
+		// capture up to the next newline
+		auto line_end_index = indexOf(file.contents, '\n', cast(size_t) en_index);
+		line_end_index = max(0, line_end_index);
+
+		if (line_end_index < token_start) {
+			line_end_index = file.contents.length;
+		}
+
+		return file.contents[token_start .. line_end_index].stripLeft();
 	}
 }
 

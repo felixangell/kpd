@@ -175,7 +175,7 @@ class Name_Resolve_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 
 	void analyze_path_expr(ast.Path_Expression_Node path) {
 		Symbol_Table last = curr_sym_table;
-		foreach (i, e; path.values) {
+		foreach (ref i, e; path.values) {
 			auto sym = unwrap_sym(e);
 			if (!sym) {
 				// what do we do here?

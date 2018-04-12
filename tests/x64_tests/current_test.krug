@@ -1,19 +1,7 @@
 #{c_func}
 func printf() s32;
 
-type Foo struct {
-	a s32,
-	b f64,
-};
-
 func main() {
-	mut values [s32; 32];
-
-	values[0] = 9;
-	values[1] = 8;
-	values[2] = 7;
-
-	printf(c"values[0] = %d\n", values[0]);
-	printf(c"values[1] = %d\n", values[1]);
-	printf(c"values[2] = %d\n", values[2]);
+	let f [s32; 3+3];
+	let i = 3;
 }

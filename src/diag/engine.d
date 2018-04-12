@@ -35,10 +35,10 @@ struct Diagnostic_Engine {
 
 		foreach (idx, tok; context) {
 			if (tok is null) {
-				token_names ~= "?";
+				token_names ~= "? compiler bug ?";
 				continue;
 			}
-			token_names ~= colour.Bold(tok.get_tok().lexeme);
+			token_names ~= colour.Bold(tok.print_tok());
 		}
 
 		string error_msg; // todo buffer thing
@@ -57,7 +57,6 @@ struct Diagnostic_Engine {
 		}
 
 		char[8] id_buff;
-		logger.error(colour.Err("[E" ~ to!string(sformat(id_buff[], "%04d",
-				err.id)) ~ "]:\n") ~ error_msg);
+		logger.error(colour.Err("[E" ~ to!string(sformat(id_buff[], "%04d", err.id)) ~ "]:\n") ~ error_msg);
 	}
 }

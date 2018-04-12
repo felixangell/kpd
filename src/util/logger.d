@@ -38,8 +38,57 @@ static string get_line(const(Source_File*) file, ulong index) {
 }
 
 static string blame_token_span(Token_Span span) {
-	// for now
-	return blame_token(span.get_tok());
+	Token start_tok = span.start;
+	Token end_tok = span.end;
+
+	if (start_tok is null) {
+		debug {
+			assert(0);
+		}
+		else {
+			// little crazy string that looks similar
+			// to the error template.
+			return "?!|\n  |\t?!\n";
+		}
+	}
+
+	Source_File file = start_tok.parent;
+	const size_t st_index = start_tok.position.start.idx;
+	const size_t en_index = end_tok.position.end.idx;
+
+	// capture to the previous line
+	// of the token.
+	long token_start = lastIndexOf(file.contents, '\n', cast(size_t) st_index);
+	token_start = max(0, token_start);
+
+	// capture up to the next newline
+	auto line_end_index = indexOf(file.contents, '\n', cast(size_t) en_index);
+	line_end_index = max(0, line_end_index);
+
+	if (line_end_index < token_start) {
+		line_end_index = file.contents.length;
+	}
+
+	auto bad_line = file.contents[token_start .. line_end_index].stripLeft();
+	string underline = colour.Err(replicate("^", bad_line.length));
+
+	string tab = replicate(" ", TAB_SIZE);
+	const string line_num = to!string(start_tok.position.start.row);
+
+	const auto padding = replicate(" ", cast(size_t) line_num.length);
+
+	auto buff = new OutBuffer();
+
+	// TODO show a line before and after for context
+	// rather than the individual line. have a flag
+	// option to disable this for when we get a LOT of errors!
+
+	buff.writefln("%-2s> %s:%s", replicate("-", cast(size_t) (line_num.length + 1)), start_tok.parent.path, line_num);
+	buff.writefln("%-2s|", replicate(" ", line_num.length));
+	buff.writefln("%-2s| %s", line_num, tab ~ bad_line);
+	buff.writefln("%-2s| %s", padding, tab ~ underline);
+
+	return buff.toString();
 }
 
 static string blame_token(Token_Info tok_info) {

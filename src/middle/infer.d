@@ -401,7 +401,7 @@ struct Type_Inferrer {
 
 			auto res = try_evaluate_expr(arr.value);
 			if (res.failed) {
-				auto blame = arr.get_tok_info();
+				auto blame = arr.base_type.get_tok_info();
 				if (arr.value !is null) {
 					blame = arr.value.get_tok_info();
 				}

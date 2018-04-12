@@ -106,7 +106,7 @@ class IR_Builder : Top_Level_Node_Visitor {
 
 		auto res = try_evaluate_expr(arr.value);
 		if (res.failed) {
-			auto blame = arr.get_tok_info();
+			auto blame = arr.base_type.get_tok_info();
 			if (arr.value !is null) {
 				blame = arr.value.get_tok_info();
 			}
@@ -286,9 +286,47 @@ class IR_Builder : Top_Level_Node_Visitor {
 		return new Identifier(temp.get_type(), temp.name);
 	}
 
+	Value build_call_via(Value last, ast.Call_Node call) {
+		writeln(last, " ... ", call);
+		return null;
+	}
+
+	Value build_expr_via(Value last, ast.Expression_Node v) {
+		if (auto call = cast(ast.Call_Node) v) {
+			Call c = cast(Call) build_call_via(last, call);
+			// squeeze in a new param
+			return c;
+		}
+
+		writeln(last, " vs ", v, " types ", typeid(last), " vs ", typeid(v));
+		assert(0);
+	}
+
+	// TODO make this work for EVERYTHING
+	Value build_method_call(ast.Path_Expression_Node path) {
+		Value last = null;
+		foreach (v; path.values) {
+			if (last !is null) {
+				last = build_expr_via(last, v);			
+			} 
+			else {
+				last = build_expr(v);
+			}
+		}
+		return last;
+	}
+
 	Value build_path(ast.Path_Expression_Node path) {
 		if (path.values.length == 1) {
 			return build_expr(path.values[0]);
+		}
+
+		auto last = path.values[$-1];
+		if (cast(ast.Call_Node) last) {
+			return build_method_call(path);
+		}
+		else {
+			writeln(last, " is ", typeid(last), " WOW");
 		}
 
 		foreach (v; path.values) {
