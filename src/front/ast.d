@@ -639,7 +639,9 @@ public:
 	Union_Field[] fields;
 
 	void add_field(Token name, Type_Node type) {
-		fields ~= new Union_Field(name, type);
+		auto field = new Union_Field(name, type);
+		field.set_tok_info(name);
+		fields ~= field;
 	}
 }
 
@@ -741,7 +743,7 @@ public:
 	}
 }
 
-class Tagged_Union_Field {
+class Tagged_Union_Field  : Node{
 	Token identifier;
 
 	// optional, restricted to

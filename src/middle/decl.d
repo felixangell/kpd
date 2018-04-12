@@ -32,7 +32,7 @@ class Declaration_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 		auto table = new Symbol_Table;
 		foreach (idx, field; s.fields) {
 			auto og_field = table.register_sym(new Symbol(field, field.name, true));
-			if (og_field) {
+			if (og_field !is null) {
 				Diagnostic_Engine.throw_error(SYMBOL_CONFLICT, field.get_tok_info(), og_field.get_tok_info());
 			}
 		}
@@ -43,7 +43,7 @@ class Declaration_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 		auto table = new Symbol_Table;
 		foreach (idx, field; u.fields) {
 			auto og_field = table.register_sym(new Symbol(field, field.name, true));
-			if (og_field) {
+			if (og_field !is null) {
 				Diagnostic_Engine.throw_error(SYMBOL_CONFLICT, field.get_tok_info(), og_field.get_tok_info());
 			}
 		}
@@ -54,12 +54,23 @@ class Declaration_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 		auto table = new Symbol_Table;
 		foreach (idx, attrib; t.attributes) {
 			auto og_field = table.register_sym(new Symbol(attrib, attrib.twine, true));
-			if (og_field) {
+			if (og_field !is null) {
 				Diagnostic_Engine.throw_error(SYMBOL_CONFLICT, new Absolute_Token(attrib.twine), og_field.get_tok_info());
 			}
 		}
 		return table;
 	}
+
+	Symbol_Table analyze_tagged_union_type_node(ast.Tagged_Union_Type_Node t) {
+    		auto table = new Symbol_Table;
+    		foreach (idx, field; t.fields) {
+    			auto og_field = table.register_sym(new Symbol(field, field.identifier, true));
+    			if (og_field !is null) {
+    				Diagnostic_Engine.throw_error(SYMBOL_CONFLICT, new Absolute_Token(field.identifier), og_field.get_tok_info());
+    			}
+    		}
+    		return table;
+    	}
 
 	void visit_structure_destructure(ast.Structure_Destructuring_Statement_Node stat) {
 		foreach (name; stat.values) {
@@ -109,6 +120,12 @@ class Declaration_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 		}
 		else if (auto trait = cast(Trait_Type_Node) tn) {
 			auto table = analyze_trait_type_node(trait);
+			table.name = name;
+			table.reference = node;
+			curr_sym_table.register_sym(name, table);
+		}
+		else if (auto tagged_union = cast (Tagged_Union_Type_Node) tn) {
+			auto table = analyze_tagged_union_type_node(tagged_union);
 			table.name = name;
 			table.reference = node;
 			curr_sym_table.register_sym(name, table);

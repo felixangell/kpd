@@ -298,10 +298,12 @@ class Parser : Compilation_Phase {
 
 		auto tagged_union = new Tagged_Union_Type_Node;
 
-		expect("{");
+		auto start = expect("{");
 		for (int i = 0; has_next() && !peek().cmp("}"); i++) {
 			auto name = expect(Token_Type.Identifier);
+
 			Type_Node type = null;
+			auto type_start_tok = peek();
 			switch (peek().lexeme) {
 			case "{":
 				type = parse_structure_type(false);
@@ -313,6 +315,9 @@ class Parser : Compilation_Phase {
 				break;
 			}
 
+			if (type !is null) {
+				type.set_tok_info(type_start_tok, peek());
+			}
 			tagged_union.add_field(name, type);
 
 			if (!peek().cmp("}")) {
@@ -325,8 +330,9 @@ class Parser : Compilation_Phase {
 				}
 			}
 		}
-		expect("}");
+		auto end = expect("}");
 
+		tagged_union.set_tok_info(start, end);
 		return tagged_union;
 	}
 

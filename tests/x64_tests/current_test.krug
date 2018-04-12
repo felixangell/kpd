@@ -1,6 +1,15 @@
 #{c_func}
 func printf() s32;
 
+type Foo enum {
+	Label,
+	Tagged { x s32, y s32 },
+	Anonymous (s32, s32),
+	Foo,
+	Bar,
+	Baz,
+};
+
 func main() {
 	let f [s32; 32];
 	let g = f;
