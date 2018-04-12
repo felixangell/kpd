@@ -32,6 +32,7 @@ string gen_temp() {
 }
 
 class Defer_Context {
+	Symbol_Table curr_sym_table, previous;
 	Statement_Node[] stat;
 }
 		
@@ -69,15 +70,20 @@ class IR_Builder : Top_Level_Node_Visitor {
 	override void analyze_named_type_node(ast.Named_Type_Node) {
 	}
 
-	override void visit_block(ast.Block_Node block, void delegate(Symbol_Table curr_stab) stuff = null) {
+	override void visit_block(ast.Block_Node block, void delegate(Symbol_Table curr_stab) pre = null, void delegate(Symbol_Table curr_stab) post = null) {
 		push_defer_ctx();
-		super.visit_block(block, stuff);
+		super.visit_block(block, pre, delegate(Symbol_Table stab) {
+			logger.verbose("- running defer");
+			foreach_reverse (ref stat; curr_defer_ctx().stat) {
+				visit_stat(stat);
+			}
 
-		logger.verbose("- running defer");
-		foreach_reverse (ref stat; curr_defer_ctx().stat) {
-			visit_stat(stat);
-		}
-
+			// we still want to run any post
+			// visit stuff that may be passed in
+			if (post !is null) {
+				post(stab);
+			}
+		});
 		pop_defer_ctx();
 	}
 
@@ -705,7 +711,9 @@ class IR_Builder : Top_Level_Node_Visitor {
 	// function level.
 	void build_defer_node(ast.Defer_Statement_Node defer) {
 		logger.verbose("registering defer ", to!string(defer));
-		curr_defer_ctx().stat ~= defer.stat;
+
+		auto defer_ctx = curr_defer_ctx();
+		defer_ctx.stat ~= defer.stat;
 	}
 
 	void build_yield(ast.Yield_Statement_Node yield) {

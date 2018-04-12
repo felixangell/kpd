@@ -121,6 +121,7 @@ class Type_Infer_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 
 	override void visit_stat(ast.Statement_Node stat) {
 		if (auto variable = cast(ast.Variable_Statement_Node) stat) {
+			writeln("yo we're inferring ", variable);
 			analyze_var_stat_node(variable);
 		}
 		else if (auto loop = cast(ast.While_Statement_Node) stat) {

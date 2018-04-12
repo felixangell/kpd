@@ -2,8 +2,7 @@
 func printf() s32;
 
 func main() {
-	let i = 0;
-	i = i + 33 + 12;
-
-	printf(c"Hello world\n, i);
+	let i = 32;
+	printf(c"Hello world\n", i);
+	defer printf(c"Hello world\n", i);
 }
