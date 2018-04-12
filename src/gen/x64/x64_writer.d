@@ -1,4 +1,4 @@
-module gen.x64.x64_writer;
+module gen.x64.asm_writer;
 
 import std.conv : to;
 import std.bitmanip;
@@ -6,7 +6,7 @@ import std.algorithm.comparison : min, max;
 import std.uni : toLower;
 
 import gen.x64.instr;
-import gen.x64.output;
+import gen.x64.asm_file;
 import gen.x64.formatter;
 
 // GROSS!
@@ -236,7 +236,7 @@ uint nzmin(uint a, uint b) {
 	return b;
 }
 
-class X64_Writer : X64_Code {
+class X64_Assembly_Writer : X64_Assembly {
 	void mov(Memory_Location src, Memory_Location dest) {
 		uint w = nzmin(src.width(), dest.width());
 		if (cast(Address)src || cast(Address) dest) {

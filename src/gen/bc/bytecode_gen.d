@@ -1,4 +1,4 @@
-module gen.kurby.generator;
+module gen.bc.generator;
 
 import std.stdio;
 import std.conv;
@@ -12,8 +12,8 @@ import sema.type;
 
 import logger;
 
-import gen.kurby.output;
-import gen.kurby.opcode;
+import gen.bc.output;
+import gen.bc.opcode;
 
 import kir.ir_mod;
 import kir.instr;
@@ -22,9 +22,9 @@ T instanceof(T)(Object o) if (is(T == class)) {
 	return cast(T) o;
 }
 
-class Kurby_Generator {
+class Bytecode_Generator {
 	IR_Module mod;
-	Kurby_Byte_Code code;
+	Bytecode code;
 
 	// todo
 	uint[string] locals;
@@ -33,7 +33,7 @@ class Kurby_Generator {
 	uint[string] bb_label_addr;
 
 	this() {
-		code = new Kurby_Byte_Code;
+		code = new Bytecode;
 	}
 
 	void emit_alloc(Alloc a) {

@@ -34,7 +34,7 @@ import kir.ir_mod;
 import kir.ir_verify;
 import kir.builder;
 
-import gen.kurby.opcode;
+import gen.bc.opcode;
 
 import sema.analyzer;
 

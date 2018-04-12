@@ -1,4 +1,4 @@
-module gen.kurby.backend;
+module gen.bc.backend;
 
 import std.stdio;
 import std.path;
@@ -13,19 +13,19 @@ import kir.ir_mod;
 import kir.instr;
 
 import gen.backend;
-import gen.kurby.output;
-import gen.kurby.generator;
-import gen.kurby.opcode;
+import gen.bc.output;
+import gen.bc.generator;
+import gen.bc.opcode;
 
 // this hooks into the virtual machine which
 // is separately implemented in C
 extern (C) bool execute_program(size_t entry_addr, size_t instruction_count, ubyte* program);
 
-class Kurby_Backend : Code_Generator_Backend {
+class Bytecode_Driver : Code_Generator_Backend {
 	Function main_func;
 
-	Kurby_Byte_Code code_gen(IR_Module mod) {
-		auto gen = new Kurby_Generator;
+	Bytecode code_gen(IR_Module mod) {
+		auto gen = new Bytecode_Generator;
 		gen.emit_mod(mod);
 		auto f = mod.get_function("main");
 		if (f !is null) {
@@ -39,7 +39,7 @@ class Kurby_Backend : Code_Generator_Backend {
 		ulong main_addr = 0;
 
 		foreach (ref o; output) {
-			auto bc = cast(Kurby_Byte_Code) o;
+			auto bc = cast(Bytecode) o;
 			final_program ~= bc.program;
 
 			if (main_func.name in bc.func_addr_reg) {

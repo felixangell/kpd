@@ -15,9 +15,9 @@ import logger;
 
 import sema.type;
 
-import gen.x64.output;
+import gen.x64.asm_file;
 import gen.x64.mangler;
-import gen.x64.x64_writer;
+import gen.x64.asm_writer;
 import gen.x64.instr;
 
 import kir.ir_mod;
@@ -121,14 +121,14 @@ static this() {
 
 class X64_Generator {
 	IR_Module mod;
-	X64_Writer writer;
+	X64_Assembly_Writer writer;
 	Function curr_func;
 
 	Block_Context[string] ctx;
 	Block_Context curr_ctx;
 
 	this() {
-		writer = new X64_Writer;
+		writer = new X64_Assembly_Writer;
 	}
 
 	// gets the address of the given

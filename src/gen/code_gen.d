@@ -6,7 +6,7 @@ import gen.backend;
 import gen.x64.backend;
 import gen.target;
 
-import gen.kurby.backend;
+import gen.bc.backend;
 
 import kir.ir_mod;
 
@@ -19,7 +19,7 @@ void generate_code(Target t, IR_Module[] modules) {
 		backend = new X64_Backend;
 		break;
 	case Target.KURBY:
-		backend = new Kurby_Backend;
+		backend = new Bytecode_Driver;
 		break;
 	}
 

@@ -13,10 +13,10 @@ import kir.ir_mod;
 
 import gen.backend;
 import gen.x64.instr;
-import gen.x64.output;
+import gen.x64.asm_writer;
+import gen.x64.asm_file;
 import gen.x64.generator;
 import gen.x64.mangler;
-import gen.x64.x64_writer;
 import gen.x64.link;
 
 /*
@@ -28,7 +28,7 @@ import gen.x64.link;
 class X64_Backend : Code_Generator_Backend {
 	bool has_c_symbols = false;
 
-	X64_Code code_gen(IR_Module mod) {
+	X64_Assembly code_gen(IR_Module mod) {
 		auto gen = new X64_Generator;
 
 		// is this necessary
@@ -130,7 +130,7 @@ class X64_Backend : Code_Generator_Backend {
 		// into assembly files
 		// feed them into the gnu AS 
 		foreach (ref code_file; output) {
-			auto x64_code = cast(X64_Code) code_file;
+			auto x64_code = cast(X64_Assembly) code_file;
 			
 			string file_name = "krug-asm-" ~ thisProcessID.to!string(36) ~ "-" ~ uniform!uint.to!string(36) ~ ".as";
 			auto temp_file = File(file_name, "w");

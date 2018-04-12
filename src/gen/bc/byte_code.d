@@ -1,16 +1,16 @@
-module gen.kurby.output;
+module gen.bc.output;
 
 import std.stdio;
 import std.conv;
 import std.bitmanip;
 
 import gen.backend;
-import gen.kurby.opcode;
+import gen.bc.opcode;
 
 import logger;
 import kir.instr;
 
-class Kurby_Byte_Code : Generated_Output {
+class Bytecode : Generated_Output {
     uint program_index = 0;
 	ubyte[] program;
     uint[string] func_addr_reg;

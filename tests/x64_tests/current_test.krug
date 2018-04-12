@@ -2,6 +2,6 @@
 func printf() s32;
 
 func main() {
-	let f [s32; 3+3];
-	let i = 3;
+	let f [s32; 32];
+	let g = f;
 }

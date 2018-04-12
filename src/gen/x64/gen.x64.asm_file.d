@@ -1,4 +1,4 @@
-module gen.x64.output;
+module gen.x64.asm_file;
 
 import std.stdio;
 import std.conv;
@@ -38,7 +38,7 @@ enum Segment : uint {
 	Text,
 }
 
-class X64_Code : Generated_Output {
+class X64_Assembly : Generated_Output {
 	Segment_Data[] segments;
 	Segment_Data* current_seg;
 

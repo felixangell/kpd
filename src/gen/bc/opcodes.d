@@ -1,4 +1,4 @@
-module gen.kurby.opcode;
+module gen.bc.opcode;
 
 import std.bitmanip;
 import std.conv;
