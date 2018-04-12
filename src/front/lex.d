@@ -363,7 +363,7 @@ class Lexer : Compilation_Phase {
 		}
 
 		if (!has_next()) {
-			assert(0 && "eof");
+			logger.fatal("Expected character '" ~ to!string(c) ~ "', got EOF!");
 		}
 
 		assert(0 && "expected!");

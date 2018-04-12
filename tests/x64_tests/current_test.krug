@@ -5,5 +5,5 @@ func main() {
 	let i = 0;
 	i = i + 33 + 12;
 
-	printf(c"Hello world\n", i);
+	printf(c"Hello world\n, i);
 }
