@@ -929,14 +929,14 @@ class Parser : Compilation_Phase {
 		if (peek().cmp(keyword.Eval) && peek(1).cmp("{")) {
 			expect(keyword.Eval);
 			auto result = new Block_Expression_Node(parse_block());
-			result.set_tok_info(start, peek());
+			result.set_tok_info(start);
 			return result;
 		}
 
 		// lambda
 		if (peek().cmp(keyword.Function)) {
 			auto result = parse_lambda();
-			result.set_tok_info(start, peek());
+			result.set_tok_info(start);
 			return result;
 		}
 
@@ -948,19 +948,19 @@ class Parser : Compilation_Phase {
 		if (!has_next()) {
 			// TODO: handle this properly for when it does happen
 			// this should never happen, but just in case.
-			left.set_tok_info(start, peek());
+			left.set_tok_info(start, peek(-1));
 			return left;
 		}
 
 		// not a binary expression so we'll
 		// return the left expression
 		if (!is_binary_op(peek().lexeme)) {
-			left.set_tok_info(start, peek());
+			left.set_tok_info(start, peek(-1));
 			return left;
 		}
 
 		auto bin = parse_bin_op(0, left, comp_allowed);
-		bin.set_tok_info(start, peek());
+		bin.set_tok_info(start, peek(-1));
 		return bin;
 	}
 
@@ -1405,9 +1405,8 @@ leave:
 		if (val is null) {
 			return null;
 		}
-
-		expect(";");
 		val.set_tok_info(start, peek());
+		expect(";");
 		return val;
 	}
 
