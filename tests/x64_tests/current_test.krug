@@ -2,17 +2,8 @@
 func printf() s32;
 
 func main() {
-    let x = 3;
-    if x == 3 {
-        printf(c"x is 3, see: %d\n", x);
-    }
-    else if x == 6 {
-        printf(c"YEEET %d\n", x);
-    }
-    else if x == 4 {
-        printf(c"x is 4, see: %d\n", x);
-    }
-    else {
-        printf(c"X IS SOMETHING UNHANDLED %d\n", x);
-    }
+    let x u64 = 32 as u64;
+    mut y *u64 = &x as *u64;
+    @y = 3 + 333;
+    printf(c"woah wtf %d\n", x);
 }

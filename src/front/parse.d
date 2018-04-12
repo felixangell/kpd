@@ -568,7 +568,9 @@ class Parser : Compilation_Phase {
 			logger.error(peek(), "Expected expression after unary operand: \n");
 			// how do we recover from this?!
 		}
-		return new Unary_Expression_Node(op, right);
+		auto unary = new Unary_Expression_Node(op, right);
+		unary.set_tok_info(op);
+		return unary;
 	}
 
 	ast.Paren_Expression_Node parse_paren_expr() {

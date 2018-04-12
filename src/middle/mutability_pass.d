@@ -40,8 +40,11 @@ class Mutability_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 		else if (auto idx = cast(ast.Index_Expression_Node) e) {
 			return is_mutable(idx.array);
 		}
+		else if (auto unary = cast(ast.Unary_Expression_Node) e) {
+			return is_mutable(unary.value);
+		}
 
-		this.log(Log_Level.Error, e.get_tok_info(), "unhandled expr " ~ to!string(typeid(e)));			
+		this.log(Log_Level.Error, e.get_tok_info(), "is_mutable: unhandled expr " ~ to!string(typeid(e)));			
 		assert(0);
 	}
 
@@ -83,6 +86,9 @@ class Mutability_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 		else if (auto index = cast(ast.Index_Expression_Node) expr) {
 			// TODO
 		}
+		else if (cast(ast.Unary_Expression_Node) expr) {
+
+		}
 		else if (cast(ast.Integer_Constant_Node) expr) {
 			// NOP
 		}
@@ -94,6 +100,9 @@ class Mutability_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 		}
 		else if (cast(ast.Rune_Constant_Node) expr) {
 			// NOP
+		}
+		else if (cast(ast.Cast_Expression_Node) expr) {
+			
 		}
 		else {
 			writeln("moaning about ", to!string(expr));

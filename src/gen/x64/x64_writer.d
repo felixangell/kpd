@@ -126,6 +126,11 @@ class Address : Memory_Location {
 	Memory_Location index;
 	ulong scale;
 
+	this(Reg r) {
+		this.reg = r;
+		this.iden = "";
+	}
+
 	this(long disp, Reg r) {
 		this.disp = disp;
 		this.reg = r;

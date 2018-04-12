@@ -85,7 +85,7 @@ class IR_Builder : Top_Level_Node_Visitor {
 		auto bb = b is null ? push_bb() : b;
 		visit_block(block);
 		return new Label(bb.name(), bb);
-	}	 
+	}	
 
 	Type get_sym_type(ast.Symbol_Node sym) {
 		if (sym.resolved_symbol is null) {

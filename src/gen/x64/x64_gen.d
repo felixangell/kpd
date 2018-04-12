@@ -231,6 +231,19 @@ class X64_Generator {
 		assert(0);
 	}
 
+	Memory_Location build_addr_of(Addr_Of a) {
+		Memory_Location v = get_val(a.v);
+		// leaq v, rax
+		writer.lea(v, R10);
+		return R10;
+	}
+
+	Memory_Location build_deref(Deref d) {
+		Memory_Location v = get_val(d.v);
+		writer.mov(v, R10);
+		return new Address(R10);
+	}
+
 	Memory_Location get_val(Value v) {
 		if (auto c = cast(Constant) v) {
 			return get_const(c);
@@ -286,6 +299,12 @@ class X64_Generator {
 		}
 		else if (auto idx = cast(Index) v) {
 			return get_index_addr(idx);
+		}
+		else if (auto addr = cast(Addr_Of) v) {
+			return build_addr_of(addr);
+		}
+		else if (auto deref = cast(Deref) v) {
+			return build_deref(deref);
 		}
 
 		logger.fatal("unimplemented get_val " ~ to!string(v) ~ " ... " ~ to!string(typeid(v)));

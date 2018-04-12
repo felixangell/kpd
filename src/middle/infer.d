@@ -133,6 +133,9 @@ Type fresh(Type t, Type_Variable[string] generics) {
 		else if (auto ar = cast(Array) pt) {
 			return ar;
 		}
+		else if (auto ptr = cast(Pointer) pt) {
+			return new Pointer(fresh_type(ptr.base, generics));
+		}
 
 		logger.fatal("unimplemented fresh type! ", to!string(typeid(pt)));
 		assert(0);

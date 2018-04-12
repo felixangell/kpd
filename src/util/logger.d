@@ -70,7 +70,17 @@ static string blame_token_span(Token_Span span) {
 	}
 
 	auto bad_line = file.contents[token_start .. line_end_index].stripLeft();
-	string underline = colour.Err(replicate("^", bad_line.length));
+	
+	auto underline_len = bad_line.length;
+
+	// purely because of personal taste...
+	// dont underline the semi colon too
+	// just the actual code we care about.
+	if (bad_line[$-1] == ';') {
+		underline_len--;
+	}
+
+	string underline = colour.Err(replicate("^", underline_len));
 
 	string tab = replicate(" ", TAB_SIZE);
 	const string line_num = to!string(start_tok.position.start.row);
