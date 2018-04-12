@@ -129,14 +129,8 @@ class Type_Infer_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 		else if (auto iff = cast(ast.If_Statement_Node) stat) {
 			analyze_if_stat(iff);
 		}
-		else if (auto else_if = cast(ast.Else_If_Statement_Node) stat) {
-			analyze_else_if_stat(else_if);
-		}
 		else if (auto structure_destructure = cast(ast.Structure_Destructuring_Statement_Node) stat) {
 			analyze_structure_destructure(structure_destructure);
-		}
-		else if (auto else_stat = cast(ast.Else_Statement_Node) stat) {
-			analyze_else_stat(else_stat);
 		}
 		else if (auto expr = cast(ast.Expression_Node) stat) {
 			analyze_expr(expr);
@@ -158,6 +152,12 @@ class Type_Infer_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 		}
 		else if (auto match = cast(ast.Match_Statement_Node) stat) {
 			analyze_match(match);	
+		}
+		else if (cast(ast.Else_If_Statement_Node) stat) {
+			assert(0);
+		}
+		else if (cast(ast.Else_Statement_Node) stat) {
+			assert(0);
 		}
 		else {
 			this.log(Log_Level.Error, "unhandled statement " ~ to!string(stat) ~ " ... " ~ to!string(typeid(stat)),

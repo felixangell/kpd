@@ -1245,6 +1245,35 @@ class Parser : Compilation_Phase {
 
 		auto iff = new If_Statement_Node(cond, block);
 		curr_branch_ctx.buffer ~= iff;
+
+		while (true) {
+			switch (peek().lexeme) {
+			case keyword.Else:
+				if (peek(1).cmp(keyword.If)) {
+					auto else_if = parse_elif();
+					if (else_if is null) {
+						assert(0);
+					}
+					iff.else_ifs ~= else_if;
+				}
+				else {
+					auto else_stat = parse_else();
+					if (else_stat is null) {
+						assert(0);
+					}
+					// TODO this is in a loop
+					// so make sure this hasn't
+					// already been set since
+					// that would be a bug!
+					iff.else_stat = else_stat;
+				}
+				break;
+			default:
+				goto leave;
+			}
+		}
+
+leave:
 		return iff;
 	}
 
@@ -1335,15 +1364,6 @@ class Parser : Compilation_Phase {
 			break;
 		case keyword.If:
 			result = parse_if();
-			break;
-		case keyword.Else:
-			// ELSE IF!
-			if (peek(1).cmp(keyword.If)) {
-				result = parse_elif();
-			}
-			else {
-				result = parse_else();
-			}
 			break;
 		case keyword.For:
 			result = parse_for();

@@ -532,36 +532,59 @@ class IR_Builder : Top_Level_Node_Visitor {
 	void build_if_node(ast.If_Statement_Node if_stat) {
 		Value condition = build_expr(if_stat.condition);
 
+		Jump[] re_writes;
+
 		If jmp = new If(condition);
 		curr_func.add_instr(jmp);
 		jmp.a = build_block(curr_func, if_stat.block);
-		jmp.b = new Label(push_bb());
 
-		last_if = jmp;
-	}
+		// our if branch needs to jump to the end of the
+		// if chain
+		re_writes ~= cast(Jump) curr_func.add_instr(new Jump(null));
 
-	/*
-		else if foo {
-			
+		/*
+			Else_If_Statement_Node[] else_ifs;
+			Else_Statement_Node else_stat;
+		*/
+		If last_if = jmp;
+		if (if_stat.else_ifs.length > 0) {
+			last_if = jmp;
 		}
-	*/
-	void build_else_if_node(ast.Else_If_Statement_Node else_if) {
-		Value condition = build_expr(else_if.condition);
 
-		If jmp = new If(condition);
-		curr_func.add_instr(jmp);
+		foreach (ref idx, elif; if_stat.else_ifs) {
+			auto elif_block = new Label(push_bb());
+			Value cond = build_expr(elif.condition);
 
-		jmp.a = build_block(curr_func, else_if.block);
-		jmp.b = new Label(push_bb());
+			auto elif_check = new Label(push_bb());
+			If elif_jmp = new If(cond);
+			curr_func.add_instr(elif_jmp);
 
-		last_else_if = jmp;
-	}
+			elif_jmp.a = build_block(curr_func, elif.block);
 
-	void build_else_node(ast.Else_Statement_Node else_stat) {
-		// ideally it would be easier to bottom up
-		// generate the IR instead of doing some
-		// crazy back patching stuff.
-		// TODO
+			re_writes ~= cast(Jump) curr_func.add_instr(new Jump(null));
+
+			if (last_if !is null) {
+				last_if.b = elif_block;
+			}
+			last_if = elif_jmp;
+		}
+
+		if (if_stat.else_stat !is null && last_if !is null) {
+			last_if.b = build_block(curr_func, if_stat.else_stat.block);
+		}
+		else if (last_if !is null) {
+			last_if.b = new Label(push_bb());
+		}
+
+		auto end = new Label(push_bb());
+
+		if (jmp.b is null) {
+			jmp.b = end;
+		}
+
+		foreach (rw; re_writes) {
+			rw.label = end;
+		}
 	}
 
 	void build_loop_node(ast.Loop_Statement_Node loop) {
@@ -765,12 +788,6 @@ class IR_Builder : Top_Level_Node_Visitor {
 		else if (auto if_stat = cast(ast.If_Statement_Node) node) {
 			build_if_node(if_stat);
 		}
-		else if (auto else_if_stat = cast(ast.Else_If_Statement_Node) node) {
-			build_else_if_node(else_if_stat);
-		}
-		else if (auto else_stat = cast(ast.Else_Statement_Node) node) {
-			build_else_node(else_stat);
-		}
 		else if (auto match = cast(ast.Match_Statement_Node) node) {
 			build_match(match);	
 		}
@@ -797,6 +814,12 @@ class IR_Builder : Top_Level_Node_Visitor {
 		}
 		else if (auto b = cast(ast.Block_Node) node) {
 			build_block(curr_func, b);
+		}
+		else if (cast(ast.Else_If_Statement_Node) node) {
+			assert(0);
+		}
+		else if (cast(ast.Else_Statement_Node) node) {
+			assert(0);
 		}
 		else {
 			logger.error(node.get_tok_info(), "unimplemented node '" ~ to!string(typeid(node)) ~ "':");

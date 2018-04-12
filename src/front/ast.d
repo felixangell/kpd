@@ -156,6 +156,9 @@ class If_Statement_Node : Statement_Node {
 	Expression_Node condition;
 	Block_Node block;
 
+	Else_If_Statement_Node[] else_ifs;
+	Else_Statement_Node else_stat;
+
 	this(Expression_Node condition, Block_Node block) {
 		this.condition = condition;
 		this.block = block;

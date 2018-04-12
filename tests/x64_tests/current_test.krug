@@ -1,16 +1,18 @@
 #{c_func}
 func printf() s32;
 
-type Foo enum {
-	Label,
-	Tagged { x s32, y s32 },
-	Anonymous (s32, s32),
-	Foo,
-	Bar,
-	Baz,
-};
-
 func main() {
-	let f [s32; 32];
-	let g = f;
+    let x = 3;
+    if x == 3 {
+        printf(c"x is 3, see: %d\n", x);
+    }
+    else if x == 6 {
+        printf(c"YEEET %d\n", x);
+    }
+    else if x == 4 {
+        printf(c"x is 4, see: %d\n", x);
+    }
+    else {
+        printf(c"X IS SOMETHING UNHANDLED %d\n", x);
+    }
 }

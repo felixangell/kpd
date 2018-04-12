@@ -322,6 +322,12 @@ class Name_Resolve_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 	void analyze_if_stat(ast.If_Statement_Node if_stat) {
 		analyze_expr(if_stat.condition);
 		visit_block(if_stat.block);
+		foreach (ref idx, elif; if_stat.else_ifs) {
+			analyze_else_if_stat(elif);
+		}
+		if (if_stat.else_stat !is null) {
+			analyze_else_stat(if_stat.else_stat);
+		}
 	}
 
 	void analyze_else_stat(ast.Else_Statement_Node else_stat) {
@@ -369,12 +375,6 @@ class Name_Resolve_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 		else if (auto if_stat = cast(ast.If_Statement_Node) stat) {
 			analyze_if_stat(if_stat);
 		}
-		else if (auto else_stat = cast(ast.Else_Statement_Node) stat) {
-			analyze_else_stat(else_stat);
-		}
-		else if (auto else_if_stat = cast(ast.Else_If_Statement_Node) stat) {
-			analyze_else_if_stat(else_if_stat);
-		}
 		else if (auto call = cast(ast.Call_Node) stat) {
 			analyze_call(call);
 		}
@@ -400,6 +400,12 @@ class Name_Resolve_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 		}
 		else if (auto defer = cast(ast.Defer_Statement_Node) stat) {
 			visit_stat(defer.stat);
+		}
+		else if (cast(ast.Else_Statement_Node) stat) {
+			assert(0);
+		}
+		else if (cast(ast.Else_If_Statement_Node) stat) {
+			assert(0);
 		}
 		else if (auto block = cast(ast.Block_Node) stat) {
 			// TODO
