@@ -1563,7 +1563,6 @@ leave:
 				expect(")");
 			}
 
-			logger.verbose("--- Parsed attribute ", attrib.name.lexeme);
 			dir[attrib.name.lexeme] = attrib;
 		}
 		expect("}");
@@ -1599,8 +1598,10 @@ leave:
 
 		// attach the directives we
 		// parsed before the node to the node
-		result.set_attribs(dirs);
-		result.set_tok_info(start, peek());
+		if (result !is null) {
+			result.set_attribs(dirs);
+			result.set_tok_info(start, peek());
+		}
 
 		return result;
 	}
