@@ -152,9 +152,14 @@ class IR_Builder : Top_Level_Node_Visitor {
 
 		else if (auto idx = cast(Index_Expression_Node) t) {
 			Type type = get_type(idx.array);	
+			
 			if (auto a = cast(Array) type) {
 				return a.base;
 			}
+			else if (auto ptr = cast(Pointer) type) {
+				return ptr.base;
+			}
+
 			// weird
 			assert(0);
 		}
