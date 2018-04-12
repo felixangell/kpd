@@ -1,13 +1,5 @@
 #{c_func}
 func printf() s32;
 
-type Felix struct {
-    age u32,
-    name *u8,
-};
-
 func main() {
-    let f Felix;
-    f.age = 19;
-    f.name = c"Felix Angell";
 }

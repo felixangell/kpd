@@ -1,4 +1,5 @@
 bin/
+play/
 .idea/
 ._*
 cfg-**.html
