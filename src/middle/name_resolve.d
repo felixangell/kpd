@@ -285,6 +285,9 @@ class Name_Resolve_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 		else if (cast(ast.Boolean_Constant_Node) expr) {
 			// NOP
 		}
+		else if (cast(ast.Rune_Constant_Node) expr) {
+			// NOP
+		}
 		else if (auto lambda = cast(ast.Lambda_Node) expr) {
 			// TODO NOP
 		}

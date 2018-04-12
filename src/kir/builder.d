@@ -455,8 +455,9 @@ class IR_Builder : Top_Level_Node_Visitor {
 			return new Constant(prim_type("f64"), to!string(float_const.value));
 		}
 		else if (auto rune_const = cast(Rune_Constant_Node) expr) {
+			dchar c = to!dchar(rune_const.value);
 			// runes are a 4 byte signed integer.
-			return new Constant(prim_type("s32"), to!string(rune_const.value));
+			return new Constant(prim_type("s32"), to!string(to!uint(c)));
 		}
 		else if (auto index = cast(Index_Expression_Node) expr) {
 			return build_index_expr(index);

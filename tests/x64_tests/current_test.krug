@@ -2,8 +2,6 @@
 func printf() s32;
 
 func main() {
-    let x u64 = 32 as u64;
-    mut y *u64 = &x as *u64;
-    @y = 3 + 333;
-    printf(c"woah wtf %d\n", x);
+    let f = 'a' as s32;
+    printf(c"f is '%c'\n", f);
 }

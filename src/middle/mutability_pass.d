@@ -87,9 +87,15 @@ class Mutability_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 			// TODO
 		}
 		else if (cast(ast.Unary_Expression_Node) expr) {
-
+			// NOP?
+		}
+		else if (cast(ast.Rune_Constant_Node) expr) {
+			// NOP
 		}
 		else if (cast(ast.Integer_Constant_Node) expr) {
+			// NOP
+		}
+		else if (cast(ast.Boolean_Constant_Node) expr) {
 			// NOP
 		}
 		else if (cast(ast.Float_Constant_Node) expr) {
