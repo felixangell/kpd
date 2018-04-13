@@ -95,7 +95,7 @@ different names:
    let b = 4; 
    let z = x + b;
 `,
-		"Symbol '%s' defined here:", "Conflicts with symbol '%s' defined here:"));
+		"Symbol '%s' defined here", "Conflicts with symbol '%s' defined here"));
 
 mixin(make_err!("DEPENDENCY_CYCLE", "0004u", "TODO", "TODO!"));
 
@@ -171,7 +171,7 @@ The solution to this case is to fix the spelling error:
     let bar = 6; 		
     let foo = bar;
 `,
-		"Unresolved symbol '%s':"));
+		"Unresolved symbol '%s'"));
 
 mixin(make_err!("OUT_OF_BOUNDS_INDEX", "0002u", `This occurs when attempting to access a symbol by an out of bounds index. 		
 
@@ -194,15 +194,15 @@ an invalid index for an array or tuple."
 
 mixin(make_err!("TYPE_MISMATCH", "0003u",
 	`This occurs when two types mismatch.`,
-	"Type '%s':", "Mismatch with type '%s':"));
+	"Type '%s'", "Mismatch with type '%s'"));
 
 mixin(make_err!("NO_TYPE_ANNOTATION", "0004u",
     `TODO.`,
-    "No type annotation for binding '%s':"));
+    "No type annotation for binding '%s'"));
 
 mixin(make_err!("COMPILE_TIME_EVAL", "0005u",
     `TODO.`,
-    "Failed to evaluate expression at compile-time '%s':"));
+    "Failed to evaluate expression at compile-time '%s'"));
 
 mixin(make_err!("IMMUTABLE_ASSIGN", "0006u", `This occurs when attempting to re-assign an immutable variable.
 

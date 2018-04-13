@@ -84,8 +84,8 @@ Absolute_Token get_type_tok(Type t) {
 		return new Absolute_Token(type_token_info[t]);
 	}
 
-	logger.error("no token information for type " ~ to!string(t));
-	assert(0);
+	writeln("no token information for type " ~ to!string(t));
+	return null;
 }
 
 Type attach(Type type, Token token) {
@@ -442,7 +442,7 @@ struct Type_Inferrer {
 			return get_string();
 		}
 		else if (cast(Rune_Constant_Node) node) {
-			return get_rune();
+			return get_rune().attach(node.get_tok_info().get_tok());
 		}
 
 		else if (auto ptr = cast(Pointer_Type_Node) node) {

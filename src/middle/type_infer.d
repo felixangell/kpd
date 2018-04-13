@@ -62,6 +62,7 @@ class Type_Infer_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 
 	void analyze_while_loop(ast.While_Statement_Node loop) {
 		auto while_type = inferrer.analyze(loop.condition, curr_sym_table.env);
+		unify(while_type, get_bool());
 	}
 
 	void analyze_for_loop(ast.For_Statement_Node loop) {

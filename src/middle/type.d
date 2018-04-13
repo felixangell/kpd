@@ -52,11 +52,11 @@ static Type get_float(bool signed, int width) {
 }
 
 static Type get_rune() {
-	return get_int(true, 32);
+	return new Rune();
 }
 
 static Type get_bool() {
-	return get_int(false, 8);
+	return new Boolean();
 }
 
 static Type get_string() {
@@ -235,6 +235,44 @@ class Integer : Type_Operator {
 	override string toString() const {
 		return name;
 	}
+}
+
+class Boolean : Integer {
+	this() {
+		super(false, 8);
+	}
+
+	override bool cmp(Type other) {
+		if (cast(Boolean)other) {
+			return true;
+		}
+		return false;
+	}
+
+	override uint get_width() {
+		return width / 8;
+	}
+
+	override string toString() const {
+		return "bool";
+	}	
+}
+
+class Rune : Integer {
+	this() {
+		super(true, 32);
+	}
+
+	override bool cmp(Type other) {
+		if (cast(Rune)other) {
+			return true;
+		}
+		return false;
+	}
+
+	override string toString() const {
+		return "rune";
+	}	
 }
 
 class Floating : Type_Operator {

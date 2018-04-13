@@ -47,18 +47,19 @@ struct Diagnostic_Engine {
 
 		string error_msg; // todo buffer thing
 		foreach (idx, error; err.errors) {
+			string blame = null;
+			if (context !is null && context[idx] !is null) {
+				blame = blame_token(context[idx]);
+			}
+
 			char[1024] buff;
 			error_msg ~= sformat(buff[], error, colour.Bold(names[idx]));
-			error_msg ~= '\n';
 
-			// TODO make this use the token_info range
-			if (context is null || context[idx] is null) {
-				error_msg ~= "? compiler bug ?";
-			}
-			else {
-				error_msg ~= blame_token(context[idx]);
+			if (blame !is null) {
+				error_msg ~= ":\n" ~ blame;
 			}
 		}
+		error_msg ~= '\n';
 
 		char[8] id_buff;
 		logger.error(colour.Err("[E" ~ to!string(sformat(id_buff[], "%04d", err.id)) ~ "]:\n") ~ error_msg);

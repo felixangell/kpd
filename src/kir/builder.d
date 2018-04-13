@@ -517,7 +517,7 @@ class IR_Builder : Top_Level_Node_Visitor {
 		else if (auto rune_const = cast(Rune_Constant_Node) expr) {
 			dchar c = to!dchar(rune_const.value);
 			// runes are a 4 byte signed integer.
-			return new Constant(get_int(true, 32), to!string(to!uint(c)));
+			return new Constant(get_rune(), to!string(to!uint(c)));
 		}
 		else if (auto index = cast(Index_Expression_Node) expr) {
 			return build_index_expr(index);
