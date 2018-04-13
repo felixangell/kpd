@@ -10,7 +10,7 @@ import gen.x64.asm_file;
 import gen.x64.formatter;
 
 // GROSS!
-Reg AL; Reg CL; Reg DL; Reg BL; Reg SPL; Reg BPL; Reg SIL; Reg DIL; 
+Reg AH; Reg AL; Reg CL; Reg DL; Reg BL; Reg SPL; Reg BPL; Reg SIL; Reg DIL; 
 Reg AX; Reg CX; Reg DX; Reg BX; Reg SP; Reg BP; Reg SI; Reg DI; 
 Reg EAX; Reg ECX; Reg EDX; Reg EBX; Reg ESP; Reg EBP; Reg ESI; Reg EDI; 
 Reg RAX; Reg RCX; Reg RDX; Reg RBX; Reg RSP; Reg RBP; Reg RSI; Reg RDI; Reg RIP; 
@@ -18,6 +18,7 @@ Reg R8; Reg R9; Reg R10; Reg R11; Reg R12; Reg R13; Reg R14; Reg R15;
 Reg XMM0; Reg XMM1; Reg XMM2; Reg XMM3; Reg XMM4; Reg XMM5; Reg XMM6; Reg XMM7; Reg XMM15;
 
 static this() {
+	AH = new Reg(X64_Register.AH);
 	AL = new Reg(X64_Register.AL);
 	CL = new Reg(X64_Register.CL);
 	DL = new Reg(X64_Register.DL);
@@ -205,7 +206,7 @@ uint get_width(X64_Register a) {
 	else if (a >= X64_Register.AX) {
 		return 2;
 	}
-	else if (a >= X64_Register.AL) {
+	else if (a >= X64_Register.AH) {
 		return 1;
 	}
 	assert(0);
@@ -258,9 +259,18 @@ class X64_Assembly_Writer : X64_Assembly {
 		emitt("movz{} {}, {}", suffix(w), src.emit(), dest.emit());
 	}
 
+	void dec(Memory_Location a) {
+		emitt("dec{} {}", suffix(a.width()), a.emit());
+	}
+
 	void and(Memory_Location a, Memory_Location b) {
 		uint w = nzmin(a.width(), b.width());
 		emitt("and{} {}, {}", suffix(w), a.emit(), b.emit());
+	}
+
+	void andn(Memory_Location a, Memory_Location b) {
+		uint w = nzmin(a.width(), b.width());
+		emitt("andn{} {}, {}", suffix(w), a.emit(), b.emit());
 	}
 
 	void or(Memory_Location a, Memory_Location b) {

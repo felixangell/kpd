@@ -1613,7 +1613,7 @@ leave:
 		// parsed before the node to the node
 		if (result !is null) {
 			result.set_attribs(dirs);
-			result.set_tok_info(start, peek());
+			result.set_tok_info(start, peek(-1));
 		}
 
 		return result;

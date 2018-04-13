@@ -119,6 +119,10 @@ static this() {
 	];
 }
 
+Const make_const(T)(T val) {
+	return new Const(to!string(val));
+}
+
 /*
 	general notes for x64 code generation
 	these are things that i read or see on the way
@@ -151,7 +155,7 @@ class X64_Generator {
 	Memory_Location get_const(Constant c) {
 		auto type = c.get_type();
 		if (auto integer = cast(Integer) type) {
-			return new Const(c.value);
+			return make_const(c.value);
 		}
 		else if (auto floating = cast(Floating) type) {
 			// todo mangle properly?
@@ -239,6 +243,19 @@ class X64_Generator {
 		assert(0);
 	}
 
+	Memory_Location build_unary_op(Unary_Op u) {
+		Memory_Location v = get_val(u.v);
+		switch (u.op.lexeme) {
+		case "!":
+			writer.mov(v, AL);
+			writer.xor(make_const(1), AL);
+			return AL;
+		default:
+			logger.fatal("unhandled unary op " ~ to!string(u));
+			assert(0);
+		}
+	}
+
 	Memory_Location build_addr_of(Addr_Of a) {
 		Memory_Location v = get_val(a.v);
 		// leaq v, rax
@@ -299,6 +316,9 @@ class X64_Generator {
 		}
 		else if (auto c = cast(Constant_Reference) v) {
 			return new Address(c.name, RIP);
+		}
+		else if (auto u = cast(Unary_Op) v) {
+			return build_unary_op(u);
 		}
 		else if (auto i = cast(Call) v) {
 			// eax or rax ?
@@ -487,7 +507,7 @@ class X64_Generator {
 		// has been pushed to the stack!
 		writer.emitt_at(curr_ctx.alloc_instr_addr, "subq ${}, %rsp", to!string(curr_ctx.size()));
 
-		writer.add(new Const(to!string(curr_ctx.size())), RSP);
+		writer.add(make_const(curr_ctx.size()), RSP);
 
 		writer.pop(RBP);
 		writer.ret();
@@ -497,7 +517,7 @@ class X64_Generator {
 		// emit the condition and 
 		// check if it's true
 		auto condish = get_val(iff.condition);
-		writer.cmp(new Const("1"), condish);
+		writer.cmp(make_const(1), condish);
 
 		writer.je(mangle(iff.a));
 		writer.jmp(mangle(iff.b));
@@ -579,7 +599,7 @@ class X64_Generator {
 			}
 		}		
 
-		writer.mov(new Const(to!string(next_float)), AL);
+		writer.mov(make_const(next_float), AL);
 		writer.call(call_name);
 	}
 

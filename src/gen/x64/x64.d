@@ -1,6 +1,7 @@
 module gen.x64.instr;
 
 enum X64_Register : ubyte {
+	AH,
 	AL,
 	CL,
 	DL,
