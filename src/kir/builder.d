@@ -4,6 +4,7 @@ import std.stdio;
 import std.range.primitives;
 import std.conv;
 import std.traits;
+import std.algorithm.searching : countUntil;
 
 import kir.instr;
 import kir.ir_mod;
@@ -302,11 +303,43 @@ class IR_Builder : Top_Level_Node_Visitor {
 		return null;
 	}
 
+	Type get_sym_type_via(Type type, Symbol_Node sym) {
+		string name = sym.value.lexeme;
+		if (auto structure = cast(Structure) type) {
+			return structure.get_field_type(name);
+		}
+
+		logger.fatal("unhandled lookup via " ~ to!string(type));
+		assert(0);
+	}
+
+	Value build_sym_access_via(Value last, Symbol_Node sym) {
+		if (auto identifier = cast(Identifier) last) {
+			if (auto structure = cast(Structure) last.get_type()) {
+				auto idx = structure.get_field_index(sym.value.lexeme);
+				
+				// FIXME alignment stuff
+				// structures are aligned to 8 bytes
+				// for x64.
+				return new Get_Element_Pointer(identifier, 0, idx, 8);
+			}
+			else {
+				assert(0);
+			}
+		}
+
+		logger.fatal("what is " ~ to!string(last));
+		assert(0);
+	}
+
 	Value build_expr_via(Value last, ast.Expression_Node v) {
 		if (auto call = cast(ast.Call_Node) v) {
 			Call c = cast(Call) build_call_via(last, call);
 			// squeeze in a new param
 			return c;
+		}
+		else if (auto sym = cast(ast.Symbol_Node) v) {
+			return build_sym_access_via(last, sym);
 		}
 
 		writeln(last, " vs ", v, " types ", typeid(last), " vs ", typeid(v));
@@ -316,10 +349,23 @@ class IR_Builder : Top_Level_Node_Visitor {
 	// TODO make this work for EVERYTHING
 	Value build_method_call(ast.Path_Expression_Node path) {
 		Value last = null;
-		foreach (v; path.values) {
+		foreach (ref v; path.values) {
 			if (last !is null) {
 				last = build_expr_via(last, v);			
 			} 
+			else {
+				last = build_expr(v);
+			}
+		}
+		return last;
+	}
+
+	Value build_sym_access(ast.Path_Expression_Node path) {
+		Value last = null;
+		foreach (ref v; path.values) {
+			if (last !is null) {
+				last = build_expr_via(last, v);
+			}
 			else {
 				last = build_expr(v);
 			}
@@ -336,8 +382,8 @@ class IR_Builder : Top_Level_Node_Visitor {
 		if (cast(ast.Call_Node) last) {
 			return build_method_call(path);
 		}
-		else {
-			writeln(last, " is ", typeid(last), " WOW");
+		else if (auto sym = cast(ast.Symbol_Node) last) {
+			return build_sym_access(path);
 		}
 
 		foreach (v; path.values) {

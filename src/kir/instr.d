@@ -447,6 +447,27 @@ class Deref : Basic_Value {
 	}
 }
 
+// offs, index, scale
+// returns a pointer to the given
+// position to the addr 
+// specified by the offs, index, scale
+class Get_Element_Pointer : Basic_Value {
+	Value addr;
+	ulong offs, index, scale;
+
+	this(Value addr, ulong offs, ulong index, ulong scale) {
+		super(addr.get_type());
+		this.addr = addr;
+		this.offs = offs;
+		this.index = index;
+		this.scale = scale;
+	}
+
+	override string toString() {
+		return "gep(" ~ to!string(addr) ~ " " ~ to!string(offs) ~ "+(" ~ to!string(index) ~ "*" ~ to!string(scale) ~ "))";
+	}
+}
+
 class Addr_Of : Basic_Value {
 	Value v;
 

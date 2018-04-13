@@ -20,15 +20,24 @@ class Top_Level_Type_Decl_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 	Type_Inferrer inferrer;
 
 	void declare_structure(string name, ast.Structure_Type_Node s) {
+		string[] names;
 		Type[] types;
-		types.length = s.fields.length;
+
+		names.reserve(s.fields.length);
+		types.reserve(s.fields.length);
 
 		foreach (field; s.fields) {
 			types ~= inferrer.analyze(field.type, curr_sym_table.env);
+			names ~= field.name.lexeme;
 		}
 
-		auto s_type = new Structure();
+		auto s_type = new Structure(types, names);
 		curr_sym_table.env.register_type(name, s_type);
+	}
+
+	void declare_alias(string name, ast.Type_Node t) {
+		auto type = inferrer.analyze(t, curr_sym_table.env);
+		curr_sym_table.env.register_type(name, type);
 	}
 
 	override void analyze_named_type_node(ast.Named_Type_Node node) {
@@ -37,8 +46,11 @@ class Top_Level_Type_Decl_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 		if (auto structure = cast(Structure_Type_Node) node.type) {
 			declare_structure(name, structure);
 		}
+		// TODO traits
+		// TODO enums
+		// TODO unions
 		else {
-			this.log(Log_Level.Error, "unimplemented!");
+			declare_alias(name, node.type);
 		}
 	}
 

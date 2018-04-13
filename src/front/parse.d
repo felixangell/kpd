@@ -773,6 +773,9 @@ class Parser : Compilation_Phase {
 					pan.values ~= binary.left;
 				}
 
+				// FIXME this is semi inaccurate
+				pan.set_tok_info(start, peek());
+
 				auto result = new Binary_Expression_Node(pan, binary.operand, binary.right);
 				result.set_tok_info(start, peek());
 				return result;
@@ -791,7 +794,6 @@ class Parser : Compilation_Phase {
 		}
 		while (has_next());
 
-		pan.set_tok_info(start, peek());
 		return pan;
 	}
 

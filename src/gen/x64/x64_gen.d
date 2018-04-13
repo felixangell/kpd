@@ -269,6 +269,19 @@ class X64_Generator {
 		return new Address(R10);
 	}
 
+	Memory_Location build_gep(Get_Element_Pointer g) {
+		Memory_Location v = get_val(g.addr);
+		writer.mov(make_const(g.index), R14);
+
+		if (auto addr = cast(Address) v) {
+			addr.index = R14;
+			addr.scale = g.scale;
+			return addr;
+		}
+
+		assert(0);
+	}
+
 	Memory_Location get_val(Value v) {
 		if (auto c = cast(Constant) v) {
 			return get_const(c);
@@ -333,6 +346,9 @@ class X64_Generator {
 		}
 		else if (auto deref = cast(Deref) v) {
 			return build_deref(deref);
+		}
+		else if (auto gep = cast(Get_Element_Pointer) v) {
+			return build_gep(gep);
 		}
 
 		logger.fatal("unimplemented get_val " ~ to!string(v) ~ " ... " ~ to!string(typeid(v)));
@@ -484,7 +500,15 @@ class X64_Generator {
 			source = floats[];
 		}
 
-		Reg ax_temp = source[cast(ulong)log2(addr_width)];
+		auto src_indx = cast(ulong)log2(addr_width);
+
+		// FIXME... this mostly occurs with structs
+		// not really sure what to do otherwise
+		if (src_indx > source.length) {
+			src_indx = 3;
+		}
+
+		Reg ax_temp = source[src_indx];
 		writer.mov(val, ax_temp);
 		writer.mov(ax_temp, addr);
 	}

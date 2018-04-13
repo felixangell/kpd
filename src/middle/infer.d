@@ -237,11 +237,42 @@ struct Type_Inferrer {
 		return t;
 	}
 
+	Type analyze_sym_via(Type last, Symbol_Node sym, Type_Environment e, Type_Variable[string] generics) {
+		if (auto structure = cast(Structure) last) {
+			auto type = structure.get_field_type(sym.value.lexeme);
+			assert(type !is null);
+			return type;
+		}
+
+		logger.error("unhandled type " ~ to!string(last));
+		assert(0);
+	}
+
+	// FIXME
+	Type analyze_via(Type last, Node n, Type_Environment e, Type_Variable[string] generics) {
+		if (auto sym = cast(Symbol_Node) n) {
+			return analyze_sym_via(last, sym, e, generics);
+		}
+
+		logger.error(n.get_tok_info(), "unhandled node " ~ to!string(typeid(n)));
+		assert(0);
+	}
+
 	// TODO this needs to be done properly...
 	Type analyze_path(Path_Expression_Node path, Type_Variable[string] generics) {
-		auto fst = path.values[0];
-		Type t = analyze(fst, e, generics);
-		return t;
+		writeln("analyzing path ", path);
+
+		Type last = null;
+		foreach (ref val; path.values) {
+			if (last !is null) {
+				last = analyze_via(last, val, e, generics);
+			}
+			else {
+				last = analyze(val, e, generics);
+			}
+		}
+
+		return last;
 	}
 
 	Type analyze_index(ast.Index_Expression_Node index, Type_Variable[string] generics) {

@@ -1,6 +1,12 @@
 module sema.type;
 
 import std.conv;
+import std.algorithm.searching : countUntil;
+
+static int align_by(int n, int m) {
+    int rem = n % m;
+    return (rem == 0) ? n : n - rem + m;
+}
 
 static Type[string] PRIMITIVE_TYPES;
 
@@ -235,8 +241,24 @@ class Array : Type {
 }
 
 class Structure : Type {
+	string[] names;
+
 	this(Type[] args...) {
 		super("struct", args);
+	}
+
+	this(Type[] args, string[] names = []) {
+		super("struct", args);
+		this.names = names;
+	}
+
+	auto get_field_index(string name) {
+		return names.countUntil(name);
+	}
+
+	Type get_field_type(string name) {
+		auto idx = names.countUntil(name);
+		return types[idx];
 	}
 
 	override bool cmp(Type other) {
@@ -246,7 +268,7 @@ class Structure : Type {
 	override uint get_width() {
 		uint size = 0;
 		foreach (t; types) {
-			size += t.get_width();
+			size += align_by(t.get_width(), 8);
 		}
 		return size;
 	}
