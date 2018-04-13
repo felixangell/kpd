@@ -2,19 +2,8 @@
 func printf() s32;
 
 func main() {
-	let a = false;
-	if !a {
-		printf(c"a true\n");
-	}
-	if a {
-		printf(c"a true\n");
-	}
-	
-	let b = true;
-	if !b {
-		printf(c"b true\n");
-	}
-	if b {
-		printf(c"b true\n");
+	let i = 0;
+	loop {
+		i = i + 1;
 	}
 }

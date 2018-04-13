@@ -148,6 +148,12 @@ class Mutability_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 		else if (auto w = cast(ast.While_Statement_Node) stat) {
 			visit_block(w.block);
 		}
+		else if (auto f = cast(ast.For_Statement_Node) stat) {
+			visit_block(f.block);
+		}
+		else if (auto l = cast(ast.Loop_Statement_Node) stat) {
+			visit_block(l.block);
+		}
 		else if (cast(ast.Return_Statement_Node) stat) {
 			// NOP
 		}
