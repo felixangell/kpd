@@ -177,7 +177,11 @@ void unify(Type a, Type b) {
 		}
 		else if (auto opb = cast(Type_Operator) pb) {
 			if (cmp(opa.name, opb.name) || opa.types.length != opb.types.length) {
-				Diagnostic_Engine.throw_error(TYPE_MISMATCH, get_type_tok(a), get_type_tok(b));
+				string[] names = [
+					to!string(a),
+					to!string(b),
+				];
+				Diagnostic_Engine.throw_error(TYPE_MISMATCH, names, get_type_tok(a), get_type_tok(b));
 				assert(0);
 			}
 

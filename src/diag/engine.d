@@ -25,12 +25,7 @@ struct Diagnostic_Engine {
 				"\n\n./krug --explain E" ~ err_code_str ~ " to explain the error.");
 	}
 
-	// this is a code error as it takes tokens for context and
-	// blames them! distinguish this. also it uses a predefined
-	// error message template
 	static void throw_error(Compiler_Error err, Token_Info[] context...) {
-		thrown_errors[err] = true;
-
 		string[] token_names;
 
 		foreach (idx, tok; context) {
@@ -38,13 +33,22 @@ struct Diagnostic_Engine {
 				token_names ~= "? compiler bug ?";
 				continue;
 			}
-			token_names ~= colour.Bold(tok.print_tok());
+			token_names ~= tok.print_tok();
 		}
+
+		throw_error(err, token_names, context);
+	}
+
+	// this is a code error as it takes tokens for context and
+	// blames them! distinguish this. also it uses a predefined
+	// error message template
+	static void throw_error(Compiler_Error err, string[] names, Token_Info[] context...) {
+		thrown_errors[err] = true;
 
 		string error_msg; // todo buffer thing
 		foreach (idx, error; err.errors) {
 			char[1024] buff;
-			error_msg ~= sformat(buff[], error, token_names[idx]);
+			error_msg ~= sformat(buff[], error, colour.Bold(names[idx]));
 			error_msg ~= '\n';
 
 			// TODO make this use the token_info range
