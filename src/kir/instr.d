@@ -305,7 +305,7 @@ class Phi : Basic_Value {
 	Value[] users;
 
 	this() {
-		super(prim_type("void"));
+		super(new Void());
 	}
 
 	void add_edge(Value v) {
@@ -325,7 +325,7 @@ class Phi : Basic_Value {
 
 class Undef : Basic_Value {
 	this() {
-		super(prim_type("void"));
+		super(new Void());
 	}
 }
 
@@ -506,7 +506,7 @@ class Unary_Op : Basic_Instruction, Value {
 
 class NOP : Basic_Instruction {
 	this() {
-		super(prim_type("void"));
+		super(new Void());
 	}
 }
 
@@ -515,7 +515,7 @@ class Jump : Basic_Instruction {
 	Label label;
 
 	this(Label label) {
-		super(prim_type("void"));
+		super(new Void());
 		this.label = label;
 	}
 
@@ -529,13 +529,13 @@ class Label : Basic_Value {
 	Basic_Block reference;
 
 	this(Basic_Block bb) {
-		super(prim_type("void"));
+		super(new Void());
 		this.name = bb.name();
 		this.reference = bb;
 	}
 
 	this(string name, Basic_Block reference) {
-		super(prim_type("void"));
+		super(new Void());
 		this.name = name;
 		this.reference = reference;
 	}
@@ -552,7 +552,7 @@ class If : Basic_Instruction {
 	Label a, b;
 
 	this(Value condition) {
-		super(prim_type("u8")); // FIXME ?
+		super(get_int(false, 8)); // FIXME ?
 		this.condition = condition;
 	}
 

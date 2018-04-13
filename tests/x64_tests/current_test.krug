@@ -1,36 +1,8 @@
-#{c_func}
-func printf() s32;
-
-type Person struct {
-	age s32,
-	a s32,
-	b s32,
-	c s32,
-	d s32,
+type Foo struct {
+	age u32,
 };
 
 func main() {
-	let felix Person;
-
-	felix.age = 19;
-
-	felix.a = 4;
-	felix.b = 6;
-	felix.c = 8;
-	felix.d = 10;
-
-	let age = felix.age;
-	printf(c"age is %d\n", age);
-
-	let a = felix.a;
-	printf(c"a is %d\n", a);
-
-	let b = felix.b;
-	printf(c"b is %d\n", b);
-
-	let c = felix.c;
-	printf(c"c is %d\n", c);
-
-	let d = felix.d;
-	printf(c"d is %d\n", d);
+	let f Foo;
+	f.age = 3;	
 }

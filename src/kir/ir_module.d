@@ -55,7 +55,7 @@ class IR_Module {
 		return null;
 	}
 
-	Function add_function(string name, Type type = prim_type("void")) {
+	Function add_function(string name, Type type = new Void()) {
 		auto func = new Function(name, type, this);
 		functions[func.name] = func;
 		recent_func = func;

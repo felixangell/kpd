@@ -8,6 +8,65 @@ static int align_by(int n, int m) {
     return (rem == 0) ? n : n - rem + m;
 }
 
+static Type conv_prim(string name) {
+	final switch (name) {
+	case "u8":
+		return get_int(false, 8);
+	case "u16":
+		return get_int(false, 16);
+	case "u32":
+		return get_int(false, 32);
+	case "u64":
+		return get_int(false, 64);
+
+	case "s8":
+		return get_int(true, 8);
+	case "s16":
+		return get_int(true, 16);
+	case "s32":
+		return get_int(true, 32);
+	case "s64":
+		return get_int(true, 64);
+	
+	case "f32":
+		return get_int(true, 32);
+	case "f64":
+		return get_int(true, 64);
+	
+	case "rune":
+		return get_rune();
+	case "bool":
+		return get_bool();
+	case "string":
+		return get_string();
+	}
+	assert(0);
+}
+
+static Type get_int(bool signed, int width) {
+	return new Integer(signed, width);
+}
+
+static Type get_float(bool signed, int width) {
+	return new Floating(signed, width);
+}
+
+static Type get_rune() {
+	return get_int(true, 32);
+}
+
+static Type get_bool() {
+	return get_int(false, 8);
+}
+
+static Type get_string() {
+	return new Structure(
+		// len, pointer to string
+		get_int(false, 64),
+		new Pointer(get_int(false, 8)),
+	);
+}
+
 static Type[string] PRIMITIVE_TYPES;
 
 static this() {
@@ -30,11 +89,7 @@ static this() {
 		"void": new Void(),
 	];
 
-	PRIMITIVE_TYPES["string"] = new Structure(
-		// len, pointer to string
-		prim_type("u64"),
-		new Pointer(prim_type("u8")),
-	);
+	PRIMITIVE_TYPES["string"] = null;
 }
 
 static void register_types(string...)(string types) {
@@ -42,11 +97,6 @@ static void register_types(string...)(string types) {
 		assert(name !in PRIMITIVE_TYPES);
 		PRIMITIVE_TYPES[name] = new Type_Operator(name);
 	}
-}
-
-static Type prim_type(string type_name) {
-	assert(type_name in PRIMITIVE_TYPES, to!string(type_name) ~ " not in primitives?!");
-	return PRIMITIVE_TYPES[type_name];
 }
 
 class Type {

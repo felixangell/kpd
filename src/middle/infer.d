@@ -10,6 +10,7 @@ import logger;
 import sema.type;
 import ast;
 import colour;
+import tok;
 
 // type environment contains all of the types that have
 // been registered, this works _alongside_ the scope though
@@ -40,8 +41,8 @@ class Type_Environment {
 		// this is because N could be 284592843 (though... unrealistic)
 		// and we don't want to have to do 284592843 calls to get
 		// a boolean type!
-		register_type("true", prim_type("bool"));
-		register_type("false", prim_type("bool"));
+		register_type("true", get_bool());
+		register_type("false", get_bool());
 	}
 
 	Type[string] data;
@@ -73,6 +74,23 @@ class Type_Environment {
 		}
 		data[key] = t;
 	}
+}
+
+// FIXME this is hacky. 
+Token[Type] type_token_info;
+
+Absolute_Token get_type_tok(Type t) {
+	if (t in type_token_info) {
+		return new Absolute_Token(type_token_info[t]);
+	}
+
+	logger.error("no token information for type " ~ to!string(t));
+	assert(0);
+}
+
+Type attach(Type type, Token token) {
+	type_token_info[type] = token;
+	return type;
 }
 
 // t member of types?
@@ -159,7 +177,7 @@ void unify(Type a, Type b) {
 		}
 		else if (auto opb = cast(Type_Operator) pb) {
 			if (cmp(opa.name, opb.name) || opa.types.length != opb.types.length) {
-				logger.error("Type mismatch between types ", to!string(a), " and ", to!string(b));
+				Diagnostic_Engine.throw_error(TYPE_MISMATCH, get_type_tok(a), get_type_tok(b));
 				assert(0);
 			}
 
@@ -211,9 +229,7 @@ struct Type_Inferrer {
 	}
 
 	Type analyze_primitive(ast.Primitive_Type_Node node, Type_Variable[string] generics) {
-		auto type_name = node.type_name.lexeme;
-		// handle if this primitive doesn't exist.
-		return prim_type(type_name);
+		return conv_prim(node.type_name.lexeme);
 	}
 
 	Type get_symbol_type(string sym_name, Type_Variable[string] generics) {
@@ -300,13 +316,13 @@ struct Type_Inferrer {
 		assert(0);
 	}
 
-	// NOTE: we set the type to a prim_type("void")
+	// NOTE: we set the type to a new Void()
 	// if it is null, i.e. specifying a type after
 	// the function is optional during parsing as
 	// we assume it is void. THIS part of the compiler
 	// is where we actually set it to be void!
 	Type analyze_func(ast.Function_Node node, Type_Variable[string] generics) {
-		Type ret_type = prim_type("void");
+		Type ret_type = new Void();
 		if (node.return_type !is null) {
 			ret_type = analyze(node.return_type, e, generics);
 		}
@@ -348,7 +364,7 @@ struct Type_Inferrer {
 			return analyze_func(func, generics);
 		}
 		else if (auto prim = cast(Primitive_Type_Node) node) {
-			return analyze_primitive(prim, generics);
+			return analyze_primitive(prim, generics).attach(prim.get_tok_info().get_tok());
 		}
 		else if (auto var = cast(Variable_Statement_Node) node) {
 			return analyze_variable(var, generics);
@@ -388,7 +404,7 @@ struct Type_Inferrer {
 
 		else if (auto path = cast(ast.Path_Expression_Node) node) {
 			// TODO!
-			return analyze_path(path, generics);
+			return analyze_path(path, generics).attach(path.values[$-1].get_tok_info().get_tok());
 		}
 
 		else if (auto unary = cast(ast.Unary_Expression_Node) node) {
@@ -406,23 +422,23 @@ struct Type_Inferrer {
 
 		// constants
 		else if (cast(Integer_Constant_Node) node) {
-			return prim_type("s32");
+			return get_int(true, 32).attach(node.get_tok_info().get_tok());
 		}
 		else if (cast(Float_Constant_Node) node) {
 			// the widest type for floating point
-			return prim_type("f64"); // "double"
+			return get_float(true, 64).attach(node.get_tok_info().get_tok()); // "double"
 		}
 		else if (cast(Boolean_Constant_Node) node) {
-			return prim_type("bool");
+			return get_bool().attach(node.get_tok_info().get_tok());
 		}
 		else if (auto str = cast(String_Constant_Node) node) {
 			if (str.type == String_Type.C_STYLE) {
-				return new Pointer(prim_type("u8"));
+				return new Pointer(get_int(false, 8)).attach(node.get_tok_info().get_tok());
 			}
-			return prim_type("string");
+			return get_string();
 		}
 		else if (cast(Rune_Constant_Node) node) {
-			return prim_type("rune");
+			return get_rune();
 		}
 
 		else if (auto ptr = cast(Pointer_Type_Node) node) {

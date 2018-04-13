@@ -98,7 +98,7 @@ class IR_Builder : Top_Level_Node_Visitor {
 		if (sym.resolved_symbol is null) {
 			logger.fatal("Unresolved symbol node leaking! ", to!string(sym), " ... ", to!string(typeid(sym)),
 				"\n", logger.blame_token(sym.get_tok_info()));
-			return prim_type("void");
+			return new Void();
 		}
 
 		if (auto sym_val = cast(Symbol_Value) sym.resolved_symbol) {
@@ -125,7 +125,7 @@ class IR_Builder : Top_Level_Node_Visitor {
 	}
 
 	Type conv_prim_type(ast.Primitive_Type_Node node) {
-		return prim_type(node.type_name.lexeme);		
+		return conv_prim(node.type_name.lexeme);
 	}
 
 	Type get_type_path_type(Type_Path_Node t) {
@@ -154,7 +154,8 @@ class IR_Builder : Top_Level_Node_Visitor {
 		}
 
 		else if (auto i = cast(Integer_Constant_Node) t) {
-			return prim_type("s32");
+			// FIXME
+			return get_int(true, 32);
 		}
 
 		else if (auto idx = cast(Index_Expression_Node) t) {
@@ -193,7 +194,7 @@ class IR_Builder : Top_Level_Node_Visitor {
 		else if (auto fn = cast(Function_Node) t) {
 			// void...
 			if (fn.return_type is null) {
-				return prim_type("void");
+				return new Void();
 			}
 			return get_type(fn.return_type);
 		}
@@ -231,7 +232,7 @@ class IR_Builder : Top_Level_Node_Visitor {
 	// 2. any instruction that is the target of a jump is a leader.
 	// 3. any instruction that follows a jump is a leader.
 	override void analyze_function_node(ast.Function_Node func) {
-		Type return_type = prim_type("void");
+		Type return_type = new Void();
 		if (func.return_type !is null) {
 			return_type = get_type(func.return_type);
 		}
@@ -273,7 +274,7 @@ class IR_Builder : Top_Level_Node_Visitor {
 		// OR if the last instruction is not a return!
 		if (curr_func.curr_block.instructions.length == 0 || !cast(Return) curr_func
 				.last_instr()) {
-			curr_func.add_instr(new Return(prim_type("void")));
+			curr_func.add_instr(new Return(new Void()));
 		}
 	}
 
@@ -462,7 +463,7 @@ class IR_Builder : Top_Level_Node_Visitor {
 		auto bb = push_bb("_yield");
 
 		// TODO type here is not a s32!!
-		Alloc a = new Alloc(prim_type("void"), bb.name() ~ "_" ~ gen_temp());
+		Alloc a = new Alloc(new Void(), bb.name() ~ "_" ~ gen_temp());
 		curr_func.add_instr(a);
 
 		build_block(curr_func, eval.block);
@@ -484,8 +485,8 @@ class IR_Builder : Top_Level_Node_Visitor {
 		// generate a constant 
 		// as well as a reference to the
 		// constant
-		string const_ref = add_constant(new Constant(new Pointer(prim_type("u8")), str.value));
-		auto string_data_ptr = new Constant_Reference(new Pointer(prim_type("u8")), const_ref);
+		string const_ref = add_constant(new Constant(new Pointer(get_int(false, 8)), str.value));
+		auto string_data_ptr = new Constant_Reference(new Pointer(get_int(false, 8)), const_ref);
 
 		// c-style string is simply a raw unsigned
 		// 8 bit integer pointer
@@ -493,11 +494,13 @@ class IR_Builder : Top_Level_Node_Visitor {
 			return string_data_ptr;
 		}
 
+		// FIXME!
+
 		// TODO we assume its pascal here..
 		// pascal type is the pointer as well as the length of
 		// the array as a struct.
-		auto val = new Composite(prim_type("FIXME"));
-		val.add_value(new Constant(prim_type("u64"), to!string(str.value.length)));
+		auto val = new Composite(get_string());
+		val.add_value(new Constant(get_int(false, 64), to!string(str.value.length)));
 		val.add_value(string_data_ptr);
 		return val;
 	}
@@ -505,16 +508,16 @@ class IR_Builder : Top_Level_Node_Visitor {
 	Value build_expr(ast.Expression_Node expr) {
 		if (auto integer_const = cast(Integer_Constant_Node) expr) {
 			// FIXME
-			return new Constant(prim_type("s32"), to!string(integer_const.value));
+			return new Constant(get_int(true, 32), to!string(integer_const.value));
 		}
 		else if (auto float_const = cast(Float_Constant_Node) expr) {
 			// FIXME
-			return new Constant(prim_type("f64"), to!string(float_const.value));
+			return new Constant(get_float(true, 64), to!string(float_const.value));
 		}
 		else if (auto rune_const = cast(Rune_Constant_Node) expr) {
 			dchar c = to!dchar(rune_const.value);
 			// runes are a 4 byte signed integer.
-			return new Constant(prim_type("s32"), to!string(to!uint(c)));
+			return new Constant(get_int(true, 32), to!string(to!uint(c)));
 		}
 		else if (auto index = cast(Index_Expression_Node) expr) {
 			return build_index_expr(index);
@@ -551,7 +554,7 @@ class IR_Builder : Top_Level_Node_Visitor {
 		}
 		else if (auto bool_const = cast(Boolean_Constant_Node) expr) {
 			string value = bool_const.value ? "1" : "0";
-			return new Constant(prim_type("u8"), value);
+			return new Constant(get_int(false, 8), value);
 		}
 
 		logger.fatal("IR_Builder: unhandled build_expr ", to!string(expr), " -> ", to!string(typeid(expr)));
@@ -559,7 +562,7 @@ class IR_Builder : Top_Level_Node_Visitor {
 	}
 
 	void build_return_node(ast.Return_Statement_Node ret) {
-		auto ret_instr = new Return(prim_type("void"));
+		auto ret_instr = new Return(new Void());
 
 		// its not a void type
 		if (ret.value !is null) {
@@ -805,7 +808,7 @@ class IR_Builder : Top_Level_Node_Visitor {
 
 	void build_structure_destructure(ast.Structure_Destructuring_Statement_Node stat) {
 		foreach (v; stat.values) {
-			auto addr = curr_func.add_alloc(new Alloc(prim_type("void"), v.lexeme));
+			auto addr = curr_func.add_alloc(new Alloc(new Void(), v.lexeme));
 		}
 	}
 

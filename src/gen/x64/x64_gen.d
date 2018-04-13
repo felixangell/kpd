@@ -200,7 +200,7 @@ class X64_Generator {
 				break;
 			}
 		}
-		else if (c.get_type().cmp(new Pointer(prim_type("u8")))) {
+		else if (c.get_type().cmp(new Pointer(get_int(false, 8)))) {
 			constant_type = "asciz";
 		}
 		// TODO pascal style string i.e the struct { len, ptr_to_raw_str }
@@ -729,7 +729,7 @@ class X64_Generator {
 		// if there is no return instr
 		// slap one on the end.
 		if (!(cast(Return) func.last_instr())) {
-			emit_ret(new Return(prim_type("void")));
+			emit_ret(new Return(new Void()));
 		}
 	}
 }
