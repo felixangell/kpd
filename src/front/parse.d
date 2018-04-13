@@ -1148,18 +1148,32 @@ class Parser : Compilation_Phase {
 		return new While_Statement_Node(cond, block);
 	}
 
-	// for var; condition; step {}
-	/*
-		i dont like the variable
-	
-
-		for i < 10; i = i + 1 {
-	
+	ast.For_Statement_Node parse_for() {
+		if (!peek().cmp(keyword.For)) {
+			return null;
 		}
-	*/
-	ast.Loop_Statement_Node parse_for() {
-		logger.error(peek(), "unimplemented");
-		assert(0);
+		auto start = expect(keyword.For);
+
+		auto cond = parse_expr();
+		if (cond is null) {
+			logger.error(peek(), "expected condition in for loop:");
+		}
+
+		expect(";");
+		auto step = parse_expr();
+		if (step is null) {
+			logger.error(peek(), "expected step in for loop:");
+		}
+		auto step_end = peek();
+
+		auto block = parse_block();
+		if (block is null) {
+			logger.error(peek(), "expected for loop body:");
+		}
+
+		auto for_stat = new For_Statement_Node(cond, step, block);
+		for_stat.set_tok_info(start, step_end);
+		return for_stat;
 	}
 
 	ast.Match_Statement_Node parse_match() {

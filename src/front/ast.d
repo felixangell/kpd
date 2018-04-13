@@ -138,6 +138,22 @@ class Loop_Statement_Node : Statement_Node {
 	}
 }
 
+class For_Statement_Node : Statement_Node {
+	Expression_Node condition;
+	Expression_Node step;
+	Block_Node block;
+
+	this(Expression_Node condition, Expression_Node step, Block_Node block) {
+		this.condition = condition;
+		this.step = step;
+		this.block = block;
+	}
+
+	override string toString() {
+		return "for(" ~ to!string(condition) ~ ", " ~ to!string(step) ~ ")";
+	}
+}
+
 class While_Statement_Node : Statement_Node {
 	Expression_Node condition;
 	Block_Node block;

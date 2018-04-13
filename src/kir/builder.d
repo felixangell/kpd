@@ -677,6 +677,42 @@ class IR_Builder : Top_Level_Node_Visitor {
 		}
 	}
 
+	void build_for_loop_node(ast.For_Statement_Node loop) {
+		auto loop_check = new Label(push_bb());
+		Value v = build_expr(loop.condition);
+		If jmp = new If(v);
+		curr_func.add_instr(jmp);
+
+		auto loop_body = new Label(push_bb());
+		build_block(curr_func, loop.block, loop_body.reference);
+
+		Value step = build_expr(loop.step);
+		if (auto str = cast(Store) step) {
+			curr_func.add_instr(str);
+		}
+
+		curr_func.add_instr(new Jump(loop_check));
+
+		jmp.a = loop_body;
+		jmp.b = new Label(push_bb());
+
+		// re-write all of the jumps that
+		// are for break statements to jump to
+		// the exit basic block
+		foreach (k, v; break_rewrites) {
+			k.instructions[v] = new Jump(jmp.b);
+			break_rewrites.remove(k);
+		}
+
+		// re-write all of the jumps that
+		// are for next statements to jump
+		// to the entry basic block
+		foreach (k, v; next_rewrites) {
+			k.instructions[v] = new Jump(loop_check);
+			next_rewrites.remove(k);
+		}
+	}
+
 	void build_while_loop_node(ast.While_Statement_Node loop) {
 		auto loop_check = new Label(push_bb());
 		Value v = build_expr(loop.condition);
@@ -813,6 +849,9 @@ class IR_Builder : Top_Level_Node_Visitor {
 		}
 		else if (auto loop = cast(ast.While_Statement_Node) node) {
 			build_while_loop_node(loop);
+		}
+		else if (auto for_loop = cast(ast.For_Statement_Node) node) {
+			build_for_loop_node(for_loop);
 		}
 		else if (auto b = cast(ast.Break_Statement_Node) node) {
 			build_break_node(b);

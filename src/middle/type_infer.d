@@ -64,6 +64,11 @@ class Type_Infer_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 		auto while_type = inferrer.analyze(loop.condition, curr_sym_table.env);
 	}
 
+	void analyze_for_loop(ast.For_Statement_Node loop) {
+		auto cond_type = inferrer.analyze(loop.condition, curr_sym_table.env);
+		auto step_type = inferrer.analyze(loop.step, curr_sym_table.env);
+	}
+
 	void analyze_if_stat(ast.If_Statement_Node iff) {
 		auto if_type = inferrer.analyze(iff.condition, curr_sym_table.env);
 	}
@@ -121,11 +126,13 @@ class Type_Infer_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 
 	override void visit_stat(ast.Statement_Node stat) {
 		if (auto variable = cast(ast.Variable_Statement_Node) stat) {
-			writeln("yo we're inferring ", variable);
 			analyze_var_stat_node(variable);
 		}
 		else if (auto loop = cast(ast.While_Statement_Node) stat) {
 			analyze_while_loop(loop);
+		}
+		else if (auto for_loop = cast(ast.For_Statement_Node) stat) {
+			analyze_for_loop(for_loop);
 		}
 		else if (auto iff = cast(ast.If_Statement_Node) stat) {
 			analyze_if_stat(iff);
