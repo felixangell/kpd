@@ -376,6 +376,21 @@ struct Type_Inferrer {
 		else if (auto binary = cast(Binary_Expression_Node) node) {
 			auto left = analyze(binary.left, e, generics);
 			auto right = analyze(binary.right, e, generics);
+			
+			switch (binary.operand.lexeme) {
+			case "==":
+			case "!=":
+			case ">=":
+			case "<=":
+			case ">":
+			case "<":
+			case "&&":
+			case "||":
+				return get_bool();
+			default:
+				break;
+			}
+
 			unify(left, right);
 			return left;
 		}
