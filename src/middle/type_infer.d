@@ -67,15 +67,19 @@ class Type_Infer_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 
 	void analyze_for_loop(ast.For_Statement_Node loop) {
 		auto cond_type = inferrer.analyze(loop.condition, curr_sym_table.env);
+		unify(cond_type, get_bool());
+
 		auto step_type = inferrer.analyze(loop.step, curr_sym_table.env);
 	}
 
 	void analyze_if_stat(ast.If_Statement_Node iff) {
 		auto if_type = inferrer.analyze(iff.condition, curr_sym_table.env);
+		unify(if_type, get_bool());
 	}
 
 	void analyze_else_if_stat(ast.Else_If_Statement_Node else_if) {
 		auto else_if_type = inferrer.analyze(else_if.condition, curr_sym_table.env);
+		unify(else_if_type, get_bool());
 	}
 
 	void analyze_else_stat(ast.Else_Statement_Node else_stat) {
@@ -86,7 +90,7 @@ class Type_Infer_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 		if (ret.value is null) {
 			return;
 		}
-		auto ret_type = inferrer.analyze(ret.value, curr_sym_table.env);	
+		auto ret_type = inferrer.analyze(ret.value, curr_sym_table.env);
 	}
 
 	void analyze_call(ast.Call_Node call) {

@@ -25,21 +25,60 @@ interface Semantic_Pass {
 // the passes to run on
 // the semantic modules in order
 Semantic_Pass[] passes = [
+	// the declaration pass declares that symbols
+	// exist in their respective scopes. this has to be
+	// done first so that all the subsequent passes
+	// know what symbols exist and where.
 	new Declaration_Pass, 
+
+	// methods are then declared, this cannot be done
+	// during the declaration pass because we need to know
+	// what symbols have been declared to link a method
+	// (its func receiver)
+	// consider
+	// 
+	// func (f *Foo) 
+	//         ^^^^ what symbol is Foo? this might have been
+	// 
+	// defined later on in a file and since these declarations
+	// are done in a linear sequence from top to bottom
+	// we might not know what Foo is.
 	new Method_Declaration_Pass,
+
+	// the name resolve pass looks for all the symbols that
+	// have been referenced in expressions. now that we have
+	// declared all symbols i.e. types, variables, methods, 
+	// we can resolve them and make sure that they all exist.
 	new Name_Resolve_Pass,
 
-	// declare the types in the top level.
+	// this pass will _introduce types_ into their respective
+	// type environments. this is _not_ symbols, but literal types
+	// in the type environment are created here. this pass only
+	// introduces _top level types_ i.e. named types and aliases
+	// for a similar reason we declare first before we do method
+	// declaration. when inferring types we want to know all of
+	// the types that exist first (in an order independent fashion)
 	new Top_Level_Type_Decl_Pass,
 
-	// infer the types
-	// some simple type checks are
-	// done here..!
+	// the type infer pass will look at expressions and infer
+	// their types from their values. it performs a simple type
+	// unification, which gives us some simple type checks to
+	// ensure types are the same for things like binary expressions.
+	// this also handles type checking on trivial things like
+	// for loops, while loops, if statements, else if statements,
+	// etc. to ensure that their conditions are boolean types.
 	new Type_Infer_Pass,
 
+	// the mutability pass will check re-assignments and resolve
+	// their symbols to see if the symbol it references is mutable
+	// i.e. if it can be mutated or not.
 	new Mutability_Pass,
 
-	// type checking!
+	// TODO use before define
+	// TODO accessability checks
+	// TODO loops that dont terminate
+	// TODO unreachable code
+	// TODO type checking!
 ];
 
 void log(Semantic_Pass pass, Log_Level level, string[] msg...) {
