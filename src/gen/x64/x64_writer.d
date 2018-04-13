@@ -258,6 +258,16 @@ class X64_Assembly_Writer : X64_Assembly {
 		emitt("movz{} {}, {}", suffix(w), src.emit(), dest.emit());
 	}
 
+	void and(Memory_Location a, Memory_Location b) {
+		uint w = nzmin(a.width(), b.width());
+		emitt("and{} {}, {}", suffix(w), a.emit(), b.emit());
+	}
+
+	void or(Memory_Location a, Memory_Location b) {
+		uint w = nzmin(a.width(), b.width());
+		emitt("or{} {}, {}", suffix(w), a.emit(), b.emit());
+	}
+
 	void lea(Memory_Location src, Memory_Location dest) {
 		uint w = nzmin(src.width(), dest.width());
 		if (cast(Address)src || cast(Address) dest) {

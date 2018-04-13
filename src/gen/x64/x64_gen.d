@@ -119,6 +119,14 @@ static this() {
 	];
 }
 
+/*
+	general notes for x64 code generation
+	these are things that i read or see on the way
+	they may not be the best practices or the fastest
+	most efficient way to do something but here we go:
+
+	- 
+*/
 class X64_Generator {
 	IR_Module mod;
 	X64_Assembly_Writer writer;
@@ -383,6 +391,13 @@ class X64_Generator {
 		case "!=":
 			return emit_cmp(s);
 
+		case "&&":
+			writer.and(get_val(bin.b), reg);
+			break;
+		case "||":
+			writer.or(get_val(bin.b), reg);
+			break;
+
 		case "+":
 			if (is_floating) {
 				writer.addsd(get_val(bin.b), reg);
@@ -423,7 +438,7 @@ class X64_Generator {
 
 		default:
 			logger.fatal("Unhandled instr selection for binary op ", to!string(bin));
-			break;
+			assert(0);
 		}
 
 		writer.mov(reg, get_val(s.address));
