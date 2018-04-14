@@ -33,7 +33,7 @@ class X64_Backend : Code_Generator_Backend {
 
 		// is this necessary
 		version(OSX) {
-			gen.code.emit(".macosx_version_min 10, 16");
+			gen.writer.emit(".macosx_version_min 10, 16");
 		}
 
 		gen.emit_mod(mod);
@@ -48,16 +48,16 @@ class X64_Backend : Code_Generator_Backend {
 		// all have a main function generated
 
 		string entry_label = "main";
+		version (OSX) {
+			entry_label = "_main";
+		}
 
 		// we don't have c symbols
 		// so set the label ourselves
 		// OTHERWISE we keep it as main
 		// because we are linking with gcc.
 		if (!has_c_symbols) {
-			version (OSX) {
-				entry_label = "_main";
-			}
-			else version (Posix) {
+			version (Posix) {
 				entry_label = "_start";
 			}
 		}
@@ -164,7 +164,11 @@ class X64_Backend : Code_Generator_Backend {
 		foreach (as_file; as_files) {
 			string obj_file_path = baseName(as_file.name, ".as") ~ ".o";
 
-			string[] args = ["as", "-f", as_file.name, "-o", obj_file_path];
+			string[] args = ["as", as_file.name, "-o", obj_file_path];
+			version (OSX) {} else {
+				args ~= "-f";				
+			}
+
 			writeln("Assembler running: ", args);
 
 			auto as_pid = execute(args);

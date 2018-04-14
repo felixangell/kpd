@@ -69,7 +69,11 @@ string mangle(Function f) {
 	// even though this will probably have the
 	// no_mangle attribute, we still mangle it
 	if (f.has_attribute("c_func")) {
-		return f.name;
+		version (OSX) {
+			return "_" ~ f.name;
+		} else {
+			return f.name;			
+		}
 	}
 
 	if (f.has_attribute("no_mangle")) {
