@@ -74,11 +74,21 @@ Semantic_Pass[] passes = [
 	// i.e. if it can be mutated or not.
 	new Mutability_Pass,
 
-	// TODO use before define
-	// TODO accessability checks
-	// TODO loops that dont terminate
-	// TODO unreachable code
 	// TODO type checking!
+
+	// TODO use before define? 
+
+	// TODO accessability checks
+	// - this pass might be possible
+	// during name resolution.
+
+	// TODO loops that dont terminate?
+
+	// TODO unused variables
+	// TODO unused functions
+	// TODO unused exported symbols
+
+	// TODO unreachable/dead code
 ];
 
 void log(Semantic_Pass pass, Log_Level level, string[] msg...) {

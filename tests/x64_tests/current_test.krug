@@ -3,6 +3,7 @@ type Foo struct {
 };
 
 func main() {
-	let f Foo;
-	f.age = 3;
+	loop {
+		
+	}
 }
