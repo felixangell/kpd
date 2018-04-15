@@ -178,7 +178,9 @@ class Type_Infer_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 		}
 	}
 
-	override void execute(ref Module mod, AST as_tree) {
+	override void execute(ref Module mod, string sub_mod_name, AST as_tree) {
+		this.inferrer = new Type_Inferrer(mod);
+
 		foreach (node; as_tree) {
 			if (node !is null) {
 				super.process_node(node);

@@ -67,7 +67,9 @@ class Top_Level_Type_Decl_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 		this.log(Log_Level.Error, "unhandled statement " ~ to!string(stat));
 	}
 
-	override void execute(ref Module mod, AST as_tree) {
+	override void execute(ref Module mod, string sub_mod_name, AST as_tree) {
+		this.inferrer = new Type_Inferrer(mod);
+
 		foreach (node; as_tree) {
 			if (node !is null) {
 				super.process_node(node);

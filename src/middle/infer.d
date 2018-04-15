@@ -6,8 +6,10 @@ import std.algorithm : cmp;
 
 import diag.engine;
 import compiler_error;
+import krug_module;
 import logger;
 import sema.type;
+import sema.symbol : Symbol_Table;
 import ast;
 import colour;
 import tok;
@@ -213,8 +215,13 @@ bool occurs_in_type(Type a, Type b) {
 	return false;
 }
 
-struct Type_Inferrer {
+class Type_Inferrer {
+	Module mod;
 	Type_Environment e;
+
+	this(Module mod) {
+		this.mod = mod;
+	}
 
 	Type get_type(string name, Type_Variable[string] generics) {
 		auto t = e.lookup_type(name);
@@ -224,12 +231,7 @@ struct Type_Inferrer {
 		}
 
 		logger.error("Couldn't find type '", name, "' in environment:");
-
-		foreach (entry; e.data.byKeyValue()) {
-			logger.verbose(entry.key, " is ", to!string(entry.value));
-		}
-
-		return null;
+		assert(0);
 	}
 
 	Type analyze_primitive(ast.Primitive_Type_Node node, Type_Variable[string] generics) {
@@ -280,15 +282,36 @@ struct Type_Inferrer {
 
 	// TODO this needs to be done properly...
 	Type analyze_path(Path_Expression_Node path, Type_Variable[string] generics) {
-		writeln("analyzing path ", path);
+		logger.verbose("analyzing path ", to!string(path));
 
 		Type last = null;
-		foreach (ref val; path.values) {
+		Type_Environment env = null;
+		foreach (ref idx, val; path.values) {
+			// this is kind of a hack to get module
+			// types to resolve. basically if we're
+			// at the start of the path we want
+			// to check if it's a symbol node
+			// resolved to a table. if it is
+			// then we set the environment to be
+			// of the symbol table
+			if (idx == 0) {
+				if (val.resolved_symbol !is null) {
+					if (auto resolved_e = cast(Symbol_Table) val.resolved_symbol) {
+						env = resolved_e.env;
+						last = null;
+						continue;
+					}
+				}
+				else {
+					analyze(val, e, generics);
+				}
+			}
+
 			if (last !is null) {
-				last = analyze_via(last, val, e, generics);
+				last = analyze_via(last, val, env !is null ? env : e, generics);
 			}
 			else {
-				last = analyze(val, e, generics);
+				last = analyze(val, env !is null ? env : e, generics);
 			}
 		}
 

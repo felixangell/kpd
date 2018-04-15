@@ -36,11 +36,17 @@ class Name_Resolve_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 			// each submodule into one large table which we
 			// can search in
 			Symbol_Table merge = new Symbol_Table();
-			foreach (table; other_mod.sym_tables) {
-				foreach (entry; table.symbols.byKeyValue()) {
+
+			foreach (ref table; other_mod.sym_tables) {
+				foreach (ref entry; table.symbols.byKeyValue()) {
 					merge.symbols[entry.key] = entry.value;
 				}
+				foreach (ref entry; table.env.data.byKeyValue()) {
+					merge.env.data[entry.key] = entry.value;
+				}
 			}
+
+			writeln(merge);
 			return cast(Symbol_Value) merge;
 		}
 
@@ -430,7 +436,7 @@ class Name_Resolve_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 		}
 	}
 
-	override void execute(ref Module mod, AST as_tree) {
+	override void execute(ref Module mod, string sub_mod_name, AST as_tree) {
 		this.mod = mod;
 		foreach (node; as_tree) {
 			if (node !is null) {

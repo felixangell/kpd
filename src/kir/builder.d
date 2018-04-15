@@ -141,7 +141,7 @@ class IR_Builder : Top_Level_Node_Visitor {
 
 	// convert an AST type to a krug ir type
 	Type get_type(Node t) {
-		assert(t !is null, "get_type null type!");
+		assert(t !is null, "get_type null type");
 
 		if (auto prim = cast(Primitive_Type_Node) t) {
 			return conv_prim_type(prim);
@@ -363,7 +363,7 @@ class IR_Builder : Top_Level_Node_Visitor {
 
 	Value build_sym_access(ast.Path_Expression_Node path) {
 		Value last = null;
-		foreach (ref v; path.values) {
+		foreach (ref idx, v; path.values) {
 			if (last !is null) {
 				last = build_expr_via(last, v);
 			}

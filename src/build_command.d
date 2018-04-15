@@ -148,7 +148,7 @@ class Build_Command : Command {
 			auto sema = new Semantic_Analysis(graph);
 			foreach (ref sub_mod_name, as_tree; mod.as_trees) {
 				logger.verbose("- " ~ mod.name ~ "::" ~ sub_mod_name);
-				sema.process(mod, as_tree);
+				sema.process(mod, sub_mod_name, as_tree);
 			}
 		}
 
@@ -165,12 +165,12 @@ class Build_Command : Command {
 		foreach (ref mod; sorted_modules) {
 			foreach (ref sub_mod_name, as_tree; mod.as_trees) {
 				auto ir_builder = new IR_Builder(mod.name, sub_mod_name);
-				ir_builder.setup_sym_table(as_tree);
+				ir_builder.setup_sym_table(mod, sub_mod_name, as_tree);
 
 				logger.verbose(" - ", mod.name, "::", sub_mod_name);
 
 				auto ir_mod = ir_builder.build(mod, as_tree);
-				ir_mod.dump();
+				if (VERBOSE_LOGGING) ir_mod.dump();
 				new IR_Verifier(ir_mod);
 
 				krug_program ~= ir_mod;

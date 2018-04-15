@@ -12,10 +12,10 @@ import kir.instr;
 void optimise(IR_Module[] program, int level) {
 	Optimisation_Pass[] passes;
 	final switch (level) {
-	case -1:
-		passes = []; // no optimisations at all!
-		break;
 	case 0:
+		// no opts!
+		return;
+	case 1:
 		passes = [
 			new SSA_Builder,
 		]; // minimal passes
@@ -26,7 +26,7 @@ void optimise(IR_Module[] program, int level) {
 		foreach (ref pass; passes) {
 			logger.verbose(" - Performing optimisation pass '", to!string(pass), "''");
 			pass.process(mod);
-			mod.dump();
+			if (VERBOSE_LOGGING) mod.dump();
 		}
 	}
 }

@@ -140,7 +140,7 @@ class X64_Backend : Code_Generator_Backend {
 			as_files ~= temp_file;
 			temp_file.close();
 
-			x64_code.dump_to_stdout();
+			if (VERBOSE_LOGGING) x64_code.dump_to_stdout();
 		}
 
 		if (OUT_TYPE == Output_Type.Assembly) {

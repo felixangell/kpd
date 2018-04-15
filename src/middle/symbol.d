@@ -109,9 +109,9 @@ class Symbol_Table : Symbol_Value {
 
 	override string toString() const {
 		if (reference is null) {
-			return name ~ " (table) ";
+			return name ~ " (table with " ~ to!string(symbols.length) ~ " entries) ";
 		}
-		return name ~ " (table) " ~ to!string(typeid(reference));
+		return name ~ " (table with " ~ to!string(symbols.length) ~ " entries) " ~ to!string(typeid(reference));
 	}
 }
 

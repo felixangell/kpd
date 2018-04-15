@@ -4,6 +4,7 @@ import ast;
 import logger;
 import sema.symbol;
 import sema.infer : Type_Environment;
+import krug_module;
 
 import std.stdio;
 import std.conv;
@@ -11,9 +12,6 @@ import std.conv;
 class AST_Visitor {
 	abstract void process_node(ast.Node node);
 }
-
-// ...
-private Symbol_Table[ulong] sym_tables;
 
 class Top_Level_Node_Visitor : AST_Visitor {
 	protected Symbol_Table curr_sym_table;
@@ -26,16 +24,16 @@ class Top_Level_Node_Visitor : AST_Visitor {
 	// kind of messy architecture
 	// going on here but its the cleanest
 	// way that works atm.
-	void setup_sym_table(ref AST as_tree) {
+	void setup_sym_table(Module mod, string sub_mod, ref AST as_tree) {
 		import object : hashOf;
 
-		if (as_tree.hashOf() in sym_tables) {
-			curr_sym_table = sym_tables[as_tree.hashOf()];
+		if (sub_mod in mod.sym_tables) {
+			curr_sym_table = mod.sym_tables[sub_mod];
 			logger.verbose(" - RESTORED SYMBOL TABLE ", to!string(curr_sym_table.id));
 			return;
 		}
 
-		sym_tables[as_tree.hashOf()] = push_sym_table();
+		mod.sym_tables[sub_mod] = push_sym_table();
 	}
 
 	Symbol_Table push_sym_table() {
