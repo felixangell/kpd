@@ -54,8 +54,9 @@ class X64_Backend : Code_Generator_Backend {
 
 		gen.writer.emit(".global {}", entry_label);
 		gen.writer.emit("{}:", entry_label);
-		gen.writer.emitt("pushq %rbp");
-		gen.writer.emitt("movq %rsp, %rbp");
+
+		gen.writer.push(RBP);
+		gen.writer.mov(RSP, RBP);
 
 		{
 			auto main_func = mod.get_function("main");
@@ -64,7 +65,7 @@ class X64_Backend : Code_Generator_Backend {
 			}			
 		}
 
-		gen.writer.emitt("popq %rbp");
+		gen.writer.pop(RBP);
 		gen.writer.ret();
 
 		return gen.writer;
