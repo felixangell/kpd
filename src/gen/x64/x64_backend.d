@@ -52,16 +52,6 @@ class X64_Backend : Code_Generator_Backend {
 			entry_label = "_main";
 		}
 
-		// we don't have c symbols
-		// so set the label ourselves
-		// OTHERWISE we keep it as main
-		// because we are linking with gcc.
-		if (!has_c_symbols) {
-			version (Posix) {
-				entry_label = "_start";
-			}
-		}
-
 		gen.writer.emit(".global {}", entry_label);
 		gen.writer.emit("{}:", entry_label);
 		gen.writer.emitt("pushq %rbp");
@@ -75,38 +65,7 @@ class X64_Backend : Code_Generator_Backend {
 		}
 
 		gen.writer.emitt("popq %rbp");
-		if (has_c_symbols) {
-			gen.writer.ret();
-			return gen.writer;
-		}
-
-		// WE ARENT linking with gcc so we have
-		// to handle the returns properly..
-
-		version (OSX) {
-			gen.writer.ret();
-		}
-		else version (Posix) {
-			// http://blog.rchapman.org/posts/Linux_System_Call_Table_for_x86_64/
-			// invoke sys_exit
-
-			// rax is the return value of the function
-			// invoked from the main entry point
-			// store this for later
-			gen.writer.emitt("pushq %rax");
-
-			// invoke the sys_exit syscall (60)
-			gen.writer.emitt("movq $60, %rax");
-
-			// the exit code (param to the sys_exit syscall)
-			// is the value in rsi, which was thej return value
-			// from the function called from this main entry
-			// point
-			gen.writer.pop(RDI);
-
-			// invoke the syscall
-			gen.writer.syscall();
-		}
+		gen.writer.ret();
 
 		return gen.writer;
 	}
