@@ -100,5 +100,26 @@ on x64 systems.
 The main things I want to do with this project are:
 
 * generate x64 assembly...
-* writing directly to object files, no assemblers needed!
+* writing directly to object files, no assemblers needed! (removing the gnu as dependency?)
 * have a reasonable set of optimisation passes, hand-in-hand with an SSA-based IR;
+
+### roadmap?
+This is a side-project I do in my free time so development is done in short lived bursts when I can.
+
+Here's a roadmap for the language in some sort of order:
+
+* [x64] - Implement all basic features of the language
+	* mostly generics, type checking, method calls, are left (broadly)
+* [opt] - Implement some kind of SSA based IR?
+	* Dead code elimination
+		* per function
+		* per module, i.e. not compiling unused modules
+			- also go does something to do with squashing modules together
+	* Perform some trivial optimisations on the SSA
+* [x64] - generate x64 from the SSA IR
+	* Perform some more optimisations on the x64 code generated?
+* [bytecode] - generate bytecode from the SSA IR
+	* make the vm register based rather than stack based?
+	* allow compile time code execution via. the VM
+
+Disclaimer: some of these are realistic and some are... not.
