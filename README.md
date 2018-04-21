@@ -2,6 +2,12 @@
 Krug is a compiled programming language that compiles to x64 assembly. Currently
 the prime targets are OS X and Linux.
 
+## demo
+Here's a little demo [vide](https://www.youtube.com/watch?v=j3tRL-vkj8g) on my youtube. The language is
+still very much in its infancy and has a lot of work left to be even somewhat stable.
+
+![screenshot of a krug program](/krug_screenshot.png)
+
 ## try it out
 Nothing is in working order, but some tests _might_ run! The compiler still has a long
 way to go till it's stable-ish to run some actual programs.

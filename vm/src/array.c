@@ -23,7 +23,7 @@ array_add(struct array* a, void* item) {
 
 void*
 array_get(struct array* a, size_t index) {
-	assert(index >= 0 && index < a->size);
+	assert(index < a->size);
 	return a->items[index];
 }
 
