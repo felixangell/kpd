@@ -1,6 +1,18 @@
+#{c_func}
+func printf();
+
+func do_thing(a s32) {
+	printf(c"thing is %d\n", a);
+}
+
 func main() {
+	do_thing(32);
+
+	let val = 696969;
+	do_thing(val);
+
 	mut i = 0;
 	for i < 10; i = i + 1 {
-
+		do_thing(i);
 	}
 }

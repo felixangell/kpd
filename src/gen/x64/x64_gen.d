@@ -296,20 +296,7 @@ class X64_Generator {
 			// first check if this is a param
 			auto index = curr_ctx.parent.params.countUntil!("a.name == b")(r.name);
 			if (index != -1) {
-				auto param = curr_ctx.parent.params[index];
-				if (index < SYS_V_CALL_CONV_REG.length) {
-					return SYS_V_CALL_CONV_REG[index];
-				}
-
-				// VERY IMPORTANT NOTE:
-				// we have to offset the index by 
-				// the registers
-				// because we only store arguments after
-				// len(registers) in the locals
-				// because normally
-				// we look up args(i) where i > 6 
-				// by registers[i]!
-				auto arg_index = index - SYS_V_CALL_CONV_REG.length;
+				auto arg_index = index;
 				auto addr = curr_ctx.get_addr("__arg_" ~ to!string(arg_index));
 				return new Address(addr, RSP);
 			}
@@ -727,6 +714,20 @@ class X64_Generator {
 		// this is why we store the address which this instruction
 		// was written to
 		curr_ctx.alloc_instr_addr = writer.emitt("subq $0, %rsp");
+
+		// HACK
+		// basically we spill all of the registers onto
+		// the stack since we're abiding by the call
+		// conventions of passing to the registers
+		foreach (ref idx, param; func.params) {
+			const auto twine = "__arg_" ~ to!string(idx);
+
+			long addr = curr_ctx.get_addr(twine);
+			if (addr == -1) {
+				addr = curr_ctx.push_local(twine, param.get_type());
+			}
+			writer.mov(SYS_V_CALL_CONV_REG[idx], new Address(addr, RSP));
+		}
 
 		foreach (ref bb; func.blocks) {
 			emit_bb(bb);
