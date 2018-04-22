@@ -324,7 +324,17 @@ class IR_Builder : Top_Level_Node_Visitor {
 				// for x64.
 				return new Get_Element_Pointer(identifier, 0, idx, 8);
 			}
+			else if (auto ptr = cast(Pointer) last.get_type()) {
+				// TODO we need to handle accessing pointers
+				// this is a little awkward.
+				assert(0, "unhandled base type for pointer de-ref");
+			}
 			else {
+				if (last.get_type() is null) {
+					assert(0);
+				}
+
+				logger.fatal("what is " ~ to!string(last) ~ " " ~ to!string(last.get_type()));
 				assert(0);
 			}
 		}

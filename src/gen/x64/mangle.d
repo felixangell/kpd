@@ -32,6 +32,18 @@ string mangle_join(T...)(T values...) {
 	return res;
 }
 
+string mangle(Structure s) {
+	string mangled_name = "S";
+	
+	foreach (ref idx, type; s.types) {
+		mangled_name ~= mangle(s.names[idx]);
+		mangled_name ~= "_";
+		mangled_name ~= mangle(type);
+	}
+
+	return mangled_name;
+}
+
 string mangle(Type t) {
 	if (cast(Type_Operator) t) {
 		// FIXME;
@@ -43,8 +55,11 @@ string mangle(Type t) {
 	else if (auto arr = cast(Array) t) {
 		return "A" ~ mangle(arr.base);
 	}
+	else if (auto structure = cast(Structure) t) {
+		return mangle(structure);
+	}
 
-	return "unhandled_" ~ to!string(t);
+	assert(0, to!string(t)); // oh dear!
 }
 
 string mangle(Alloc alloc) {

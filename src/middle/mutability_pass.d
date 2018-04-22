@@ -149,6 +149,12 @@ class Mutability_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 			visit_block(w.block);
 		}
 		else if (auto f = cast(ast.For_Statement_Node) stat) {
+			// the for loop does an assignment in the
+			// second expression, so we need to visit this and
+			// make sure we aren't mutating any constants.
+
+			analyze_expr(f.step);
+
 			visit_block(f.block);
 		}
 		else if (auto l = cast(ast.Loop_Statement_Node) stat) {

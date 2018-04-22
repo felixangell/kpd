@@ -2,27 +2,18 @@
 func printf() s32;
 
 type Lexer struct {
-	
+	position u64,
 };
 
-func (l *Lexer) start() {
-			
-}
-
-func do_things() {
-	printf(c"do_things a!\n");
-	defer printf(c"do_things b!\n");
-	printf(c"do_things c!\n");
+func start(self *Lexer) {
+	let lex Lexer = @self;
+	printf(c"lexing from pos: %d\n", lex.position);
 }
 
 func main() {
 	let lex Lexer;
-	lex.start();
+	lex.position = 10 as u64;
 
-	printf(c"Hello, World!\n");
-	do_things();
-	do_things();
-	do_things();
-	do_things();
-	do_things();
+	let ptr_lex *Lexer = &lex;
+	start(ptr_lex);
 }

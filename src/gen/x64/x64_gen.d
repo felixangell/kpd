@@ -279,7 +279,9 @@ class X64_Generator {
 			return addr;
 		}
 
-		assert(0);
+		// hm?
+		writeln("what is going on ", g);
+		return v;
 	}
 
 	Memory_Location get_val(Value v) {

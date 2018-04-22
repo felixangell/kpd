@@ -30,7 +30,7 @@ static this() {
 		"mut", "default", "eval",
 		"len_of", "size_of", "type_of", "struct", "trait", "union", "enum",
 		"defer", "false",
-		"true", "bool", "rune", "yield", "self", "clang", "__exit");
+		"true", "bool", "rune", "yield", "clang", "__exit");
 
 	OPERATOR_PRECEDENCE["as"] = 6;
 

@@ -140,6 +140,10 @@ class Name_Resolve_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 			return null;
 		}
 
+		if (t is null) {
+			assert(0, "oh dear");
+		}
+
 		this.log(Log_Level.Error, "unhandled type node ", to!string(t), to!string(typeid(t)));
 		return null;
 	}
