@@ -4,6 +4,9 @@ func printf();
 type Person struct {
 	age u64,
 	eyebrow_count u64,
+	is_name_felix bool,
+	another_thing bool,
+	first_letter u8,
 };
 
 func main() {
@@ -13,6 +16,13 @@ func main() {
 	let felix Person;
 	felix.age = 19 as u64;
 	felix.eyebrow_count = 3 as u64;
+	felix.is_name_felix = true;
+	felix.another_thing = false;
+	felix.first_letter = 'f' as u8;
 
-	printf(c"age is %d", felix.age);
+	printf(c"age is %d\n", felix.age);
+	printf(c"eyebrow count: %d\n", felix.eyebrow_count);
+	printf(c"is name felix ? %d\n", felix.is_name_felix);
+	printf(c"another thingy %d\n", felix.another_thing);
+	printf(c"first letter %c\n", felix.first_letter);
 }
