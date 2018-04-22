@@ -508,7 +508,11 @@ class X64_Generator {
 			src_indx = 3;
 		}
 
-		Reg ax_temp = source[src_indx];
+		Reg ax_temp = RAX;
+		if (src_indx < source.length) {
+			ax_temp = source[src_indx];
+		}
+
 		writer.mov(val, ax_temp);
 		writer.mov(ax_temp, addr);
 	}

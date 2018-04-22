@@ -97,7 +97,7 @@ Linker_Info link_objs_osx() {
 // use a c compiler as the linker frontend
 // in the future I want the compiler to not
 // depend on gcc/clang..
-void link_objs(string[] obj_paths, string out_name, bool use_gcc) {
+void link_objs(string[] obj_paths, string out_name) {
 	logger.verbose("Linking...");
 
 	string obj_files;
@@ -108,20 +108,11 @@ void link_objs(string[] obj_paths, string out_name, bool use_gcc) {
 
 	Linker_Info info;
 
-	string linker_process = "/usr/bin/ld";
-	if (use_gcc) {
-		linker_process = "/usr/bin/gcc";
-		info.add_flags("-fpic", "-no-pie");
-	}
-	// do our own link stuff
-	else {
-		version (OSX) {
-			info = link_objs_osx();
-		}
-		else version (Posix) {
-			info = link_objs_linux();
-		}
-	}
+	string linker_process = "/usr/bin/gcc";
+	info.add_flags("-fpic", "-no-pie");
+
+	// TODO could we invoke ld ourselves and
+	// drop the gcc dependency?
 
 	info.add_objs(obj_paths);
 

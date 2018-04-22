@@ -1,6 +1,9 @@
+#{c_func}
+func printf();
+
 type Person struct {
-	age uint,
-	eyebrow_count uint,
+	age u64,
+	eyebrow_count u64,
 };
 
 func main() {
@@ -8,8 +11,8 @@ func main() {
 	// person with 3 eyebrows
 
 	let felix Person;
-	felix.age = 19;
-	felix.eyebrow_count = 3;
-	
-	return felix.age + felix.eyebrow_count;
+	felix.age = 19 as u64;
+	felix.eyebrow_count = 3 as u64;
+
+	printf(c"age is %d", felix.age);
 }

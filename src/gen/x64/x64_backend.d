@@ -19,6 +19,12 @@ import gen.x64.generator;
 import gen.x64.mangler;
 import gen.x64.link;
 
+// parses the the stdout/err? from the
+// asm program.
+void parse_asm_out(string asm_out) {
+	// TODO?
+}
+
 /*
 	the x64 backend generates x86_64 assembly. 
 
@@ -138,6 +144,9 @@ class X64_Backend : Code_Generator_Backend {
 			}
 			else {
 				writeln("Assembler notes:\n", as_pid.output);
+
+
+				parse_asm_out(as_pid.output);
 			}
 
 			obj_file_paths ~= obj_file_path;
@@ -160,6 +169,6 @@ class X64_Backend : Code_Generator_Backend {
 		// we link via GCC/clang instead!
 		// this is kind of messy but for now itll do
 
-		link_objs(obj_file_paths, OUT_NAME, has_c_symbols);
+		link_objs(obj_file_paths, OUT_NAME);
 	}
 }
