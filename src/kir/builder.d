@@ -8,6 +8,7 @@ import std.algorithm.searching : countUntil;
 
 import kir.instr;
 import kir.ir_mod;
+import kir.conv_type;
 
 import sema.visitor;
 import sema.symbol;
@@ -104,141 +105,10 @@ class IR_Builder : Top_Level_Node_Visitor {
 		foreach (ref key, val; val.symbols) {
 			names ~= key;
 			// yeet
-			types ~= get_type(val.reference);
+			types ~= curr_sym_table.env.conv_type(val.reference);
 		}
 
 		return new Module_Info(types, names);
-	}
-
-	Type get_sym_type(ast.Symbol_Node sym) {
-		writeln("get_sym_type", sym);
-
-		if (sym.resolved_symbol is null) {
-			logger.fatal("Unresolved symbol node leaking! ", to!string(sym), " ... ", to!string(typeid(sym)),
-				"\n", logger.blame_token(sym.get_tok_info()));
-			return new Void();
-		}
-
-		if (auto sym_val = cast(Symbol_Value) sym.resolved_symbol) {
-			if (sym_val.reference is null) {
-				assert(0); // undefined!
-			}
-			return get_type(sym_val.reference);
-		}
-
-		assert(0);
-	}
-
-	Type get_array_type(Array_Type_Node arr) {
-		import kir.eval;
-
-		auto res = try_evaluate_expr(arr.value);
-		if (res.failed) {
-			auto blame = arr.base_type.get_tok_info();
-			if (arr.value !is null) {
-				blame = arr.value.get_tok_info();
-			}
-			Diagnostic_Engine.throw_error(COMPILE_TIME_EVAL, blame, blame);
-			assert(0);
-		}
-
-		return new Array(get_type(arr.base_type), res.value);
-	}
-
-	Type conv_prim_type(ast.Primitive_Type_Node node) {
-		return conv_prim(node.type_name.lexeme);
-	}
-
-	Type get_type_path_type(Type_Path_Node t) {
-		assert(t.values.length == 1);
-
-		auto type = curr_sym_table.env.lookup_type(t.values[0].lexeme);
-		if (type is null) {
-			logger.error(t.get_tok_info(), "Un-declared type is leaking!");
-			assert(0);
-		}
-		return type;
-	}
-
-	// convert an AST type to a krug ir type
-	Type get_type(Node t) {
-		assert(t !is null, "get_type null type");
-
-		if (auto prim = cast(Primitive_Type_Node) t) {
-			return conv_prim_type(prim);
-		}
-		else if (auto arr = cast(Array_Type_Node) t) {
-			return get_array_type(arr);
-		}
-		else if (auto ptr = cast(Pointer_Type_Node) t) {
-			return new Pointer(get_type(ptr.base_type));
-		}
-
-		else if (auto i = cast(Integer_Constant_Node) t) {
-			// FIXME
-			return get_int(true, 32);
-		}
-
-		else if (auto idx = cast(Index_Expression_Node) t) {
-			Type type = get_type(idx.array);	
-			
-			if (auto a = cast(Array) type) {
-				return a.base;
-			}
-			else if (auto ptr = cast(Pointer) type) {
-				return ptr.base;
-			}
-
-			// weird
-			assert(0);
-		}
-
-		else if (auto path = cast(Path_Expression_Node) t) {
-			// FIXME
-			return get_type(path.values[$-1]);
-		}
-		else if (auto sym = cast(Symbol_Node) t) {
-			return get_sym_type(sym);
-		}
-		else if (auto var = cast(Variable_Statement_Node) t) {
-			if (var.type !is null) {
-				return get_type(var.type);
-			}
-
-			auto inferred_type = curr_sym_table.env.lookup_type(var.twine.lexeme);
-			if (inferred_type is null) {
-				logger.error(var.get_tok_info(), "Un-inferred type is leaking!");
-				assert(0);
-			}
-			return inferred_type;
-		}
-		else if (auto fn = cast(Function_Node) t) {
-			// void...
-			if (fn.return_type is null) {
-				return new Void();
-			}
-			return get_type(fn.return_type);
-		}
-		else if (auto bin = cast(Binary_Expression_Node) t) {
-			// FIXME
-			// the assumption here is based off
-			// the binary expression should have 
-			// the left and right hand expressions types
-			// unified from type inference
-			return get_type(bin.left);
-		}
-		else if (auto param = cast(Function_Parameter) t) {
-			return get_type(param.type);
-		}
-		else if (auto type_path = cast(Type_Path_Node) t) {
-			return get_type_path_type(type_path);
-		}
-
-		logger.error(t.get_tok_info().get_tok(),
-			"Leaking unresolved type:\n\t" ~ to!string(t) ~ "\n\t" ~ to!string(typeid(t)));
-
-		// FIXME
-		assert(0);
 	}
 
 	// we generate one control flow graph per function
@@ -253,21 +123,13 @@ class IR_Builder : Top_Level_Node_Visitor {
 	// 2. any instruction that is the target of a jump is a leader.
 	// 3. any instruction that follows a jump is a leader.
 	override void analyze_function_node(ast.Function_Node func) {
-		Type return_type = new Void();
-		if (func.return_type !is null) {
-			return_type = get_type(func.return_type);
-		}
-
-		// FIXME this is kind of awkward
-		// NOTE I tried to make a IR_Module for c_functions
-		// nested in every module, but this causes a seg fault
-		// with the D gc smallAlloc? lol
+		// NOTE: we set the curr_func since it's
+		// already been set in driver.d
 		if (func.has_attribute("c_func")) {
-			curr_func = new kir.instr.Function(func.name.lexeme, return_type, ir_mod);
-			ir_mod.c_funcs[curr_func.name] = curr_func;
+			curr_func = ir_mod.c_funcs[func.name.lexeme];
 		}
 		else {
-			curr_func = ir_mod.add_function(func.name.lexeme, return_type);
+			curr_func = ir_mod.get_function(func.name.lexeme);
 		}
 
 		curr_func.set_attributes(func.get_attribs());
@@ -281,7 +143,7 @@ class IR_Builder : Top_Level_Node_Visitor {
 
 		// alloc all the params
 		foreach (p; func.params) {
-			auto param_alloc = new Alloc(get_type(p.type), p.twine.lexeme);
+			auto param_alloc = new Alloc(curr_sym_table.env.conv_type(p.type), p.twine.lexeme);
 			if (!is_proto) curr_func.add_alloc(param_alloc);
 			curr_func.params ~= param_alloc;
 		}
@@ -302,9 +164,9 @@ class IR_Builder : Top_Level_Node_Visitor {
 	// i feel like this is all completely shit and
 	// probably wont work. do this properly! but for now
 	// it works for most of the test cases?
-	Value build_binary_expr(ast.Binary_Expression_Node binary) {
-		Value left = build_expr(binary.left);
-		Value right = build_expr(binary.right);
+	Value build_binary_expr(Type_Environment env, ast.Binary_Expression_Node binary) {
+		Value left = build_expr(env, binary.left);
+		Value right = build_expr(env, binary.right);
 		auto expr = new Binary_Op(left.get_type(), binary.operand, left, right);
 
 		// create a store if we're dealing with an assignment
@@ -330,7 +192,7 @@ class IR_Builder : Top_Level_Node_Visitor {
 		assert(0);
 	}
 
-	Value build_sym_access_via(Value last, Symbol_Node sym) {
+	Value build_sym_access_via(Type_Environment env, Value last, Symbol_Node sym) {
 		if (auto identifier = cast(Identifier) last) {
 			if (auto structure = cast(Structure) last.get_type()) {
 				auto idx = structure.get_field_index(sym.value.lexeme);
@@ -359,12 +221,12 @@ class IR_Builder : Top_Level_Node_Visitor {
 		assert(0);
 	}
 
-	Value build_expr_via(Value last, ast.Expression_Node v) {
+	Value build_expr_via(Type_Environment env, Value last, ast.Expression_Node v) {
 		if (auto call = cast(ast.Call_Node) v) {
 			assert(0);
 		}
 		else if (auto sym = cast(ast.Symbol_Node) v) {
-			return build_sym_access_via(last, sym);
+			return build_sym_access_via(env, last, sym);
 		}
 
 		writeln(last, " vs ", v, " types ", typeid(last), " vs ", typeid(v));
@@ -372,29 +234,29 @@ class IR_Builder : Top_Level_Node_Visitor {
 	}
 
 	// TODO make this work for EVERYTHING
-	Value build_method_call(ast.Path_Expression_Node path) {
+	Value build_method_call(Type_Environment env, ast.Path_Expression_Node path) {
 		writeln("build_method_call", path);
 
 		Value last = null;
 		foreach (ref v; path.values) {
 			if (last !is null) {
-				last = build_expr_via(last, v);			
+				last = build_expr_via(env, last, v);			
 			} 
 			else {
-				last = build_expr(v);
+				last = build_expr(env, v);
 			}
 		}
 		return last;
 	}
 
-	Value build_sym_access(ast.Path_Expression_Node path) {
+	Value build_sym_access(Type_Environment env, ast.Path_Expression_Node path) {
 		Value last = null;
 		foreach (ref idx, v; path.values) {
 			if (last !is null) {
-				last = build_expr_via(last, v);
+				last = build_expr_via(env, last, v);
 			}
 			else {
-				last = build_expr(v);
+				last = build_expr(env, v);
 			}
 		}
 		return last;
@@ -403,20 +265,21 @@ class IR_Builder : Top_Level_Node_Visitor {
 	Value build_module_access(ast.Module_Access_Node man) {
 		// FIXME not void.
 		auto mod_name = new Identifier(new Void(), man.left.value.lexeme);
-		return new Module_Access(mod_name, build_expr(man.right));
+		// FIXME env is taken from module.
+		return new Module_Access(mod_name, build_expr(null, man.right));
 	}
 
-	Value build_path(ast.Path_Expression_Node path) {
+	Value build_path(Type_Environment env, ast.Path_Expression_Node path) {
 		if (path.values.length == 1) {
-			return build_expr(path.values[0]);
+			return build_expr(env, path.values[0]);
 		}
 
 		auto last = path.values[$-1];
 		if (cast(ast.Call_Node) last) {
-			return build_method_call(path);
+			return build_method_call(env, path);
 		}
 		else if (auto sym = cast(ast.Symbol_Node) last) {
-			return build_sym_access(path);
+			return build_sym_access(env, path);
 		}
 
 		foreach (v; path.values) {
@@ -427,22 +290,22 @@ class IR_Builder : Top_Level_Node_Visitor {
 		assert(0);
 	}
 
-	Value build_index_expr(ast.Index_Expression_Node node) {
-		Value addr = build_expr(node.array);
-		Value sub = build_expr(node.index);
+	Value build_index_expr(Type_Environment env, ast.Index_Expression_Node node) {
+		Value addr = build_expr(env, node.array);
+		Value sub = build_expr(env, node.index);
 		writeln(node.array, " => ", addr, " is ", typeid(addr));
-		return new Index(get_type(node), addr, sub);
+		return new Index(env.conv_type(node), addr, sub);
 	}
 
-	Value value_at(ast.Expression_Node e) {
-		return new Deref(build_expr(e));
+	Value value_at(Type_Environment env, ast.Expression_Node e) {
+		return new Deref(build_expr(env, e));
 	}
 
-	Value addr_of(ast.Expression_Node e) {
-		return new Addr_Of(build_expr(e));
+	Value addr_of(Type_Environment env, ast.Expression_Node e) {
+		return new Addr_Of(build_expr(env, e));
 	}
 
-	Value build_unary_expr(ast.Unary_Expression_Node unary) {
+	Value build_unary_expr(Type_Environment env, ast.Unary_Expression_Node unary) {
 		// grammar.d
 		// "+", "-", "!", "^", "@", "&"
 		final switch (unary.operand.lexeme) {
@@ -450,20 +313,20 @@ class IR_Builder : Top_Level_Node_Visitor {
 		case "-":
 		case "!":
 		case "^":
-			return new Unary_Op(unary.operand, build_expr(unary.value));
+			return new Unary_Op(unary.operand, build_expr(env, unary.value));
 		case "@":
-			return value_at(unary.value);
+			return value_at(env, unary.value);
 		case "&":
-			return addr_of(unary.value);
+			return addr_of(env, unary.value);
 		}
 		assert(0, "unhandled build unary expr in builder.");
 	}
 
-	Value build_call(ast.Call_Node call) {
-		Value left = build_expr(call.left);
+	Value build_call(Type_Environment env, ast.Call_Node call) {
+		Value left = build_expr(env, call.left);
 		Value[] args;
 		foreach (arg; call.args) {
-			args ~= build_expr(arg);
+			args ~= build_expr(env, arg);
 		}
 		return new Call(left.get_type(), left, args);
 	}
@@ -474,7 +337,7 @@ class IR_Builder : Top_Level_Node_Visitor {
 	}
 
 	// this is a specialize block thingy majig
-	Value build_eval_expr(ast.Block_Expression_Node eval) {
+	Value build_eval_expr(Type_Environment env, ast.Block_Expression_Node eval) {
 		// hm! how should this be done
 		// we need to store it in a temporary
 		// but we need to know what type it is
@@ -537,7 +400,7 @@ class IR_Builder : Top_Level_Node_Visitor {
 		return val;
 	}
 
-	Value build_expr(ast.Expression_Node expr) {
+	Value build_expr(Type_Environment env, ast.Expression_Node expr) {
 		if (auto integer_const = cast(Integer_Constant_Node) expr) {
 			// FIXME
 			return new Constant(get_int(true, 32), to!string(integer_const.value));
@@ -552,37 +415,37 @@ class IR_Builder : Top_Level_Node_Visitor {
 			return new Constant(get_rune(), to!string(to!uint(c)));
 		}
 		else if (auto index = cast(Index_Expression_Node) expr) {
-			return build_index_expr(index);
+			return build_index_expr(env, index);
 		}
 		else if (auto binary = cast(Binary_Expression_Node) expr) {
-			return build_binary_expr(binary);
+			return build_binary_expr(env, binary);
 		}
 		else if (auto paren = cast(Paren_Expression_Node) expr) {
-			return build_expr(paren.value);
+			return build_expr(env, paren.value);
 		}
 		else if (auto path = cast(Path_Expression_Node) expr) {
-			return build_path(path);
+			return build_path(env, path);
 		}
 		else if (auto man = cast(Module_Access_Node) expr) {
 			return build_module_access(man);
 		}
 		else if (auto sym = cast(Symbol_Node) expr) {
-			return new Identifier(get_type(sym), sym.value.lexeme);
+			return new Identifier(env.conv_type(sym), sym.value.lexeme);
 		}
 		else if (auto cast_expr = cast(Cast_Expression_Node) expr) {
 			// TODO float to int vice versa
 			// or truncate to smaller type i.e. u32 to u8
 			// for now just spit out the build expr
-			return build_expr(cast_expr.left);
+			return build_expr(env, cast_expr.left);
 		}
 		else if (auto call = cast(Call_Node) expr) {
-			return build_call(call);
+			return build_call(env, call);
 		}
 		else if (auto unary = cast(Unary_Expression_Node) expr) {
-			return build_unary_expr(unary);
+			return build_unary_expr(env, unary);
 		}
 		else if (auto eval = cast(Block_Expression_Node) expr) {
-			return build_eval_expr(eval);
+			return build_eval_expr(env, eval);
 		}
 		else if (auto str_const = cast(String_Constant_Node) expr) {
 			return build_string_const(str_const);
@@ -601,8 +464,8 @@ class IR_Builder : Top_Level_Node_Visitor {
 
 		// its not a void type
 		if (ret.value !is null) {
-			ret_instr.set_type(get_type(ret.value));
-			ret_instr.results ~= build_expr(ret.value);
+			ret_instr.set_type(curr_sym_table.env.conv_type(ret.value));
+			ret_instr.results ~= build_expr(curr_sym_table.env, ret.value);
 		}
 
 		// TODO return values
@@ -626,7 +489,7 @@ class IR_Builder : Top_Level_Node_Visitor {
 		A:
 	*/
 	void build_if_node(ast.If_Statement_Node if_stat) {
-		Value condition = build_expr(if_stat.condition);
+		Value condition = build_expr(curr_sym_table.env, if_stat.condition);
 
 		Jump[] re_writes;
 
@@ -649,7 +512,7 @@ class IR_Builder : Top_Level_Node_Visitor {
 
 		foreach (ref idx, elif; if_stat.else_ifs) {
 			auto elif_block = new Label(push_bb());
-			Value cond = build_expr(elif.condition);
+			Value cond = build_expr(curr_sym_table.env, elif.condition);
 
 			auto elif_check = new Label(push_bb());
 			If elif_jmp = new If(cond);
@@ -740,12 +603,12 @@ class IR_Builder : Top_Level_Node_Visitor {
 			assert("global no value unhandled");
 		}
 
-		Value v = build_expr(var.value);
+		Value v = build_expr(curr_sym_table.env, var.value);
 		ir_mod.constants[var.twine.lexeme] = v;
 	}
 
 	override void analyze_var_stat_node(ast.Variable_Statement_Node var) {
-		Type type = get_type(var);
+		Type type = curr_sym_table.env.conv_type(var);
 		if (curr_func.curr_block is null) {
 			// it's a global
 			analyze_global(var);
@@ -756,21 +619,21 @@ class IR_Builder : Top_Level_Node_Visitor {
 		auto addr = curr_func.add_alloc(new Alloc(type, var.twine.lexeme));
 
 		if (var.value !is null) {
-			auto val = build_expr(var.value);
+			auto val = build_expr(curr_sym_table.env, var.value);
 			curr_func.add_instr(new Store(val.get_type(), addr, val));
 		}
 	}
 
 	void build_for_loop_node(ast.For_Statement_Node loop) {
 		auto loop_check = new Label(push_bb());
-		Value v = build_expr(loop.condition);
+		Value v = build_expr(curr_sym_table.env, loop.condition);
 		If jmp = new If(v);
 		curr_func.add_instr(jmp);
 
 		auto loop_body = new Label(push_bb());
 		build_block(curr_func, loop.block, loop_body.reference);
 
-		Value step = build_expr(loop.step);
+		Value step = build_expr(curr_sym_table.env, loop.step);
 		if (auto str = cast(Store) step) {
 			curr_func.add_instr(str);
 		}
@@ -799,7 +662,7 @@ class IR_Builder : Top_Level_Node_Visitor {
 
 	void build_while_loop_node(ast.While_Statement_Node loop) {
 		auto loop_check = new Label(push_bb());
-		Value v = build_expr(loop.condition);
+		Value v = build_expr(curr_sym_table.env, loop.condition);
 		If jmp = new If(v);
 		curr_func.add_instr(jmp);
 
@@ -853,7 +716,7 @@ class IR_Builder : Top_Level_Node_Visitor {
 	// also its hard to read/understand
 	// as it jumps all over the place.
 	void build_match(ast.Match_Statement_Node match) {
-		Value cond = build_expr(match.condition);
+		Value cond = build_expr(curr_sym_table.env, match.condition);
 
 		Jump[] jump_to_ends;
 
@@ -867,7 +730,7 @@ class IR_Builder : Top_Level_Node_Visitor {
 				auto check = new Label(push_bb());
 
 				// cond == val
-				auto val = build_expr(expr);
+				auto val = build_expr(curr_sym_table.env, expr);
 				auto cmp = new Binary_Op(cond.get_type(), "==", cond, val);
 
 				// gen temp
@@ -944,7 +807,7 @@ class IR_Builder : Top_Level_Node_Visitor {
 			build_next_node(n);
 		}
 		else if (auto e = cast(ast.Expression_Node) node) {
-			auto v = build_expr(e);
+			auto v = build_expr(curr_sym_table.env, e);
 			if (auto instr = cast(Instruction) v) {
 				curr_func.add_instr(instr);
 			}
