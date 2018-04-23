@@ -35,7 +35,12 @@ class Block_Context {
 	}
 
 	long size() {
-		return addr_ptr;
+		version (OSX) {
+			import std.algorithm.comparison : max;
+			return max(16, addr_ptr);
+		} else {
+			return addr_ptr;			
+		}
 	}
 
 	long push_local(string name, Type t) {
