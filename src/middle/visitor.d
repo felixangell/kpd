@@ -25,15 +25,10 @@ class Top_Level_Node_Visitor : AST_Visitor {
 	// going on here but its the cleanest
 	// way that works atm.
 	void setup_sym_table(Module mod, string sub_mod, ref AST as_tree) {
-		import object : hashOf;
-
-		if (sub_mod in mod.sym_tables) {
-			curr_sym_table = mod.sym_tables[sub_mod];
-			logger.verbose(" - RESTORED SYMBOL TABLE ", to!string(curr_sym_table.id));
-			return;
+		if (mod.sym_tables is null) {
+			mod.sym_tables = push_sym_table();
 		}
-
-		mod.sym_tables[sub_mod] = push_sym_table();
+		curr_sym_table = mod.sym_tables;
 	}
 
 	Symbol_Table push_sym_table() {

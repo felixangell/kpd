@@ -168,30 +168,7 @@ class Name_Resolve_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 		}
 
 		auto other_mod = mod.edges[name];
-
-		// TODO because store the symbol table for 
-		// each individual file specified in the module
-		// this means that we could easily look 
-		// for specific things rather than copying
-		// all of the tables into one and searching that
-		
-		// TODO we should probably have each module represented
-		// with one symbol table however
-		// purely so we dont have to copy everything over and also
-		// we _want_ it to be that symbols conflict between each file.
-
-		Symbol_Table merge = new Symbol_Table();
-
-		foreach (ref table; other_mod.sym_tables) {
-			foreach (ref entry; table.symbols.byKeyValue()) {
-				merge.symbols[entry.key] = entry.value;
-			}
-			foreach (ref entry; table.env.data.byKeyValue()) {
-				merge.env.data[entry.key] = entry.value;
-			}
-		}
-
-		look_expr_via(merge, man.right);
+		look_expr_via(other_mod.sym_tables, man.right);
 	}
 
 	Symbol_Table look_expr_via(Symbol_Table table, Expression_Node[] values...) {

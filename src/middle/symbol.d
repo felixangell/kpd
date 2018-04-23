@@ -95,7 +95,7 @@ class Symbol_Table : Symbol_Value {
 	// symbol already exists it will be
 	// returned from the symbol table in the scope.
 	Symbol_Value register_sym(string name, Symbol_Value s) {
-		logger.verbose("Registering symbol ", name, " // ", to!string(s), " STAB#", to!string(this.id));
+		logger.verbose("---- Registering symbol ", name, " // ", to!string(s), " STAB#", to!string(this.id));
 		if (name in symbols) {
 			return symbols[name];
 		}

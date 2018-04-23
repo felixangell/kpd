@@ -26,8 +26,8 @@ class Module {
 	Token_Stream[string] token_streams;
 	AST[string] as_trees;
 
-	// the root symbol table for the submodule
-	Symbol_Table[string] sym_tables;
+	// the root symbol table for the module
+	Symbol_Table sym_tables;
 
 	IR_Module ir_mod;
 

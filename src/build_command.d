@@ -147,10 +147,7 @@ class Build_Command : Command {
 		logger.verbose_header("Semantic Analysis: ");
 		foreach (ref mod; sorted_modules) {
 			auto sema = new Semantic_Analysis(graph);
-			foreach (ref sub_mod_name, as_tree; mod.as_trees) {
-				logger.verbose("- " ~ mod.name ~ "::" ~ sub_mod_name);
-				sema.process(mod, sub_mod_name, as_tree);
-			}
+			sema.process(mod);
 		}
 
 		const auto sema_errors = logger.get_err_count();

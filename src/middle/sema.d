@@ -106,17 +106,21 @@ struct Semantic_Analysis {
 		this.graph = graph;
 	}
 
-	void process(ref Module mod, string sub_mod_name, AST as_tree) {
+	void process(ref Module mod) {
 		foreach (ref idx, pass; passes) {
 			logger.verbose("  * " ~ to!string(pass));
+	
+			foreach (ref sub_mod_name, as_tree; mod.as_trees) {
+				logger.verbose("- " ~ mod.name ~ "::" ~ sub_mod_name);
 
-			// FIXME this really shows how sloppy
-			// the architecture is for this... we're
-			// assuming here the visitors are all 
-			// top level node visitors.
-			(cast(Top_Level_Node_Visitor)pass).setup_sym_table(mod, sub_mod_name, as_tree);
+				// FIXME this really shows how sloppy
+				// the architecture is for this... we're
+				// assuming here the visitors are all 
+				// top level node visitors.
+				(cast(Top_Level_Node_Visitor)pass).setup_sym_table(mod, sub_mod_name, as_tree);
 
-			pass.execute(mod, sub_mod_name, as_tree);
+				pass.execute(mod, sub_mod_name, as_tree);
+			}
 
 			// don't continue doing passes if we 
 			// encounter some errors. the passes

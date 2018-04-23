@@ -68,7 +68,7 @@ class Type_Environment {
 	// or add -> [int, int] : int
 	void register_type(string key, Type t) {
 		import object : hashOf;
-		logger.verbose("Registering type ", key, " : ", to!string(t), " IN#", to!string(this.hashOf()));
+		logger.verbose("---- Registering type ", key, " : ", to!string(t), " IN#", to!string(this.hashOf()));
 
 		if ((key in data)) {
 			logger.verbose("Type ", key, " has already been registered!?");
