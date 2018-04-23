@@ -17,7 +17,7 @@ import kargs.command;
 import cflags;
 import colour;
 import tarjans_scc;
-import dependency_scanner;
+import dep_graph;
 import krug_module;
 import diag.engine;
 import logger;

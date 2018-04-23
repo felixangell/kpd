@@ -17,7 +17,8 @@ import kargs.command;
 import cflags;
 import colour;
 import tarjans_scc;
-import dependency_scanner;
+import dep_graph;
+import krug_project;
 import krug_module;
 import diag.engine;
 import logger;
@@ -166,8 +167,10 @@ class Build_Command : Command {
 
 		logger.verbose_header("Generating Krug IR:");
 		foreach (ref mod; sorted_modules) {
+			mod.ir_mod = new IR_Module(mod.name);
+
 			foreach (ref sub_mod_name, as_tree; mod.as_trees) {
-				auto ir_builder = new IR_Builder(mod.name, sub_mod_name);
+				auto ir_builder = new IR_Builder(mod, sub_mod_name);
 				ir_builder.setup_sym_table(mod, sub_mod_name, as_tree);
 
 				// register the depednencies for this module

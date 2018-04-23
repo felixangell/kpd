@@ -25,6 +25,17 @@ struct Diagnostic_Engine {
 				"\n\n./krug --explain E" ~ err_code_str ~ " to explain the error.");
 	}
 
+	static void throw_error(Compiler_Error err, string[] names, Token[] context...) {
+		Token_Info[] ctx;
+		ctx.reserve(context.length);
+
+		foreach (ref tok; context) {
+			ctx ~= new Absolute_Token(tok);
+		}
+
+		throw_error(err, names, ctx);
+	}
+
 	static void throw_error(Compiler_Error err, Token_Info[] context...) {
 		string[] token_names;
 

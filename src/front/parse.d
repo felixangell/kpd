@@ -109,31 +109,7 @@ class Parser : Compilation_Phase {
 	// and are disposed from the AST.
 	void skip_module_load() {
 		auto name = expect(keyword.Load_Directive);
-		expect(Token_Type.Identifier);
-
-		// module_access
-		if (!peek().cmp("::")) {
-			return;
-		}
-		consume();
-
-		// not accessing a variety of
-		// symbols, just one so expect
-		// a single symbol and DIP
-		if (!peek().cmp("{")) {
-			expect(Token_Type.Identifier);
-			return;
-		}
-
-		expect("{");
-		for (int idx; !peek().cmp("}"); idx++) {
-			if (idx > 0) {
-				expect(",");
-			}
-
-			consume();
-		}
-		expect("}");
+		expect(Token_Type.String);
 	}
 
 	void recovery_skip(string value) {

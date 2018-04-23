@@ -9,12 +9,24 @@ func start(self Lexer) {
 	printf(c"lexing from pos: %d\n", self.position);
 	self.position = 32 as u64;
 	printf(c"lexing from pos: %d\n", self.position);
+
+	mut i = 0;
+	for i < self.position; i = i + 1 {
+		printf(c"peek(%d)\n", i);
+	}	
 }
 
 func main() {
 	let lex Lexer;
 	lex.position = 10 as u64;
+	
+	let initial_pos = lex.position;
+	
 	printf(c"pos is: %d\n", lex.position);
 	start(lex);
 	printf(c"pos is: %d\n", lex.position);
+
+	if initial_pos != lex.position {
+		printf(c"oh dear, compiler bug! %d != %d\n", initial_pos, lex.position);
+	}
 }

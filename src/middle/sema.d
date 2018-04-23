@@ -16,7 +16,7 @@ import sema.mutability;
 import sema.type_infer_pass;
 import sema.symbol;
 
-import dependency_scanner;
+import dep_graph;
 
 interface Semantic_Pass {
 	void execute(ref Module mod, string sub_mod_name, AST as_tree);

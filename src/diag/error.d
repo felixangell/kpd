@@ -221,3 +221,15 @@ To resolve this issue, make the variable mutable with the 'mut' keyword:
     }
 
 `, "Cannot assign to immutable variable '%s':"));
+
+mixin(make_err!("NO_MOD_NAME", "0007u", `This occurs when you are attempting to compile a module with no
+module name specified. To resolve this issue, simply declare the module name using the '#module'
+directive, like so:
+
+    #module main
+
+    func main() {
+        
+    }
+
+`, "Krug program has no module directive specified '%s'"));

@@ -63,8 +63,8 @@ class IR_Builder : Top_Level_Node_Visitor {
 		defer_ctx_ptr--;
 	}
 
-	this(string mod_name, string sub_mod_name) {
-		ir_mod = new IR_Module(sub_mod_name);
+	this(Module mod, string sub_mod_name) {
+		this.ir_mod = mod.ir_mod;
 		defer_ctx.length = 32;
 	}
 

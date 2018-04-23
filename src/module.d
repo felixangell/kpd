@@ -12,41 +12,33 @@ import sema.symbol;
 
 import logger;
 import lex.lexer;
+import kir.ir_mod;
 
 alias Token_Stream = Token[];
 
-// module is like a SOA for sub modules
 class Module {
-	string path, name;
-	bool[string] file_cache;
+	string name;
 
-	// this looks messy but modules are
-	// structured as SOA
+	Source_File[string] source_files;
 
 	// frontend generated data structure
 	// things which are analzed.
-	Source_File[string] source_files;
 	Token_Stream[string] token_streams;
 	AST[string] as_trees;
-
-	// other modules that this module includes
-	Module[string] edges;
 
 	// the root symbol table for the submodule
 	Symbol_Table[string] sym_tables;
 
+	IR_Module ir_mod;
+
+	// other modules that this module includes
+	Module[string] edges;
+
 	// for tarjans scc
 	int index = -1, low_link = -1;
 
-	this() {
-		this.path = "";
-		this.name = "main";
-	}
-
-	this(string path) {
-		this.path = path;
-		this.name = std.path.baseName(path);
-		this.file_cache = list_dir(path);
+	this(string name) {
+		this.name = name;
 	}
 
 	size_t dep_count() {
@@ -55,23 +47,6 @@ class Module {
 			num_deps += edge.dep_count();
 		}
 		return num_deps + edges.length;
-	}
-
-	bool sub_module_exists(string name) {
-		assert(name.cmp("main") && "can't check for sub-modules in main module");
-
-		// check that the sub-module exists, it's
-		// easier to append the krug extension on at this point
-		return *((name ~ ".krug") in file_cache);
-	}
-
-	Source_File load_source_file(string name) {
-		assert(name.cmp("main") && "can't load sub-modules in main module");
-
-		const string source_file_path = this.path ~ std.path.dirSeparator ~ name ~ ".krug";
-		auto source_file = new Source_File(source_file_path);
-		source_files[name] = source_file;
-		return source_file;
 	}
 }
 
