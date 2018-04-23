@@ -154,6 +154,7 @@ class Name_Resolve_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 		// simply the modules symbol table.
 		man.left.resolved_symbol = other_mod.sym_tables;
 
+		writeln("yeet o clock");
 		look_expr_via(other_mod.sym_tables, man.right);
 	}
 

@@ -40,6 +40,7 @@ class Defer_Context {
 		
 class IR_Builder : Top_Level_Node_Visitor {
 
+	Module mod;
 	IR_Module ir_mod;
 	kir.instr.Function curr_func;
 
@@ -263,10 +264,18 @@ class IR_Builder : Top_Level_Node_Visitor {
 	}
 
 	Value build_module_access(ast.Module_Access_Node man) {
+		auto sym = cast(Symbol_Node) man.left;
+
+		Module other = mod.edges[sym.value.lexeme];
+		writeln("MOD ACCESS in ", other.name);
+
+		Value right = build_expr(other.sym_tables.env, man.right);
+
 		// FIXME not void.
-		auto mod_name = new Identifier(new Void(), man.left.value.lexeme);
+		auto mod_name = new Identifier(right.get_type(), man.left.value.lexeme);
+
 		// FIXME env is taken from module.
-		return new Module_Access(mod_name, build_expr(null, man.right));
+		return new Module_Access(mod_name, right);
 	}
 
 	Value build_path(Type_Environment env, ast.Path_Expression_Node path) {
@@ -835,6 +844,7 @@ class IR_Builder : Top_Level_Node_Visitor {
 	}
 
 	IR_Module build(ref Module mod, AST as_tree) {
+		this.mod = mod;
 		foreach (node; as_tree) {
 			super.process_node(node);
 		}

@@ -12,7 +12,7 @@ import ast;
 import sema.type;
 
 Type get_sym_type(Type_Environment env, ast.Symbol_Node sym) {
-	writeln("get_sym_type", sym);
+	writeln("get_sym_type", sym, " env ", env);
 
 	if (sym.resolved_symbol is null) {
 		logger.fatal("Unresolved symbol node leaking! ", to!string(sym), " ... ", to!string(typeid(sym)),
