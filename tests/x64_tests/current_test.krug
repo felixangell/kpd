@@ -3,16 +3,11 @@
 #{c_func}
 func printf();
 
-type Foo struct {
-	age u64,
-	colour struct {
-		r u8,
-		g u8,
-		b u8,
-	},
-};
-
 type RGB_Colour (u8, u8, u8);
+
+func to_string(col RGB_Colour) {
+	printf(c"rgb(%d, %d, %d)", col.0, col.1, col.2);
+}
 
 func main() {
 	// todo we need to add the anonymous
@@ -25,5 +20,5 @@ func main() {
 	some_tuple.1 = 0 as u8;
 	some_tuple.2 = 255 as u8;
 
-	printf(c"rgb(%d, %d, %d)", some_tuple.0, some_tuple.1, some_tuple.2);
+	to_string(some_tuple);
 }

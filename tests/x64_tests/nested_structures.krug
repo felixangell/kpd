@@ -1,0 +1,14 @@
+#module main
+
+type Foo struct {
+	age u64,
+	colour struct {
+		r u8,
+		g u8,
+		b u8,
+	},
+};
+
+func main() {
+	
+}

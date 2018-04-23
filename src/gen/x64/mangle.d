@@ -32,6 +32,14 @@ string mangle_join(T...)(T values...) {
 	return res;
 }
 
+string mangle(Tuple t) {
+	string mangled_name = "T";
+	foreach (ref idx, type; t.types) {
+		mangled_name ~= mangle(type);
+	}
+	return mangled_name;
+}
+
 string mangle(Structure s) {
 	string mangled_name = "S";
 	
@@ -57,6 +65,9 @@ string mangle(Type t) {
 	}
 	else if (auto structure = cast(Structure) t) {
 		return mangle(structure);
+	}
+	else if (auto tuple = cast(Tuple) t) {
+		return mangle(tuple);
 	}
 
 	assert(0, to!string(t)); // oh dear!
