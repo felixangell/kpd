@@ -719,6 +719,38 @@ class Parser : Compilation_Phase {
 		return result;
 	}
 
+	ast.Expression_Node parse_module_access(Expression_Node left) {
+		auto path = cast(Path_Expression_Node) left;
+		if (path is null) {
+			logger.error(left.get_tok_info().get_tok(), 
+				"left hand of module-access should be a path");
+			recovery_skip(";");
+			return new Dead_Expr_Node;
+		}
+
+		auto fst = cast(Symbol_Node) path.values[0];
+		if (fst is null) {
+			// no symbol node on left hand
+			// ilegal value
+			logger.error(fst.get_tok_info().get_tok(), 
+				"expected module symbol in module-access");
+			recovery_skip(";");
+			return new Dead_Expr_Node;
+		}
+
+		expect("::");
+
+		auto right = parse_expr();
+		if (right is null) {
+			logger.error(peek(), "expected expression after :: operator");
+			recovery_skip(";");
+		}
+
+		auto man = new Module_Access_Node(fst, right);
+		man.set_tok_info(fst.get_tok_info().get_tok(), peek());
+		return man;
+	}
+
 	// FIXME this is really weird and we have some
 	// crazy hacks to make things parse properly.
 	ast.Expression_Node parse_path(Expression_Node left) {
@@ -775,6 +807,8 @@ class Parser : Compilation_Phase {
 		}
 		while (has_next());
 
+		// slightly hacky?
+		pan.set_tok_info(start, peek(-1));
 		return pan;
 	}
 
@@ -808,8 +842,10 @@ class Parser : Compilation_Phase {
 			break;
 		case ".":
 			return parse_path(left);
+		case "::":
+			return parse_module_access(left);
 		default:
-			break;
+			assert("funny op!");
 		}
 
 		if (result is null) {
@@ -850,14 +886,15 @@ class Parser : Compilation_Phase {
 			auto operator = consume();
 
 			ast.Expression_Node right = null;
-			if (operator.lexeme == "as") {
+			switch (operator.lexeme) {
+			case "as":
 				auto type = parse_type();
 				// handle errors...
 				left = new Cast_Expression_Node(left, type);
 				continue;
-			} 
-			else {
+			default:
 				right = parse_primary_expr(comp_allowed);
+				break;
 			}
 
 			if (right is null) {
@@ -1402,6 +1439,7 @@ leave:
 		if (val is null) {
 			return null;
 		}
+		writeln(val);
 		val.set_tok_info(start, peek());
 		expect(";");
 		return val;

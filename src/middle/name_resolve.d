@@ -25,31 +25,6 @@ class Name_Resolve_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 			return sym;
 		}
 
-		// we looked everywhere, so let's try a module!
-		if (name in mod.edges) {
-			auto other_mod = mod.edges[name];
-
-			// TODO search in specific submodule if we can
-
-			// For now there is no submodule to specifically
-			// look at so we have to copy ALL the symbols from
-			// each submodule into one large table which we
-			// can search in
-			Symbol_Table merge = new Symbol_Table();
-
-			foreach (ref table; other_mod.sym_tables) {
-				foreach (ref entry; table.symbols.byKeyValue()) {
-					merge.symbols[entry.key] = entry.value;
-				}
-				foreach (ref entry; table.env.data.byKeyValue()) {
-					merge.env.data[entry.key] = entry.value;
-				}
-			}
-
-			writeln(merge);
-			return cast(Symbol_Value) merge;
-		}
-
 		return null;
 	}
 
@@ -183,9 +158,45 @@ class Name_Resolve_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 		assert(0);
 	}
 
-	void analyze_path_expr(ast.Path_Expression_Node path) {
-		Symbol_Table last = curr_sym_table;
-		foreach (ref i, e; path.values) {
+	// looks for the right hand in the module specified on
+	// the left hand.
+	void analyze_module_access(ast.Module_Access_Node man) {
+		const auto name = man.left.value.lexeme;
+		if (name !in mod.edges) {
+			Diagnostic_Engine.throw_error(compiler_error.UNRESOLVED_SYMBOL, man.left.get_tok_info);
+			return;
+		}
+
+		auto other_mod = mod.edges[name];
+
+		// TODO because store the symbol table for 
+		// each individual file specified in the module
+		// this means that we could easily look 
+		// for specific things rather than copying
+		// all of the tables into one and searching that
+		
+		// TODO we should probably have each module represented
+		// with one symbol table however
+		// purely so we dont have to copy everything over and also
+		// we _want_ it to be that symbols conflict between each file.
+
+		Symbol_Table merge = new Symbol_Table();
+
+		foreach (ref table; other_mod.sym_tables) {
+			foreach (ref entry; table.symbols.byKeyValue()) {
+				merge.symbols[entry.key] = entry.value;
+			}
+			foreach (ref entry; table.env.data.byKeyValue()) {
+				merge.env.data[entry.key] = entry.value;
+			}
+		}
+
+		look_expr_via(merge, man.right);
+	}
+
+	Symbol_Table look_expr_via(Symbol_Table table, Expression_Node[] values...) {
+		Symbol_Table last = table;
+		foreach (ref i, e; values) {
 			auto sym = unwrap_sym(e);
 			if (!sym) {
 				// what do we do here?
@@ -208,13 +219,13 @@ class Name_Resolve_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 
 			if (found_sym is null) {
 				Diagnostic_Engine.throw_error(compiler_error.UNRESOLVED_SYMBOL, sym.get_tok_info());
-				return;
+				return null;
 			}
 
 			if (auto stab = cast(Symbol_Table) found_sym) {
 				last = stab;
 			}
-			else if (i != path.values.length - 1) {
+			else if (i != values.length - 1) {
 				// let's try resolve it TO a symbol table, for example.
 				// let felix Person
 				// let blah = felix.age;
@@ -227,7 +238,7 @@ class Name_Resolve_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 				}
 
 				Token next_tok = null;
-				if (auto next_sym = cast(Symbol_Node) path.values[i + 1]) {
+				if (auto next_sym = cast(Symbol_Node) values[i + 1]) {
 					next_tok = next_sym.value;
 				}
 				else {
@@ -239,14 +250,17 @@ class Name_Resolve_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 				// iterations left i.e. thinks to resolve.
 				// throw an unresolved error
 				Diagnostic_Engine.throw_error(compiler_error.UNRESOLVED_SYMBOL, new Absolute_Token(next_tok));
-				return;
+				return null;
 			}
 		}
+		return last;
+	}
 
+	void analyze_path_expr(ast.Path_Expression_Node path) {
 		// if we made it all the way here, our node has been resolved
 		// nicely. we're going to give the node a link to the symbol table
 		// it was resolved to
-		path.resolved_to = last;
+		path.resolved_to = look_expr_via(curr_sym_table, path.values);
 	}
 
 	void analyze_unary_unary(ast.Unary_Expression_Node unary) {
@@ -272,6 +286,9 @@ class Name_Resolve_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 		}
 		else if (auto path = cast(ast.Path_Expression_Node) expr) {
 			analyze_path_expr(path);
+		}
+		else if (auto man = cast(ast.Module_Access_Node) expr) {
+			analyze_module_access(man);
 		}
 		else if (auto call = cast(ast.Call_Node) expr) {
 			analyze_call(call);

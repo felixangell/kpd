@@ -48,6 +48,9 @@ bool has_attribute(Node n, string name) {
 	return (name in n.get_attribs()) !is null;
 }
 
+class Dead_Node : Node {}
+class Dead_Expr_Node : Expression_Node {}
+
 class Statement_Node : Node {
 
 }
@@ -272,6 +275,23 @@ class Variable_Statement_Node : Statement_Node, Semicolon_Stat {
 	}
 }
 
+// Symbol_Node "::" Expr
+// foo::bar
+// foo::bar() etc.
+class Module_Access_Node : Expression_Node {
+	Symbol_Node left;
+	Expression_Node right;
+
+	this(Symbol_Node left, Expression_Node right) {
+		this.left = left;
+		this.right = right;
+	}
+
+	override string toString() {
+		return to!string(left) ~ "::" ~ to!string(right);
+	}
+}
+
 class Cast_Expression_Node : Expression_Node {
 	Expression_Node left;
 	Type_Node type;
@@ -447,7 +467,7 @@ class Path_Expression_Node : Expression_Node {
 		string res;
 		foreach (idx, v; values) {
 			if (idx > 0)
-				res ~= ".";
+				res ~= ";";
 			res ~= to!string(v);
 		}
 		return "[path: " ~ res ~ "]";
