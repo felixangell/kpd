@@ -1,3 +1,5 @@
+#module main
+
 type SDL_Window struct {};
 
 type Foo struct {

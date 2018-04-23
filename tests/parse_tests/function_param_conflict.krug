@@ -1,3 +1,5 @@
+#module main
+
 func add(a s32, a s32, a s32) s32 {
 		
 }

@@ -1,3 +1,5 @@
+#module main
+
 type Entry!(K, V) struct {
 	key K,
 	val V,

@@ -1,3 +1,5 @@
+#module main
+
 func main() {
 	let i s32 = 0;
 	let l s32 = 0;

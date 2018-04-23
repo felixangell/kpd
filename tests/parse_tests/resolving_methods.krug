@@ -1,3 +1,5 @@
+#module main
+
 type thing struct {};
 
 func (t thing) blah() {}

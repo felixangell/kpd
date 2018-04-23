@@ -1,3 +1,5 @@
+#module main
+
 type Stuff struct {
 	struct_field_a string,
 	struct_field_a s32,

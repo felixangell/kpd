@@ -1,3 +1,5 @@
+#module main
+
 func min(a s32, b s32) s32 {
     if a < b {
         return a;

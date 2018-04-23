@@ -1,3 +1,5 @@
+#module main
+
 func harmless_func(input *s32) {
 	@input = @input * @input;
 }

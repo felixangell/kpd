@@ -1,3 +1,5 @@
+#module main
+
 func add(a s32, b s32) {
 	// return void
 	// so return {expr} is invalid here.

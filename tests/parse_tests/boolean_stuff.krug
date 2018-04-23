@@ -1,3 +1,5 @@
+#module main
+
 func prs32f(fmt *u8);
 
 func main() {

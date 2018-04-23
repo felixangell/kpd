@@ -1,3 +1,5 @@
+#module main
+
 func main() {
 	let i = 3;
 	i = i * 2;

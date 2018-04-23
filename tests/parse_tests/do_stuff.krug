@@ -1,3 +1,5 @@
+#module main
+
 type Dimension struct {
 	width us32,
 	height us32,

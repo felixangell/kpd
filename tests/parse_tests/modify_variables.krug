@@ -1,3 +1,5 @@
+#module main
+
 #load fun_variables
 
 type foo_str struct {

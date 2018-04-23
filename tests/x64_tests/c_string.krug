@@ -1,3 +1,5 @@
+#module main
+
 func main() {
 	let test = c"hello, world!";
 }

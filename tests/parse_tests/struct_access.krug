@@ -1,3 +1,5 @@
+#module main
+
 type Person struct {
 	age us32,
 };

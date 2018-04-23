@@ -1,3 +1,5 @@
+#module main
+
 func main() {
     let j = 10000;
     while j > 0 {

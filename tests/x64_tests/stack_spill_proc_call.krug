@@ -1,3 +1,5 @@
+#module main
+
 // test to see if the x64 generator
 // will spit out arguments to the stack
 // after we use up all the registers for

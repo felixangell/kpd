@@ -1,3 +1,5 @@
+#module main
+
 func main() {
 	let y f32 = eval {
 		let a f32 = 3;

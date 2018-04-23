@@ -1,3 +1,5 @@
+#module main
+
 func no() {}
 func yes() {}
 

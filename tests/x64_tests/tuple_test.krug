@@ -1,0 +1,29 @@
+#module main
+
+#{c_func}
+func printf();
+
+type Foo struct {
+	age u64,
+	colour struct {
+		r u8,
+		g u8,
+		b u8,
+	},
+};
+
+type RGB_Colour (u8, u8, u8);
+
+func main() {
+	// todo we need to add the anonymous
+	// types into the decl pass e.g.
+	// let foo (u8, u8, u8)
+	// so that we can name_resolve them
+
+	let some_tuple RGB_Colour;
+	some_tuple.0 = 255 as u8;
+	some_tuple.1 = 0 as u8;
+	some_tuple.2 = 255 as u8;
+
+	printf(c"rgb(%d, %d, %d)", some_tuple.0, some_tuple.1, some_tuple.2);
+}

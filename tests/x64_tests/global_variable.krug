@@ -1,3 +1,5 @@
+#module main
+
 let global_var s32 = 32;
 let g = 5555;
 

@@ -1,3 +1,5 @@
+#module main
+
 func main() {
     let i = 10;
     loop {

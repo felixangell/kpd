@@ -1,3 +1,5 @@
+#module main
+
 func add() s32 {
 	
 }

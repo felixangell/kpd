@@ -1,3 +1,0 @@
-func more_things() {
-	do_things();
-}

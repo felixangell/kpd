@@ -1,3 +1,5 @@
+#module main
+
 #{repr(align = "8")}
 type Foo struct {
 		

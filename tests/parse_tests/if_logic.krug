@@ -1,3 +1,5 @@
+#module main
+
 func say_apple() { } 		// 0
 func dont_say_apple() {} 	// 2
 

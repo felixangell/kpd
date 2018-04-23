@@ -1,3 +1,5 @@
+#module main
+
 func main() {
     let a = 15;
     if a < 14 {

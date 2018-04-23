@@ -1,3 +1,5 @@
+#module main
+
 func main() {
 	let x = 3;
 	mut y = x + x;

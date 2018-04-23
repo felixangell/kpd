@@ -1,3 +1,5 @@
+#module main
+
 let a = 69;
 
 func add(a s32, b s32) {

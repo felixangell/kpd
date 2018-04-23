@@ -1,3 +1,5 @@
+#module main
+
 func add(a s64, b s64, c s64, d s64, e s64, f s64, g s64, h s64) s64 {
 	let result = g + h;
 	return result;

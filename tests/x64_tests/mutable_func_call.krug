@@ -1,3 +1,5 @@
+#module main
+
 func change_params(a s32, mut b s32, c rune) {
 	// ok! b is mutable
 	b = c as s32;

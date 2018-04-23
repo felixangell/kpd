@@ -1,3 +1,5 @@
+#module main
+
 type Foo enum {
 	Label,
 	Tagged { x s32, y s32 },

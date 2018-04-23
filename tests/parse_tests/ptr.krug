@@ -1,3 +1,5 @@
+#module main
+
 func prs32_value(a s32);
 
 func main() {

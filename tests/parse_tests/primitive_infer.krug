@@ -1,3 +1,5 @@
+#module main
+
 func strings() {
 	let c string = "foo bar blah!";
 	let d = " ... world!";

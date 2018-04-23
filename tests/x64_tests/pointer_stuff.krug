@@ -1,3 +1,5 @@
+#module main
+
 #{c_func, c_func, c_func, c_func}
 func printf() s32;
 

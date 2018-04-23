@@ -1,3 +1,5 @@
+#module main
+
 let x = 32;
 
 func main() {
