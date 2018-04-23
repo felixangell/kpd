@@ -54,6 +54,8 @@ class IR_Module {
 	}
 
 	Function get_function(string name) {
+		writeln("!!! looking for func ", name);
+
 		if ((name in functions) !is null) {
 			return functions[name];
 		}

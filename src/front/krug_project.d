@@ -167,7 +167,11 @@ Krug_Project build_krug_project(ref Source_File main_source_file) {
 		// main module which has no dependencies.
 		// add an edge from the file -> mod
 		if (file.path in edges) {
-			proj.graph.add_dependency(edges[file.path], mod);
+			const auto omod = edges[file.path];
+
+			if (mod.name != omod) {
+				proj.graph.add_dependency(omod, mod);
+			}
 		}
 
 		foreach (ref dep; minfo.dependencies) {

@@ -1,5 +1,7 @@
 module kir.driver;
 
+import std.stdio;
+
 import ast;
 import krug_module;
 import sema.type;
