@@ -150,6 +150,10 @@ Type fresh(Type t, Type_Variable[string] generics) {
 			// TODO
 			return st;
 		}
+		else if (auto tuple = cast(Tuple) pt) {
+			// TODO
+			return tuple;
+		}
 		else if (auto ar = cast(Array) pt) {
 			return ar;
 		}
@@ -265,6 +269,11 @@ class Type_Inferrer {
 			assert(type !is null);
 			return type;
 		}
+		else if (auto tuple = cast(Tuple) last) {
+			auto type = tuple.nth(to!int(sym.value.lexeme));
+			assert(type !is null);
+			return type;
+		}
 
 		logger.error("unhandled type " ~ to!string(last));
 		assert(0);
@@ -274,6 +283,11 @@ class Type_Inferrer {
 	Type analyze_via(Type last, Node n, Type_Environment e, Type_Variable[string] generics) {
 		if (auto sym = cast(Symbol_Node) n) {
 			return analyze_sym_via(last, sym, e, generics);
+		}
+		else if (auto integer = cast(Integer_Constant_Node) n) {
+			// again tuple hack here to wrap
+			// the number as a symbol node.
+			return analyze_sym_via(last, new Symbol_Node(integer.tok), e, generics);
 		}
 
 		logger.error(n.get_tok_info(), "unhandled node " ~ to!string(typeid(n)));
@@ -499,6 +513,14 @@ class Type_Inferrer {
 				names ~= field.name.lexeme;
 			}
 			return new Structure(types, names);
+		}
+
+		else if (auto tuple = cast(Tuple_Type_Node) node) {
+			Type[] types;
+			foreach (ref type; tuple.types) {
+				types ~= analyze(type, e, generics);
+			}
+			return new Tuple(types);
 		}
 
 		else if (auto ptr = cast(Pointer_Type_Node) node) {

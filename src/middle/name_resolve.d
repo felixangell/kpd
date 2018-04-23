@@ -82,14 +82,25 @@ class Name_Resolve_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 		return last;
 	}
 
+	Symbol_Table resolve_tuple(ast.Tuple_Type_Node tuple) {
+		assert(0);
+	}
+
 	Symbol_Table resolve_type(ast.Type_Node t) {
 		if (auto type_path = cast(Type_Path_Node) t) {
 			return resolve_type_path(type_path);
 		}
+		
 		else if (auto ptr = cast(Pointer_Type_Node) t) {
 			return resolve_type(ptr.base_type);
 		}
+
+		else if (auto tuple = cast(Tuple_Type_Node) t) {
+			return resolve_tuple(tuple);
+		}
+
 		// TODO structure type node
+
 		else if (auto prim = cast(Primitive_Type_Node) t) {
 			// all dandy. 
 			// (the parser should have caught this)
@@ -134,9 +145,18 @@ class Name_Resolve_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 		else if (auto call = cast(ast.Call_Node) e) {
 			return unwrap_sym(call.left);
 		}
-
-		logger.fatal(logger.blame_token(e.get_tok_info()), "unwrap_sym: unhandled expr ", to!string(typeid(e)));
-		assert(0);
+		else if (auto integer = cast(ast.Integer_Constant_Node) e) {
+			// NOTE this is a hack for tuples. we basically
+			// wrap the number as a symbol node and since
+			// a tuple type registers it's fields as the index
+			// e.g. 0, 1, 2, 3
+			// this should resolve properly!
+			return new Symbol_Node(integer.tok);
+		}
+		else {
+			logger.fatal(logger.blame_token(e.get_tok_info()), "unwrap_sym: unhandled expr ", to!string(typeid(e)));
+			assert(0);
+		}
 	}
 
 	// looks for the right hand in the module specified on
@@ -164,6 +184,8 @@ class Name_Resolve_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 
 		Symbol_Table last = table;
 		foreach (ref i, e; values) {
+			// TODO wriet a note here
+			// about how tuples work.
 			auto sym = unwrap_sym(e);
 			if (!sym) {
 				// what do we do here?

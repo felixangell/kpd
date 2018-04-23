@@ -46,6 +46,12 @@ class Mutability_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 		else if (auto unary = cast(ast.Unary_Expression_Node) e) {
 			return is_mutable(unary.value);
 		}
+		else if (auto integer = cast(ast.Integer_Constant_Node) e) {
+			// FIXME remove the tuple hack
+			// so that we dont have to hard code
+			// a yes its mutable here?
+			return true;
+		}
 
 		this.log(Log_Level.Error, e.get_tok_info(), "is_mutable: unhandled expr " ~ to!string(typeid(e)));			
 		assert(0);

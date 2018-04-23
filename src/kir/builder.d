@@ -203,6 +203,15 @@ class IR_Builder : Top_Level_Node_Visitor {
 				// for x64.
 				return new Get_Element_Pointer(identifier, 0, idx, 8);
 			}
+			else if (auto tuple = cast(Tuple) last.get_type()) {
+				// TODO ensure that the symbol thing here is a number?
+				int idx = to!int(sym.value.lexeme);
+
+				// FIXME alignment stuff
+				// structures are aligned to 8 bytes
+				// for x64.
+				return new Get_Element_Pointer(identifier, 0, idx, 8);
+			}
 			else if (auto ptr = cast(Pointer) last.get_type()) {
 				// TODO we need to handle accessing pointers
 				// this is a little awkward.
@@ -290,12 +299,20 @@ class IR_Builder : Top_Level_Node_Visitor {
 		else if (auto sym = cast(ast.Symbol_Node) last) {
 			return build_sym_access(env, path);
 		}
+		else if (auto integer = cast(Integer_Constant_Node) last) {
+			// again tuple hack!
+			// FIXME an idea is to maybe
+			// re-write an integer constant node
+			// in the parser in a PATH to be a symbol node?
+			path.values[$-1] = new Symbol_Node(integer.tok);
+			return build_sym_access(env, path);
+		}
 
 		foreach (v; path.values) {
 			writeln(v);
 		}
 
-		logger.error(path.get_tok_info().get_tok(), "unimplemented!");
+		logger.error(path.get_tok_info().get_tok(), "build_path: unimplemented path node " ~ to!string(typeid(last)));
 		assert(0);
 	}
 

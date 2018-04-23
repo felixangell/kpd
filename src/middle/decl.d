@@ -39,6 +39,19 @@ class Declaration_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 		return table;
 	}
 
+	Symbol_Table analyze_tuple_type_node(ast.Tuple_Type_Node t) {
+		auto table = new Symbol_Table;
+		foreach (idx, type; t.types) {
+			auto og_type = table.register_sym(new Symbol(type, to!string(idx), true));
+			
+			// if this happens something is seriously broken.
+			if (og_type !is null) {
+				Diagnostic_Engine.throw_error(SYMBOL_CONFLICT, type.get_tok_info(), og_type.get_tok_info());
+			}
+		}
+		return table;
+	}
+
 	Symbol_Table analyze_anon_union_type_node(ast.Union_Type_Node u) {
 		auto table = new Symbol_Table;
 		foreach (idx, field; u.fields) {
@@ -120,6 +133,13 @@ class Declaration_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 		}
 		else if (auto trait = cast(Trait_Type_Node) tn) {
 			auto table = analyze_trait_type_node(trait);
+			table.name = name;
+			table.reference = node;
+			curr_sym_table.register_sym(name, table);
+		}
+		else if (auto tuple = cast(Tuple_Type_Node) tn) {
+			auto table = analyze_tuple_type_node(tuple);
+			writeln("new tuple table", name);
 			table.name = name;
 			table.reference = node;
 			curr_sym_table.register_sym(name, table);

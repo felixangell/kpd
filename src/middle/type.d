@@ -328,6 +328,36 @@ class Array : Type {
 	}
 }
 
+class Tuple : Type {
+	this(Type[] args...) {
+		super("tuple", args);
+	}
+
+	Type nth(int n) {
+		return types[n];
+	}
+
+	override bool cmp(Type other) {
+		// TODO
+		assert(0);
+	}
+
+	// tuple is a glorified structure
+	// with no field names. should we
+	// still pad these ?
+	override uint get_width() {
+		uint size = 0;
+		foreach (t; types) {
+			size += align_by(t.get_width(), 8);
+		}
+		return size;
+	}
+
+	override string toString() const {
+		return "tuple TODO";
+	}
+}
+
 class Structure : Type {
 	string[] names;
 
