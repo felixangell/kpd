@@ -161,12 +161,13 @@ class Build_Command : Command {
 		}
 
 		// tree of modules -> ir_modules
-		IR_Module[][string] modules;
+		IR_Module[string] modules;
 
 		IR_Module[] krug_program;
 
 		logger.verbose_header("Generating Krug IR:");
 		foreach (ref mod; sorted_modules) {
+			writeln("ir_builder: ", mod.name);
 			mod.ir_mod = new IR_Module(mod.name);
 
 			foreach (ref sub_mod_name, as_tree; mod.as_trees) {
@@ -175,9 +176,7 @@ class Build_Command : Command {
 
 				// register the depednencies for this module
 				foreach (ref key, mod; mod.edges) {
-					foreach (ref omod; modules[key]) {
-						ir_builder.ir_mod.add_dependency(omod);						
-					}
+					ir_builder.ir_mod.add_dependency(modules[key]);
 				}
 
 				logger.verbose(" - ", mod.name, "::", sub_mod_name);
@@ -186,10 +185,9 @@ class Build_Command : Command {
 				if (VERBOSE_LOGGING) ir_mod.dump();
 				new IR_Verifier(ir_mod);
 
-				// hack
-				modules[mod.name] ~= ir_mod;
-				krug_program ~= ir_mod;
 			}
+			modules[mod.name] = mod.ir_mod;
+			krug_program ~= mod.ir_mod;
 		}
 
 		logger.verbose_header("Control flow analysis of Krug IR:");
