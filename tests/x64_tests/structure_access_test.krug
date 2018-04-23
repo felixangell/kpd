@@ -1,0 +1,38 @@
+#module main
+
+#{c_func}
+func printf() s32;
+
+type Person struct {
+	age s64,
+	a   s64,
+	b   s64,
+	c   s64,
+	d   s64,
+};
+
+func main() {
+	let felix Person;
+
+	felix.age = 19 as s64;
+
+	felix.a = 4 as s64;
+	felix.b = 6 as s64;
+	felix.c = 8 as s64;
+	felix.d = 10 as s64;
+
+	let age = felix.age;
+	printf(c"age is %d\n", age);
+
+	let a = felix.a;
+	printf(c"a is %d\n", a);
+
+	let b = felix.b;
+	printf(c"b is %d\n", b);
+
+	let c = felix.c;
+	printf(c"c is %d\n", c);
+
+	let d = felix.d;
+	printf(c"d is %d\n", d);
+}

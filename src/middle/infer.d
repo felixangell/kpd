@@ -490,6 +490,17 @@ class Type_Inferrer {
 			return get_rune().attach(node.get_tok_info().get_tok());
 		}
 
+		else if (auto structure = cast(Structure_Type_Node) node) {
+			Type[] types;
+			string[] names;
+			foreach (ref field; structure.fields) {
+				types ~= analyze(field.type, e, generics);
+				// TODO attach token info to this type.
+				names ~= field.name.lexeme;
+			}
+			return new Structure(types, names);
+		}
+
 		else if (auto ptr = cast(Pointer_Type_Node) node) {
 			return new Pointer(analyze(ptr.base_type, e, generics));
 		}

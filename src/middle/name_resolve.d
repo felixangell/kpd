@@ -89,6 +89,7 @@ class Name_Resolve_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 		else if (auto ptr = cast(Pointer_Type_Node) t) {
 			return resolve_type(ptr.base_type);
 		}
+		// TODO structure type node
 		else if (auto prim = cast(Primitive_Type_Node) t) {
 			// all dandy. 
 			// (the parser should have caught this)
