@@ -280,41 +280,43 @@ class Type_Inferrer {
 		assert(0);
 	}
 
+	Type analyze_mod_access(Module_Access_Node man, Type_Variable[string] generics) {
+		Symbol_Node left = man.left;
+
+		auto table = cast(Symbol_Table) left.resolved_symbol;
+		if (table is null) {
+			writeln("oh shit unresolved symbol here? ", left);
+			assert(0);
+		}
+
+		auto type = analyze_expr_list(generics, table.env, man.right);
+		if (type is null) {
+			// unresolved?
+			assert(0, "unresolved!");
+		}
+		return type;
+	}
+
+	Type analyze_expr_list(Type_Variable[string] generics, Type_Environment env, Expression_Node[] expr...) {
+		Type last = null;
+		foreach (ref idx, val; expr) {
+			if (last !is null) {
+				last = analyze_via(last, val, env, generics);
+			}
+			else {
+				last = analyze(val, env, generics);
+			}
+		}
+		return last;
+	}
+
 	// TODO this needs to be done properly...
 	Type analyze_path(Path_Expression_Node path, Type_Variable[string] generics) {
 		logger.verbose("analyzing path ", to!string(path));
-
-		Type last = null;
-		Type_Environment env = null;
-		foreach (ref idx, val; path.values) {
-			// this is kind of a hack to get module
-			// types to resolve. basically if we're
-			// at the start of the path we want
-			// to check if it's a symbol node
-			// resolved to a table. if it is
-			// then we set the environment to be
-			// of the symbol table
-			if (idx == 0) {
-				if (val.resolved_symbol !is null) {
-					if (auto resolved_e = cast(Symbol_Table) val.resolved_symbol) {
-						env = resolved_e.env;
-						last = null;
-						continue;
-					}
-				}
-				else {
-					analyze(val, e, generics);
-				}
-			}
-
-			if (last !is null) {
-				last = analyze_via(last, val, env !is null ? env : e, generics);
-			}
-			else {
-				last = analyze(val, env !is null ? env : e, generics);
-			}
+		Type last = analyze_expr_list(generics, e, path.values);
+		if (last is null) {
+			// TODO handle me
 		}
-
 		return last;
 	}
 
@@ -446,7 +448,12 @@ class Type_Inferrer {
 
 		else if (auto path = cast(ast.Path_Expression_Node) node) {
 			// TODO!
-			return analyze_path(path, generics).attach(path.values[$-1].get_tok_info().get_tok());
+			return analyze_path(path, generics)
+				.attach(path.values[$-1].get_tok_info.get_tok());
+		}
+
+		else if (auto man = cast(ast.Module_Access_Node) node) {
+			return analyze_mod_access(man, generics);
 		}
 
 		else if (auto unary = cast(ast.Unary_Expression_Node) node) {

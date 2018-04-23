@@ -19,15 +19,6 @@ immutable bool NAME_RESOLVE_DEBUG = false;
 class Name_Resolve_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 	Module mod;
 
-	Symbol_Value find_symbol(Symbol_Table table, string name) {
-		auto sym = find_symbol_in_stab(table, name);
-		if (sym) {
-			return sym;
-		}
-
-		return null;
-	}
-
 	Symbol_Value find_symbol_in_stab(Symbol_Table t, string name) {
 		for (Symbol_Table s = t; s !is null; s = s.outer) {
 
@@ -70,17 +61,7 @@ class Name_Resolve_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 		foreach (i, p; type_path.values) {
 			string sym_name = p.lexeme;
 
-			Symbol_Value found_sym;
-			if (i == 0) {
-				// this will search MODULES too
-				// we only want this if we're at the
-				// start of the path.
-				found_sym = find_symbol(last, sym_name);
-			}
-			else {
-				found_sym = find_symbol_in_stab(last, sym_name);
-			}
-
+			Symbol_Value found_sym = find_symbol_in_stab(last, sym_name);
 			if (found_sym is null) {
 				Diagnostic_Engine.throw_error(compiler_error.UNRESOLVED_SYMBOL, new Absolute_Token(p));
 				return null;
@@ -168,10 +149,18 @@ class Name_Resolve_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 		}
 
 		auto other_mod = mod.edges[name];
+		
+		// we have to manually resolve the left
+		// we already know what is it though its
+		// simply the modules symbol table.
+		man.left.resolved_symbol = other_mod.sym_tables;
+
 		look_expr_via(other_mod.sym_tables, man.right);
 	}
 
 	Symbol_Table look_expr_via(Symbol_Table table, Expression_Node[] values...) {
+		writeln("LOOK AT ", values);
+
 		Symbol_Table last = table;
 		foreach (ref i, e; values) {
 			auto sym = unwrap_sym(e);
@@ -181,17 +170,9 @@ class Name_Resolve_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 				continue;
 			}
 
-			Symbol_Value found_sym;
-			if (i != 0) {
-				found_sym = find_symbol_in_stab(last, sym.value.lexeme);
-			}
-			else {
-				// this will search MODULES too
-				// we only want this if we're at the
-				// start of the path.
-				found_sym = find_symbol(last, sym.value.lexeme);
-			}
+			Symbol_Value found_sym = find_symbol_in_stab(last, sym.value.lexeme);
 
+			writeln("we found ", found_sym, " so we set it!");
 			e.resolved_symbol = found_sym;
 
 			if (found_sym is null) {

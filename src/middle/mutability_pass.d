@@ -34,6 +34,9 @@ class Mutability_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 		if (auto path = cast(ast.Path_Expression_Node) e) {
 			return is_mutable(path.values[$-1]);
 		}
+		else if (auto man = cast(ast.Module_Access_Node) e) {
+			return is_mutable(man.right);
+		}
 		else if (auto sym = cast(ast.Symbol_Node) e) {
 			return is_mutable(sym);
 		}
@@ -82,6 +85,9 @@ class Mutability_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 		}
 		else if (auto path = cast(ast.Path_Expression_Node) expr) {
 			analyze_expr(path.values[$-1]);
+		}
+		else if (auto man = cast(ast.Module_Access_Node) expr) {
+			analyze_expr(man.right);
 		}
 		else if (auto index = cast(ast.Index_Expression_Node) expr) {
 			// TODO
