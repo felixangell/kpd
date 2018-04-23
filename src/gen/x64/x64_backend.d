@@ -37,11 +37,6 @@ class X64_Backend : Code_Generator_Backend {
 	X64_Assembly code_gen(IR_Module mod) {
 		auto gen = new X64_Generator;
 
-		// is this necessary
-		version(OSX) {
-			gen.writer.emit(".macosx_version_min 10, 16");
-		}
-
 		gen.emit_mod(mod);
 
 		has_c_symbols = mod.c_funcs.length > 0;
