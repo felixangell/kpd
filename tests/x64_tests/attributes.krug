@@ -9,4 +9,4 @@ type Foo struct {
 func attrib_test();
 
 #{no_mangle, c_symbol, variadic}
-func prs32f(fmt *u8) s32;
+func printf(fmt *u8) s32;
