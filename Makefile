@@ -12,7 +12,8 @@ D_SOURCES := $(shell find src -type f -name '*.d')
 D_OBJ_FILES := $(patsubst %.d,%.o,$(D_SOURCES))
 
 LD_FLAGS := -L=vm/krugvm.a -vcolumns
-KRUG_OUT := krug
+KRUG_OUT_DIR := bin
+KRUG_OUT := $(KRUG_OUT_DIR)/krug
 
 default: $(KRUG_OUT)
 
@@ -33,6 +34,7 @@ $(VM_OUT): $(VM_CC_OBJ_FILES)
 	ar -cvq $(VM_OUT) $(VM_CC_OBJ_FILES)
 
 $(KRUG_OUT): $(VM_OUT) $(D_SOURCES)
+	@mkdir $(KRUG_OUT_DIR)
 	$(DC) -of$@ -dip1000 $(D_FLAGS) $(LD_FLAGS) $(D_SOURCES)
 	
 optimized: $(VM_OUT) $(D_SOURCES)
