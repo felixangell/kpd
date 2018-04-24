@@ -36,6 +36,7 @@ static const string False_Constant = "false";
 
 // DIRECTIVES
 static const string Load_Directive = "load";
+static const string Module_Directive = "module";
 
 // SYMBOLS
 // should this exist?

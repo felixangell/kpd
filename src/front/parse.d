@@ -99,6 +99,11 @@ class Parser : Compilation_Phase {
 		return consume();
 	}
 
+	void skip_module_dir() {
+		auto name = expect(keyword.Module_Directive);
+		expect(Token_Type.Identifier);
+	}
+
 	// skips a module load
 	// #load, etc. these are handled elsewhere
 	// and are disposed from the AST.
@@ -1544,6 +1549,10 @@ leave:
 		auto curr = peek();
 		if (curr.cmp(keyword.Load_Directive)) {
 			skip_module_load();
+			return dir;
+		}
+		else if (curr.cmp(keyword.Module_Directive)) {
+			skip_module_dir();
 			return dir;
 		}
 
