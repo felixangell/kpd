@@ -676,6 +676,35 @@ class X64_Generator {
 		foreach (ref name, func; mod.functions) {
 			emit_func(func);
 		}
+
+		// emit the main function bootstrap function
+		// if this module has a main func
+
+		// hack mangle for the entry label
+		string entry_label = "main";
+		version (OSX) {
+			entry_label = "_main";
+		}
+
+		// if our module has a main function
+		// we emitt the main asm procedure
+		// which the program is entered by.
+		// there is an assumption that 
+		// _only one module in the program
+		// has a main function!_
+		auto main_func = mod.get_function("main");
+		if (main_func !is null) {
+			writer.emit(".global {}", entry_label);
+			writer.emit("{}:", entry_label);
+
+			writer.push(RBP);
+			writer.mov(RSP, RBP);
+
+			writer.call(mangle(main_func));
+
+			writer.pop(RBP);
+			writer.ret();
+		}			
 	}
 
 	void push_block_ctx(Function func) {

@@ -32,43 +32,9 @@ void parse_asm_out(string asm_out) {
 	// because its mostly for hacky reasons!
 */
 class X64_Backend : Code_Generator_Backend {
-	bool has_c_symbols = false;
-
 	X64_Assembly code_gen(IR_Module mod) {
 		auto gen = new X64_Generator;
-
 		gen.emit_mod(mod);
-
-		has_c_symbols = mod.c_funcs.length > 0;
-
-		// hack
-		// generate a main function for us to
-		// enter, this only works for single
-		// module programs atm because if 
-		// we add more modules then they will
-		// all have a main function generated
-
-		string entry_label = "main";
-		version (OSX) {
-			entry_label = "_main";
-		}
-
-		gen.writer.emit(".global {}", entry_label);
-		gen.writer.emit("{}:", entry_label);
-
-		gen.writer.push(RBP);
-		gen.writer.mov(RSP, RBP);
-
-		{
-			auto main_func = mod.get_function("main");
-			if (main_func !is null) {
-				gen.writer.emitt("call {}", mangle(main_func));
-			}			
-		}
-
-		gen.writer.pop(RBP);
-		gen.writer.ret();
-
 		return gen.writer;
 	}
 
