@@ -6,6 +6,7 @@ import std.format;
 import std.container.array;
 import std.range.primitives;
 import std.bitmanip : bitfields, FloatRep, DoubleRep;
+import std.ascii : isUpper;
 import std.algorithm.searching : countUntil;
 import std.math : log2;
 import std.process;
@@ -22,57 +23,7 @@ import gen.x64.instr;
 
 import kir.ir_mod;
 import kir.instr;
-
-class Block_Context {
-	Function parent;
-
-	long addr_ptr = 0;
-	long[string] locals;
-	uint alloc_instr_addr;
-
-	this(Function parent) {
-		this.parent = parent;
-	}
-
-	long size() {
-		version (OSX) {
-			import std.algorithm.comparison : max;
-			return max(16, addr_ptr);
-		} else {
-			return addr_ptr;			
-		}
-	}
-
-	long push_local(string name, Type t) {
-		// floating types are stored in xmm0 ... xmmN
-		// registers which are 128 bits or 16 bytes
-		// in size.
-		if (cast(Floating)t) {
-			return push_local(name, 16);
-		}
-		return push_local(name, t.get_width());
-	}
-
-	long push_local(string name, int width) {
-		long alloc_addr = addr_ptr;
-		locals[name] = alloc_addr;
-		addr_ptr += width;
-		return alloc_addr;
-	}
-
-	// FIXME
-	// return -1 if the name is not a local.
-	long get_addr(string name) {
-		if (name !in locals) {
-			writeln("NO LOCAL '", name, "' in '", parent.name, "'!");
-			foreach (k, v; locals) {
-				writeln(k, " => ", v);
-			}
-			return -1;
-		}
-		return locals[name];
-	}
-}
+import kir.block_ctx;
 
 Reg[] SYS_V_CALL_CONV_REG;
 Reg[] SYS_V_CALL_CONV_REG_FLOATS;
@@ -141,7 +92,6 @@ class X64_Generator {
 	X64_Assembly_Writer writer;
 	Function curr_func;
 
-	Block_Context[string] ctx;
 	Block_Context curr_ctx;
 
 	this() {
@@ -549,6 +499,92 @@ class X64_Generator {
 		writer.jmp(mangle(j.label));
 	}
 
+	void emit_mod_access(Module_Access ma) {
+		// fixme this is a copy paste of emit_call...
+
+		// x86_64 calling convention...
+		// following the System V AMD64 ABI conv
+		// https://en.wikipedia.org/wiki/X86_calling_conventions
+
+		/*
+			The first six integer or pointer arguments are passed in registers RDI, RSI, RDX, RCX, R8, R9 
+			(R10 is used as a static chain pointer in case of nested functions...), 
+
+			while XMM0, XMM1, XMM2, XMM3, XMM4, XMM5, XMM6 and XMM7 are used for certain floating point arguments.
+
+			..., additional arguments are passed on the stack. 
+			Integral return values up to 64 bits in size are stored in RAX 
+			while values up to 128 bit are stored in RAX and RDX. 
+
+			Floating-point return values are similarly stored in XMM0 and XMM1.
+
+			should be stack aligned on 16 byte boundary.
+		*/
+
+		import std.algorithm.comparison : min, max;
+
+		if (ma.mod.name !in mod.dependencies) {
+			writeln("oh shit no ", ma.mod.name, " for ", mod.mod_name);
+		}
+
+		IR_Module other_mod = mod.dependencies[ma.mod.name];
+
+		Call c = cast(Call) ma.right;
+
+		string call_name = ";\n hlt"; // lol FIXME
+		if (auto iden = cast(Identifier) c.left) {
+			// since this is just a stand alone name
+			// its probably going to be a function
+			// registered in THIS module, so lets
+			// look it up and see if it exists.
+			auto func = other_mod.get_function(iden.name);
+			assert(func !is null);
+			call_name = mangle(func);
+		}
+		else {
+			logger.fatal("unhandled invoke lefthand ! ", to!string(c.left), " for ", to!string(c));
+		}
+
+		if ((call_name in other_mod.ctx) is null) {
+			logger.verbose("Call context for '", call_name, "' does not exist!");
+			foreach (k, v; other_mod.ctx) {
+				logger.verbose(k, " => ", to!string(v));
+			}
+			assert(0);
+		}
+
+		// the locals context for the function
+		// we're calling.
+		Block_Context call_frame_ctx = other_mod.ctx[call_name];
+
+		uint next_float = 0;
+
+		// mov all of the args into the register
+		// for the calling convention
+		foreach (i, arg; c.args[0..min(c.args.length,SYS_V_CALL_CONV_REG.length)]) {
+			if (auto flt = cast(Floating) arg.get_type()) {
+				writer.mov(get_val(arg), SYS_V_CALL_CONV_REG_FLOATS[next_float++]);
+			}
+			else if (auto ptr = cast(Pointer) arg.get_type()) {
+				writer.lea(get_val(arg), SYS_V_CALL_CONV_REG[i]);
+			}
+			else {
+				writer.mov(get_val(arg), SYS_V_CALL_CONV_REG[i]);
+			}
+		}
+
+		if (c.args.length >= SYS_V_CALL_CONV_REG.length) {
+			foreach_reverse (i, arg; c.args[SYS_V_CALL_CONV_REG.length..$]) {
+				// move the value via. the stack
+				long addr = call_frame_ctx.get_addr("__arg_" ~ to!string(i));
+				writer.mov(get_val(arg), new Address(addr, RSP));
+			}
+		}		
+
+		writer.mov(make_const(next_float), AL);
+		writer.call(call_name);
+	}
+
 	void emit_call(Call c) {
 		// x86_64 calling convention...
 		// following the System V AMD64 ABI conv
@@ -585,9 +621,9 @@ class X64_Generator {
 			logger.fatal("unhandled invoke lefthand ! ", to!string(c.left), " for ", to!string(c));
 		}
 
-		if ((call_name in ctx) is null) {
+		if ((call_name in mod.ctx) is null) {
 			logger.verbose("Call context for '", call_name, "' does not exist!");
-			foreach (k, v; ctx) {
+			foreach (k, v; mod.ctx) {
 				logger.verbose(k, " => ", to!string(v));
 			}
 			assert(0);
@@ -595,7 +631,7 @@ class X64_Generator {
 
 		// the locals context for the function
 		// we're calling.
-		Block_Context call_frame_ctx = ctx[call_name];
+		Block_Context call_frame_ctx = mod.ctx[call_name];
 
 		uint next_float = 0;
 
@@ -644,6 +680,9 @@ class X64_Generator {
 		}
 		else if (auto c = cast(Call)i) {
 			emit_call(c);
+		}
+		else if (auto ma = cast(Module_Access)i) {
+			emit_mod_access(ma);
 		}
 		else {
 			logger.fatal("x64_gen: unhandled instruction ", to!string(typeid(cast(Basic_Instruction)i)), ":\n\t", to!string(i));
@@ -710,7 +749,7 @@ class X64_Generator {
 	void push_block_ctx(Function func) {
 		auto new_ctx = new Block_Context(func);
 		logger.verbose("Pushing local context for func '", func.name, "'");
-		ctx[mangle(func)] = new_ctx;
+		mod.ctx[mangle(func)] = new_ctx;
 		curr_ctx = new_ctx;
 	}
 
@@ -735,7 +774,12 @@ class X64_Generator {
 			return;
 		}
 
-		curr_ctx = ctx[mangle(func)];
+		curr_ctx = mod.ctx[mangle(func)];
+
+		// temp hack
+		if (isUpper(func.name[0])) {
+			writer.emit(".global {}", mangle(func));
+		}
 
 		writer.emit("{}:", mangle(func));
 

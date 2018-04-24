@@ -159,6 +159,9 @@ class Build_Command : Command {
 			return;
 		}
 
+		// tree of modules -> ir_modules
+		IR_Module[][string] modules;
+
 		IR_Module[] krug_program;
 
 		logger.verbose_header("Generating Krug IR:");
@@ -167,12 +170,21 @@ class Build_Command : Command {
 				auto ir_builder = new IR_Builder(mod.name, sub_mod_name);
 				ir_builder.setup_sym_table(mod, sub_mod_name, as_tree);
 
+				// register the depednencies for this module
+				foreach (ref key, mod; mod.edges) {
+					foreach (ref omod; modules[key]) {
+						ir_builder.ir_mod.add_dependency(omod);						
+					}
+				}
+
 				logger.verbose(" - ", mod.name, "::", sub_mod_name);
 
 				auto ir_mod = ir_builder.build(mod, as_tree);
 				if (VERBOSE_LOGGING) ir_mod.dump();
 				new IR_Verifier(ir_mod);
 
+				// hack
+				modules[mod.name] ~= ir_mod;
 				krug_program ~= ir_mod;
 			}
 		}

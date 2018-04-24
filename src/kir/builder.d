@@ -94,7 +94,25 @@ class IR_Builder : Top_Level_Node_Visitor {
 		return new Label(bb.name(), bb);
 	}	
 
+	Module_Info module_struct(Symbol_Table val) {
+		string[] names;
+		Type[] types;
+
+		names.reserve(val.symbols.length);
+		types.reserve(val.symbols.length);
+
+		foreach (ref key, val; val.symbols) {
+			names ~= key;
+			// yeet
+			types ~= get_type(val.reference);
+		}
+
+		return new Module_Info(types, names);
+	}
+
 	Type get_sym_type(ast.Symbol_Node sym) {
+		writeln("get_sym_type", sym);
+
 		if (sym.resolved_symbol is null) {
 			logger.fatal("Unresolved symbol node leaking! ", to!string(sym), " ... ", to!string(typeid(sym)),
 				"\n", logger.blame_token(sym.get_tok_info()));
@@ -102,6 +120,13 @@ class IR_Builder : Top_Level_Node_Visitor {
 		}
 
 		if (auto sym_val = cast(Symbol_Value) sym.resolved_symbol) {
+			if (sym_val.reference is null) {
+				if (auto table = cast(Symbol_Table) sym_val) {
+					return module_struct(table);					
+				}
+				assert(0); // undefined!
+			}
+
 			return get_type(sym_val.reference);
 		}
 
@@ -299,9 +324,46 @@ class IR_Builder : Top_Level_Node_Visitor {
 		return new Identifier(temp.get_type(), temp.name);
 	}
 
+	// stupid hack fixme
+	string unwrap_fst_name(ast.Node node) {
+		if (auto path = cast(ast.Path_Expression_Node) node) {
+			return unwrap_fst_name(path.values[0]);
+		}
+		else if (auto sym = cast(ast.Symbol_Node) node) {
+			return sym.value.lexeme;
+		}
+
+		assert(0);
+	}
+
+	Value build_module_call(Value last, ast.Call_Node call) {
+		auto mod_info = cast(Module_Info) last.get_type();
+
+		const auto name = unwrap_fst_name(call.left);
+		auto left = new Identifier(mod_info.get_field_type(name), name);
+
+		Value[] args;
+		foreach (arg; call.args) {
+			args ~= build_expr(arg);
+		}
+		auto call_instr = new Call(left.get_type(), left, args);
+
+		if (auto iden = cast(Identifier) last) {
+			return new Module_Access(iden, call_instr);
+		}
+
+		assert(0);
+	}
+
 	Value build_call_via(Value last, ast.Call_Node call) {
-		writeln(last, " ... ", call);
-		return null;
+		writeln("build_call_via ", last, " ... ", call);
+
+		auto type = last.get_type();
+		if (auto mod_info = cast(Module_Info) type) {
+			return build_module_call(last, call);
+		}
+
+		assert(0, to!string(typeid(type)));
 	}
 
 	Type get_sym_type_via(Type type, Symbol_Node sym) {
@@ -345,9 +407,7 @@ class IR_Builder : Top_Level_Node_Visitor {
 
 	Value build_expr_via(Value last, ast.Expression_Node v) {
 		if (auto call = cast(ast.Call_Node) v) {
-			Call c = cast(Call) build_call_via(last, call);
-			// squeeze in a new param
-			return c;
+			return build_call_via(last, call);
 		}
 		else if (auto sym = cast(ast.Symbol_Node) v) {
 			return build_sym_access_via(last, sym);
@@ -359,6 +419,8 @@ class IR_Builder : Top_Level_Node_Visitor {
 
 	// TODO make this work for EVERYTHING
 	Value build_method_call(ast.Path_Expression_Node path) {
+		writeln("build_method_call", path);
+
 		Value last = null;
 		foreach (ref v; path.values) {
 			if (last !is null) {

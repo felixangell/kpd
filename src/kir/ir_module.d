@@ -7,6 +7,7 @@ import std.container.array;
 import sema.type;
 import colour;
 import kir.instr;
+import kir.block_ctx;
 
 /*
 	todo some cleanup here is in order
@@ -26,6 +27,8 @@ class IR_Module {
 	// the name of the sub_module
 	string mod_name;
 
+	Block_Context[string] ctx;
+
 	this(string mod_name) {
 		this.mod_name = mod_name;
 
@@ -43,6 +46,11 @@ class IR_Module {
 
 	Function current_func() {
 		return recent_func;
+	}
+
+	void add_dependency(IR_Module dep) {
+		writeln("ir_mod ", mod_name, " deps on ", dep.mod_name);
+		dependencies[dep.mod_name] = dep;
 	}
 
 	Function get_function(string name) {

@@ -350,6 +350,29 @@ class Alloc : Basic_Instruction, Value {
 	}
 }
 
+// fixme this is a module call thing
+class Module_Access : Basic_Instruction, Value {
+	Identifier mod;
+	Value right;
+
+	this(Identifier mod, Value right) {
+		super(right.get_type());
+		this.mod = mod;
+		this.right = right;
+	}
+
+	override void set_type(Type t) {
+		this.type = t;
+	}
+	override Type get_type() {
+		return type;
+	}
+
+	override string toString() {
+		return "mod_invoke " ~ to!string(mod) ~ "." ~ to!string(right);
+	}
+}
+
 class Call : Basic_Instruction, Value {
 	Value left;
 	Value[] args;

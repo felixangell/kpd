@@ -435,3 +435,33 @@ class Fn : Type {
 		return to!string(types) ~ " -> " ~ to!string(ret);
 	}
 }
+
+class Module_Info : Type {
+	string[] names;
+
+	this(Type[] args...) {
+		super("mod_info", args);
+	}
+
+	this(Type[] args, string[] names = []) {
+		super("mod_info", args);
+		this.names = names;
+	}
+
+	Type get_field_type(string name) {
+		auto idx = names.countUntil(name);
+		return types[idx];
+	}
+
+	override bool cmp(Type other) {
+		assert(0);
+	}
+
+	override uint get_width() {
+		assert(0);
+	}
+
+	override string toString() const {
+		return "mod_info " ~ to!string(types);
+	}
+}
