@@ -34,7 +34,7 @@ $(VM_OUT): $(VM_CC_OBJ_FILES)
 	ar -cvq $(VM_OUT) $(VM_CC_OBJ_FILES)
 
 $(KRUG_OUT): $(VM_OUT) $(D_SOURCES)
-	@mkdir $(KRUG_OUT_DIR)
+	@mkdir -p $(KRUG_OUT_DIR)
 	$(DC) -of$@ -dip1000 $(D_FLAGS) $(LD_FLAGS) $(D_SOURCES)
 	
 optimized: $(VM_OUT) $(D_SOURCES)
