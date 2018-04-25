@@ -21,7 +21,6 @@ class Name_Resolve_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 
 	Symbol_Value find_symbol_in_stab(Symbol_Table t, string name) {
 		for (Symbol_Table s = t; s !is null; s = s.outer) {
-
 			static if (NAME_RESOLVE_DEBUG) {
 				this.log(Log_Level.Verbose, "LOOKING FOR ", name, " in:");
 				s.dump_values();
@@ -171,14 +170,13 @@ class Name_Resolve_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 			}
 
 			Symbol_Value found_sym = find_symbol_in_stab(last, sym.value.lexeme);
-
-			writeln("we found ", found_sym, " so we set it!");
-			e.resolved_symbol = found_sym;
-
 			if (found_sym is null) {
 				Diagnostic_Engine.throw_error(compiler_error.UNRESOLVED_SYMBOL, sym.get_tok_info());
 				return null;
 			}
+
+			writeln("we found ", found_sym, " so we set it!");
+			e.resolved_symbol = found_sym;
 
 			if (auto stab = cast(Symbol_Table) found_sym) {
 				last = stab;

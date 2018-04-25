@@ -29,6 +29,7 @@ import ast;
 import logger;
 
 import kir.cfg;
+import kir.driver;
 import kir.cfg_builder;
 import kir.ir_mod;
 import kir.ir_verify;
@@ -157,34 +158,13 @@ class Build_Command : Command {
 			return;
 		}
 
-		// tree of modules -> ir_modules
-		IR_Module[string] modules;
+		// a single module (made up of potentially
+		// multiple files) is compiled into on IR Module.
+		logger.verbose_header("Generating Krug IR:");
 
 		IR_Module[] krug_program;
-
-		logger.verbose_header("Generating Krug IR:");
 		foreach (ref mod; sorted_modules) {
-			writeln("ir_builder: ", mod.name);
-			mod.ir_mod = new IR_Module(mod.name);
-
-			foreach (ref sub_mod_name, as_tree; mod.as_trees) {
-				auto ir_builder = new IR_Builder(mod, sub_mod_name);
-				ir_builder.setup_sym_table(mod, sub_mod_name, as_tree);
-
-				// register the depednencies for this module
-				foreach (ref key, mod; mod.edges) {
-					ir_builder.ir_mod.add_dependency(modules[key]);
-				}
-
-				logger.verbose(" - ", mod.name, "::", sub_mod_name);
-
-				auto ir_mod = ir_builder.build(mod, as_tree);
-				if (VERBOSE_LOGGING) ir_mod.dump();
-				new IR_Verifier(ir_mod);
-
-			}
-			modules[mod.name] = mod.ir_mod;
-			krug_program ~= mod.ir_mod;
+			krug_program ~= build_ir(mod);
 		}
 
 		logger.verbose_header("Control flow analysis of Krug IR:");
