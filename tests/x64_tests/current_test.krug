@@ -1,24 +1,7 @@
 #module main
 
-#{c_func}
-func printf();
-
-type RGB_Colour (u8, u8, u8);
-
-func to_string(col RGB_Colour) {
-	printf(c"rgb(%d, %d, %d)", col.0, col.1, col.2);
-}
+#load "io/fmt.krug"
 
 func main() {
-	// todo we need to add the anonymous
-	// types into the decl pass e.g.
-	// let foo (u8, u8, u8)
-	// so that we can name_resolve them
-
-	let some_tuple RGB_Colour;
-	some_tuple.0 = 255 as u8;
-	some_tuple.1 = 0 as u8;
-	some_tuple.2 = 255 as u8;
-
-	to_string(some_tuple);
+	io::printf(c"hello world!");	
 }

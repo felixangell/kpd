@@ -1439,7 +1439,6 @@ leave:
 		if (val is null) {
 			return null;
 		}
-		writeln(val);
 		val.set_tok_info(start, peek());
 		expect(";");
 		return val;

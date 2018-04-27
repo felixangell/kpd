@@ -175,13 +175,10 @@ class Name_Resolve_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 		// simply the modules symbol table.
 		man.left.resolved_symbol = other_mod.sym_tables;
 
-		writeln("yeet o clock");
 		look_expr_via(other_mod.sym_tables, man.right);
 	}
 
 	Symbol_Table look_expr_via(Symbol_Table table, Expression_Node[] values...) {
-		writeln("LOOK AT ", values);
-
 		Symbol_Table last = table;
 		foreach (ref i, e; values) {
 			// TODO wriet a note here
@@ -199,7 +196,6 @@ class Name_Resolve_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 				return null;
 			}
 
-			writeln("we found ", found_sym, " so we set it!");
 			e.resolved_symbol = found_sym;
 
 			if (auto stab = cast(Symbol_Table) found_sym) {

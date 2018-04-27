@@ -4,6 +4,7 @@ import std.stdio;
 import std.conv;
 import std.algorithm.comparison : equal;
 import std.typecons;
+import std.path;
 import std.range.primitives;
 
 import diag.engine;
@@ -129,6 +130,8 @@ Krug_Project build_krug_project(ref Source_File main_source_file) {
 	Source_File[] process;
 	process ~= main_source_file;
 
+	const auto main_source_file_dir = dirName(main_source_file.path);
+
 	// source file paths -> parent modules
 	string[string] edges;
 
@@ -175,10 +178,17 @@ Krug_Project build_krug_project(ref Source_File main_source_file) {
 		}
 
 		foreach (ref dep; minfo.dependencies) {
-			if (dep in visited_files) {
+			// the dependency path is loaded
+			// relative from the main entry files
+			// directiry
+			// in the future lookup in some LIB_FOLDER thing?
+			const dependency_path = buildPath(main_source_file_dir, dep);
+
+			if (dependency_path in visited_files) {
 				continue;
 			}
-			auto sfile = new Source_File(dep);
+
+			auto sfile = new Source_File(dependency_path);
 			process ~= sfile;
 			edges[sfile.path] = minfo.name;
 		}

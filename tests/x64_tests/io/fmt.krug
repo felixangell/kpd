@@ -1,0 +1,4 @@
+#module io
+
+#{c_func}
+func printf(fmt *u8);
