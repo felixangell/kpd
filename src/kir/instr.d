@@ -477,13 +477,18 @@ class Deref : Basic_Value {
 class Get_Element_Pointer : Basic_Value {
 	Value addr;
 	ulong offs, index, scale;
+	int width;
 
-	this(Value addr, ulong offs, ulong index, ulong scale) {
+	this(Value addr, ulong offs, ulong index, ulong scale, int width) {
 		super(addr.get_type());
 		this.addr = addr;
 		this.offs = offs;
 		this.index = index;
 		this.scale = scale;
+	}
+
+	int get_width() {
+		return width;
 	}
 
 	override string toString() {

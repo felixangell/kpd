@@ -1,76 +1,15 @@
 module gen.x64.asm_writer;
 
+import std.stdio;
 import std.conv : to;
 import std.bitmanip;
 import std.algorithm.comparison : min, max;
 import std.uni : toLower;
+import std.math : log2;
 
 import gen.x64.instr;
 import gen.x64.asm_file;
 import gen.x64.formatter;
-
-// GROSS!
-Reg AH; Reg AL; Reg CL; Reg DL; Reg BL; Reg SPL; Reg BPL; Reg SIL; Reg DIL; 
-Reg AX; Reg CX; Reg DX; Reg BX; Reg SP; Reg BP; Reg SI; Reg DI; 
-Reg EAX; Reg ECX; Reg EDX; Reg EBX; Reg ESP; Reg EBP; Reg ESI; Reg EDI; 
-Reg RAX; Reg RCX; Reg RDX; Reg RBX; Reg RSP; Reg RBP; Reg RSI; Reg RDI; Reg RIP; 
-Reg R8; Reg R9; Reg R10; Reg R11; Reg R12; Reg R13; Reg R14; Reg R15; 
-Reg XMM0; Reg XMM1; Reg XMM2; Reg XMM3; Reg XMM4; Reg XMM5; Reg XMM6; Reg XMM7; Reg XMM15;
-
-static this() {
-	AH = new Reg(X64_Register.AH);
-	AL = new Reg(X64_Register.AL);
-	CL = new Reg(X64_Register.CL);
-	DL = new Reg(X64_Register.DL);
-	BL = new Reg(X64_Register.BL);
-	SPL = new Reg(X64_Register.SPL);
-	BPL = new Reg(X64_Register.BPL);
-	SIL = new Reg(X64_Register.SIL);
-	DIL = new Reg(X64_Register.DIL);
-	AX = new Reg(X64_Register.AX);
-	CX = new Reg(X64_Register.CX);
-	DX = new Reg(X64_Register.DX);
-	BX = new Reg(X64_Register.BX);
-	SP = new Reg(X64_Register.SP);
-	BP = new Reg(X64_Register.BP);
-	SI = new Reg(X64_Register.SI);
-	DI = new Reg(X64_Register.DI);
-	EAX = new Reg(X64_Register.EAX);
-	ECX = new Reg(X64_Register.ECX);
-	EDX = new Reg(X64_Register.EDX);
-	EBX = new Reg(X64_Register.EBX);
-	ESP = new Reg(X64_Register.ESP);
-	EBP = new Reg(X64_Register.EBP);
-	ESI = new Reg(X64_Register.ESI);
-	EDI = new Reg(X64_Register.EDI);
-	RAX = new Reg(X64_Register.RAX);
-	RCX = new Reg(X64_Register.RCX);
-	RDX = new Reg(X64_Register.RDX);
-	RBX = new Reg(X64_Register.RBX);
-	RSP = new Reg(X64_Register.RSP);
-	RBP = new Reg(X64_Register.RBP);
-	RSI = new Reg(X64_Register.RSI);
-	RDI = new Reg(X64_Register.RDI);
-	RIP = new Reg(X64_Register.RIP);
-	R8 = new Reg(X64_Register.R8);
-	R9 = new Reg(X64_Register.R9);
-	R10 = new Reg(X64_Register.R10);
-	R11 = new Reg(X64_Register.R11);
-	R12 = new Reg(X64_Register.R12);
-	R13 = new Reg(X64_Register.R13);
-	R14 = new Reg(X64_Register.R14);
-	R15 = new Reg(X64_Register.R15);
-
-	XMM0 = new Reg(X64_Register.XMM0);
-	XMM1 = new Reg(X64_Register.XMM1);
-	XMM2 = new Reg(X64_Register.XMM2);
-	XMM3 = new Reg(X64_Register.XMM3);
-	XMM4 = new Reg(X64_Register.XMM4);
-	XMM5 = new Reg(X64_Register.XMM5);
-	XMM6 = new Reg(X64_Register.XMM6);
-	XMM7 = new Reg(X64_Register.XMM7);
-	XMM15 = new Reg(X64_Register.XMM15);
-}
 
 class Memory_Location {
 	abstract uint width();
@@ -78,24 +17,71 @@ class Memory_Location {
 }
 
 class Reg : Memory_Location {
-	X64_Register reg;
+	X64_Register value;
 
-	this(X64_Register reg) {
-		this.reg = reg;
+	this(X64_Register value) {
+		this.value = value;
 	}
 
-	bool is_floating() {
-		return reg >= X64_Register.XMM0 && reg <= X64_Register.XMM15;
+	void promote(int widthInBytes) {
+		// 0, 1, 2, 4, 8
+		//
+		// log2(1) = 0
+		// log2(2) = 1
+		// log2(4) = 2
+		// log2(8) = 3
+
+		switch (value) {
+		case X64_Register.RIP:
+			return;
+		default:
+			break;		
+		}
+
+		if (width() >= 8) {
+			writeln("NOT PROMOTING ", value);
+			return;
+		}
+
+		ubyte offs = cast(ubyte)(log2(widthInBytes)-1);
+		value = cast(X64_Register)(cast(ubyte)(value + (offs*8)));
 	}
 
 	override uint width() {
-		return get_width(reg);
+		if (value >= X64_Register.R8) {
+			return 8;
+		}
+		else if (value >= X64_Register.R8d) {
+			return 4;
+		}
+		else if (value >= X64_Register.R8w) {
+			return 2;
+		}
+		else if (value >= X64_Register.R8b) {
+			return 1;
+		}
+
+		else if (value >= X64_Register.RAX) {
+			return 8;
+		}
+		else if (value >= X64_Register.EAX) {
+			return 4;
+		}
+		else if (value >= X64_Register.AX) {
+			return 2;
+		}
+		else if (value >= X64_Register.AL) {
+			return 1;
+		}
+
+		assert(0, "unhandled " ~ to!string(value));
 	}
 
 	override string emit() {
-		return "%" ~ to!string(reg).toLower;
+		return "%" ~ to!string(value).toLower;
 	}
 }
+
 
 class Const : Memory_Location {
 	string val;
@@ -121,11 +107,13 @@ uint[string] constant_sizes;
 // seg:displace(reg, index, scale)
 class Address : Memory_Location {
 	long disp;
+	long offs;
 	string iden;
 
 	Reg reg;
-	Memory_Location index;
+	Reg index;
 	ulong scale;
+	uint addr_width;
 
 	this(Reg r) {
 		this.reg = r;
@@ -143,20 +131,26 @@ class Address : Memory_Location {
 	}
 
 	override uint width() {
-		return 0;
+		return addr_width;
 	}
 
 	override string emit() {
+		reg.promote(8); // 8 byte
+
 		if (iden.length > 0) {
 			return iden ~ "(" ~ reg.emit() ~ ")";
 		}
+		
 		if (index !is null) {
+			index.promote(8);
+
 			if (scale > 0) {
-				return sfmt("{}({}, {}, {})", to!string(disp), reg.emit(), index.emit(), to!string(scale));
+				return sfmt("{}({}, {}, {})", to!string(disp + offs), reg.emit(), index.emit(), to!string(scale));
 			}
-			return sfmt("{}({}, {})", to!string(disp), reg.emit(), index.emit());
+			return sfmt("{}({}, {})", to!string(disp + offs), reg.emit(), index.emit());
 		}
-		return sfmt("{}({})", to!string(disp), reg.emit());
+
+		return sfmt("{}({})", to!string(disp + offs), reg.emit());
 	}
 }
 
@@ -180,36 +174,6 @@ string suffix(uint width) {
 		return "b";
 	}
 	return to!string(type_name(width)[0]);
-}
-
-string suffix(uint width, Memory_Location a, Memory_Location b) {
-	if (auto ar = cast(Reg) a) {
-		if (ar.is_floating()) {
-			return "sd";
-		}
-	}
-	else if (auto br = cast(Reg) b) {
-		if (br.is_floating()) {
-			return "sd";
-		}
-	}
-	return suffix(width);
-}
-
-uint get_width(X64_Register a) {
-	if (a >= X64_Register.RAX) {
-		return 8;
-	}
-	else if (a >= X64_Register.EAX) {
-		return 4;
-	}
-	else if (a >= X64_Register.AX) {
-		return 2;
-	}
-	else if (a >= X64_Register.AH) {
-		return 1;
-	}
-	assert(0);
 }
 
 uint nzmax(uint a, uint b) {
@@ -243,131 +207,135 @@ uint nzmin(uint a, uint b) {
 }
 
 class X64_Assembly_Writer : X64_Assembly {
-	void mov(Memory_Location src, Memory_Location dest) {
-		uint w = nzmin(src.width(), dest.width());
-		if (cast(Address)src || cast(Address) dest) {
-			w = nzmax(src.width(), dest.width());
-		}
-		emitt("mov{} {}, {}", suffix(w, src, dest), src.emit(), dest.emit());
+
+	void mov(Memory_Location src, Reg dest) {
+		dest.promote(src.width());
+		emitt("mov{} {}, {}", suffix(src.width()), src.emit(), dest.emit());
 	}
 
-	void movz(Memory_Location src, Memory_Location dest) {
-		uint w = nzmin(src.width(), dest.width());
-		if (cast(Address)src || cast(Address) dest) {
-			w = nzmax(src.width(), dest.width());
-		}
-		emitt("movz{} {}, {}", suffix(w), src.emit(), dest.emit());
+	void mov(Memory_Location src, Address dest) {
+		emitt("mov{} {}, {}", suffix(src.width()), src.emit(), dest.emit());
 	}
 
-	void dec(Memory_Location a) {
-		emitt("dec{} {}", suffix(a.width()), a.emit());
+	void mov(Reg src, Reg dest) {
+		emitt("mov{} {}, {}", suffix(src.width()), src.emit(), dest.emit());
 	}
 
-	void and(Memory_Location a, Memory_Location b) {
-		uint w = nzmin(a.width(), b.width());
-		emitt("and{} {}, {}", suffix(w), a.emit(), b.emit());
+	void mov(Reg src, Memory_Location dest) {
+		src.promote(src.width());
+		emitt("mov{} {}, {}", suffix(src.width()), src.emit(), dest.emit());
 	}
 
-	void andn(Memory_Location a, Memory_Location b) {
-		uint w = nzmin(a.width(), b.width());
-		emitt("andn{} {}, {}", suffix(w), a.emit(), b.emit());
+	// mov 0(%rsp), %rax
+	void mov(Address src, Reg dest) {
+		dest.promote(src.width());
+		emitt("mov{} {}, {}", suffix(src.width()), src.emit(), dest.emit());
 	}
 
-	void or(Memory_Location a, Memory_Location b) {
-		uint w = nzmin(a.width(), b.width());
-		emitt("or{} {}, {}", suffix(w), a.emit(), b.emit());
+	// mov %rax, 0(%rsp)
+	void mov(Reg src, Address dest) {
+		src.promote(src.width());
+		emitt("mov{} {}, {}", suffix(src.width()), src.emit(), dest.emit());
 	}
 
-	void lea(Memory_Location src, Memory_Location dest) {
-		uint w = nzmin(src.width(), dest.width());
-		if (cast(Address)src || cast(Address) dest) {
-			w = nzmax(src.width(), dest.width());
-		}
-		emitt("lea{} {}, {}", suffix(w), src.emit(), dest.emit());
+	void movz(Reg a, Reg b) {
+		emitt("movz{} {}, {}", suffix(a.width()), a.emit(), b.emit());
 	}
 
-	void add(Memory_Location src, Memory_Location dest) {
-		uint w = nzmin(src.width(), dest.width());
-		if (cast(Address)src || cast(Address) dest) {
-			w = nzmax(src.width(), dest.width());
-		}
-		emitt("add{} {}, {}", suffix(w), src.emit(), dest.emit());
+	void mov(Const src, Address dest) {
+		
 	}
 
-	void sub(Memory_Location src, Memory_Location dest) {
-		uint w = nzmin(src.width(), dest.width());
-		if (cast(Address)src || cast(Address) dest) {
-			w = nzmax(src.width(), dest.width());
-		}
-		emitt("sub{} {}, {}", suffix(w), src.emit(), dest.emit());
+	void mov(Const src, Reg dest) {
+
 	}
 
-	void idiv(Memory_Location divisor) {
-		emitt("idiv{} {}", suffix(divisor.width()), divisor.emit());
+	void lea(Memory_Location a, Reg b) {
+		b.promote(8);
+		emitt("leaq {}, {}", a.emit(), b.emit());
 	}
 
-	void imul(Memory_Location src, Memory_Location dest) {
-		uint w = nzmin(src.width(), dest.width());
-		if (cast(Address)src || cast(Address) dest) {
-			w = nzmax(src.width(), dest.width());
-		}
-		emitt("imul{} {}, {}", suffix(w), src.emit(), dest.emit());
+	void and(Memory_Location a, Reg b) {
+		emitt("and{} {}, {}", suffix(a.width()), a.emit(), b.emit());
 	}
 
-	// FIXME
-	void addsd(Memory_Location src, Memory_Location dest) {
-		emitt("addsd {}, {}", src.emit(), dest.emit());
+	void or(Memory_Location a, Reg b) {
+		emitt("or{} {}, {}", suffix(a.width()), a.emit(), b.emit());
 	}
 
-	void subsd(Memory_Location src, Memory_Location dest) {
-		emitt("subsd {}, {}", src.emit(), dest.emit());
+	void subsd(Memory_Location a, Reg b) {
+
 	}
 
-	void divsd(Memory_Location src, Memory_Location dest) {
-		emitt("divsd {}, {}", src.emit(), dest.emit());
+	void sub(Memory_Location a, Reg b) {
+
 	}
 
-	void mulsd(Memory_Location src, Memory_Location dest) {
-		emitt("mulsd {}, {}", src.emit(), dest.emit());
+	void addsd(Memory_Location a, Reg b) {
+
 	}
 
-	void cmp(Memory_Location src, Memory_Location dest) {
-		uint w = nzmin(src.width(), dest.width());
-		if (cast(Address)src || cast(Address) dest) {
-			w = nzmax(src.width(), dest.width());
-		}
-		emitt("cmp{} {}, {}", suffix(w), src.emit(), dest.emit());
+	void add(Memory_Location a, Reg b) {
+
+	}
+
+	void mulsd(Memory_Location a, Reg b) {
+
+	}
+
+	void imul(Memory_Location a, Reg b) {
+
+	}
+
+	void divsd(Memory_Location a, Reg b) {
+
+	}
+
+	void idiv(Reg b) {
+
+	}
+
+	void cmp(Const a, Memory_Location b) {
+		emitt("cmp{} {}, {}", suffix(a.width()), a.emit(), b.emit());
+	}
+
+	void cmp(Memory_Location a, Reg b) {
+		emitt("cmp{} {}, {}", suffix(a.width()), a.emit(), b.emit());
 	}
 
 	void ret() {
 		emitt("ret");
 	}
 
-	void setg(Memory_Location m) {
+	void setg(Reg m) {
 		emitt("sete {}", m.emit());
 	}
 
-	void setb(Memory_Location m) {
+	void setb(Reg m) {
 		emitt("setb {}", m.emit());
 	}
 
-	void setge(Memory_Location m) {
+	void setge(Reg m) {
 		emitt("setge {}", m.emit());
 	}
 
-	void setle(Memory_Location m) {
+	void setle(Reg m) {
 		emitt("setle {}", m.emit());
 	}
 
-	void sete(Memory_Location m) {
+	void sete(Reg m) {
 		emitt("sete {}", m.emit());
 	}
 
-	void setne(Memory_Location m) {
+	void setne(Reg m) {
 		emitt("setne {}", m.emit());
 	}
 
-	void xor(Memory_Location a, Memory_Location b) {
+	void xor(Const a, Reg b) {
+		emitt("xor {}, {}", a.emit(), b.emit());
+	}
+
+	void xor(Reg a, Reg b) {
 		emitt("xor {}, {}", a.emit(), b.emit());
 	}
 
@@ -383,11 +351,11 @@ class X64_Assembly_Writer : X64_Assembly {
 		emitt("jne {}", iden);
 	}
 
-	void push(Memory_Location r) {
+	void push(Reg r) {
 		emitt("push{} {}", suffix(r.width()), r.emit());
 	}
 
-	void pop(Memory_Location r) {
+	void pop(Reg r) {
 		emitt("pop{} {}", suffix(r.width()), r.emit());
 	}
 

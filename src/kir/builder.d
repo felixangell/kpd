@@ -197,20 +197,14 @@ class IR_Builder : Top_Level_Node_Visitor {
 		if (auto identifier = cast(Identifier) last) {
 			if (auto structure = cast(Structure) last.get_type()) {
 				auto idx = structure.get_field_index(sym.value.lexeme);
-				
-				// FIXME alignment stuff
-				// structures are aligned to 8 bytes
-				// for x64.
-				return new Get_Element_Pointer(identifier, 0, idx, 8);
+				auto type_width = structure.types[idx].get_width();
+				return new Get_Element_Pointer(identifier, 0, idx, 0, type_width);
 			}
 			else if (auto tuple = cast(Tuple) last.get_type()) {
 				// TODO ensure that the symbol thing here is a number?
 				int idx = to!int(sym.value.lexeme);
-
-				// FIXME alignment stuff
-				// structures are aligned to 8 bytes
-				// for x64.
-				return new Get_Element_Pointer(identifier, 0, idx, 8);
+				auto type_width = tuple.types[idx].get_width();
+				return new Get_Element_Pointer(identifier, 0, idx, 0, type_width);
 			}
 			else if (auto ptr = cast(Pointer) last.get_type()) {
 				// TODO we need to handle accessing pointers
