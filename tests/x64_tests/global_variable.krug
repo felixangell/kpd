@@ -4,7 +4,7 @@ let global_var s32 = 32;
 let g = 5555;
 
 func main() {
-    let j = global_var - global_var;
+    mut j = global_var - global_var;
     while j != global_var {
         j = j + 1;
     }

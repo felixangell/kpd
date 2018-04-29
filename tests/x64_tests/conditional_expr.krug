@@ -6,7 +6,7 @@ func attrib_test();
 func printf(fmt *u8) s32;
 
 func main() {
-    let j = 0;
+    mut j = 0;
     while j > 0 {
 	    printf("hello, world! how are you? %d", j);
         j = j - 1;

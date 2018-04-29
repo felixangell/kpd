@@ -4,7 +4,7 @@
 func printf() s32;
 
 func main() {
-	let a f64 = 6.0;
+	mut a f64 = 6.0;
 	printf(c"a is %f\n", a);
 
 	a = a - 3.0;

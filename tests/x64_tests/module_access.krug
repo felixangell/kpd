@@ -4,12 +4,12 @@ func main() {
 	// TODO this should fail
 	// since we have no module called
 	// gfx imported!
-	gfx::CreateWindow();
+	// gfx::CreateWindow();
 
 	// TODO illegal
 	// this should be checked
 	// that the path does not have multiple values.
-	foo.bar::ShouldFail();
+	// foo.bar::ShouldFail();
 
 	// illegal
 	// 5+5::shouldFail();

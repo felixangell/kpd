@@ -1,7 +1,10 @@
 #module main
 
+#{c_func}
+func printf();
+
 func main() {
-	let i = 100;
+	mut i = 100;
 	while i != 0 {
 		
 		if i == 69 {
@@ -14,8 +17,11 @@ func main() {
 			next;
 		}
 
+		printf(c"i is %d\n", i);
 		i = i - 1;
 	}
+
+	printf(c"i ended at %d\n", i);
 	return i;
 }
 

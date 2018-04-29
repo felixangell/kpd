@@ -4,7 +4,7 @@
 func printf() s32;
 
 func main() {
-	let x s32 = (4 + 5) - 4;
+	mut x s32 = (4 + 5) - 4;
 	x = x + 3;
 
 	match x {

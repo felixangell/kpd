@@ -3,7 +3,7 @@
 #{c_func}
 func printf();
 
-func search(haystack [s32], needle s32) s32 {
+func search(haystack *s32, needle s32) s32 {
 	let i = 0;
 	// todo len builtin
 	while i < 10000 {
@@ -18,7 +18,7 @@ func add(first_param s32, second_param s32) s32 {
 	return first_param + second_param;
 }
 
-func swap(a *s32, b *s32) {
+func swap(mut a *s32, mut b *s32) {
 	let old s32 = @a;
 	@a = @b;
 	@b = old;

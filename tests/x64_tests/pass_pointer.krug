@@ -1,6 +1,6 @@
 #module main
 
-func harmless_func(input *s32) {
+func harmless_func(mut input *s32) {
 	@input = @input * @input;
 }
 

@@ -4,7 +4,7 @@
 func printf();
 
 func main() {
-	let a = 32 + 4;
+	mut a = 32 + 4;
 	let g = &a;
 	printf(c"a = %d\n", a);
 	printf(c"g = %p\n", g);

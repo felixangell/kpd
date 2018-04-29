@@ -4,7 +4,7 @@
 func printf() s32;
 
 func main() {
-	let a s32 = 6;
+	mut a s32 = 6;
 	printf(c"a is %d\n", a);
 
 	a = a - 3;

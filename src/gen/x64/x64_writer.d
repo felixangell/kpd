@@ -290,7 +290,7 @@ class X64_Assembly_Writer : X64_Assembly {
 	}
 
 	void sub(Memory_Location a, Reg b) {
-		assert(0);
+		emitt("sub{} {}, {}", suffix(b.width()), a.emit(), b.emit());
 	}
 
 	void addsd(Memory_Location a, Reg b) {
@@ -306,7 +306,7 @@ class X64_Assembly_Writer : X64_Assembly {
 	}
 
 	void imul(Memory_Location a, Reg b) {
-		assert(0);
+		emitt("imul{} {}, {}", suffix(b.width()), a.emit(), b.emit());
 	}
 
 	void divsd(Memory_Location a, Reg b) {
@@ -314,7 +314,7 @@ class X64_Assembly_Writer : X64_Assembly {
 	}
 
 	void idiv(Reg b) {
-		assert(0);
+		emitt("idiv{} {}", suffix(b.width()), b.emit());
 	}
 
 	void cmp(Const a, Memory_Location b) {

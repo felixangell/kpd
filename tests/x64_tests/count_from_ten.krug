@@ -4,7 +4,7 @@
 func printf();
 
 func main() {
-	let i s32 = 10;
+	mut i s32 = 10;
 	loop {
 		if i == 0 {
 			break;

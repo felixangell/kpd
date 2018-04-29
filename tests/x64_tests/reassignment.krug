@@ -1,7 +1,7 @@
 #module main
 
 func main() {
-	let i = 3;
+	mut i = 3;
 	i = i * 2;
 	i = i + 1;
 	i = i + 2;

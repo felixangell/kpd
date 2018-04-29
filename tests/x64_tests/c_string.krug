@@ -1,5 +1,9 @@
 #module main
 
+#{c_func}
+func printf();
+
 func main() {
 	let test = c"hello, world!";
+	printf(c"cstring is %s\n", test);
 }

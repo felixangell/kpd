@@ -3,14 +3,14 @@
 /// .skip
 
 type Person struct {
-	age uint,
-	eyebrow_count uint,
+	age u64,
+	eyebrow_count u64,
 };
 
 func main() {
 	let felix Person;
-	felix.age = 19;
-	felix.eyebrow_count = 3;
+	felix.age = 19 as u64;
+	felix.eyebrow_count = 3 as u64;
 
 	let {age, eyebrow_count} = felix;	
 }

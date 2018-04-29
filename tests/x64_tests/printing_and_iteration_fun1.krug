@@ -4,7 +4,7 @@
 func printf() s32;
 
 func go_away() s32 {
-	let j s32 = 0;
+	mut j s32 = 0;
 	while j < 10_000_000 {
 		j = j + 1;
 	}
@@ -14,7 +14,7 @@ func go_away() s32 {
 func main() {
 	let stdout u32 = 32;
 
-	let i = 10;
+	mut i = 10;
 	while i != 0 {
 		if i == 3 {
 			let come_back s32 = go_away();
