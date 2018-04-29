@@ -1,0 +1,20 @@
+#module main
+
+#{c_func}
+func printf();
+
+type Foo (u8, s32, u8);
+
+func print_foo(f Foo) {
+	printf(c"print_foo (%d, %d, %d)\n", f.0, f.1, f.2);
+}
+
+func main() {
+	let f Foo;
+	f.0 = 1 as u8;
+	f.1 = 53;
+	f.2 = 123123 as u8;
+
+	printf(c"hello world (%d, %d, %d)\n", f.0, f.1, f.2);
+	print_foo(f);
+}

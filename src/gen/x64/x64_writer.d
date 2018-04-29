@@ -12,7 +12,16 @@ import gen.x64.asm_file;
 import gen.x64.formatter;
 
 class Memory_Location {
-	abstract uint width();
+	uint val_width;
+
+	uint width() {
+		return this.val_width;
+	}
+
+	void set_width(uint width) {
+		this.val_width = width;
+	}
+
 	abstract string emit();
 }
 
@@ -127,7 +136,6 @@ class Address : Memory_Location {
 	Reg reg;
 	Reg index;
 	ulong scale;
-	uint addr_width;
 
 	this(Reg r) {
 		this.reg = r;
@@ -142,10 +150,6 @@ class Address : Memory_Location {
 	this(string iden, Reg r) {
 		this.iden = iden;
 		this.reg = r;
-	}
-
-	override uint width() {
-		return addr_width;
 	}
 
 	override string emit() {
@@ -282,35 +286,35 @@ class X64_Assembly_Writer : X64_Assembly {
 	}
 
 	void subsd(Memory_Location a, Reg b) {
-
+		assert(0);
 	}
 
 	void sub(Memory_Location a, Reg b) {
-
+		assert(0);
 	}
 
 	void addsd(Memory_Location a, Reg b) {
-
+		assert(0);
 	}
 
 	void add(Memory_Location a, Reg b) {
-
+		emitt("add{} {}, {}", suffix(b.width()), a.emit(), b.emit());
 	}
 
 	void mulsd(Memory_Location a, Reg b) {
-
+		assert(0);
 	}
 
 	void imul(Memory_Location a, Reg b) {
-
+		assert(0);
 	}
 
 	void divsd(Memory_Location a, Reg b) {
-
+		assert(0);
 	}
 
 	void idiv(Reg b) {
-
+		assert(0);
 	}
 
 	void cmp(Const a, Memory_Location b) {

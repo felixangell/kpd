@@ -6,6 +6,7 @@ import std.format;
 import std.container.array;
 import std.range.primitives;
 import std.bitmanip : bitfields, FloatRep, DoubleRep;
+import std.typecons : tuple, Tuple;
 import std.ascii : isUpper;
 import std.algorithm.searching : countUntil;
 import std.math : log2;
@@ -72,10 +73,10 @@ class X64_Generator {
 
 	// gets the address of the given
 	// alloc in the current block context
-	long get_alloc_addr(Alloc a) {
+	Tuple!(long, int) get_alloc_addr(Alloc a) {
 		return curr_ctx.get_addr(a.name);
 	}
-	long get_alloc_addr_by_name(string name) {
+	Tuple!(long, int) get_alloc_addr_by_name(string name) {
 		return curr_ctx.get_addr(name);
 	}
 
@@ -203,7 +204,7 @@ class X64_Generator {
 			assert(0, "weird value for gep");
 		}
 
-		addr.addr_width = g.get_width();
+		addr.set_width(g.get_width());
 
 		if (g.scale == 0) {
 			// set the offs to the index
@@ -226,21 +227,27 @@ class X64_Generator {
 			return get_const(c);
 		}
 		else if (auto a = cast(Alloc) v) {
-			long addr = get_alloc_addr(a);
-			return new Address(addr, get_reg(X64_Register.SPL));
+			auto val = get_alloc_addr(a);
+			auto addr = new Address(val[0], get_reg(X64_Register.SPL));
+			addr.set_width(val[1]);
+			return addr;
 		}
 		else if (auto r = cast(Identifier) v) {
 			// first check if this is a param
 			auto index = curr_ctx.parent.params.countUntil!("a.name == b")(r.name);
 			if (index != -1) {
 				auto arg_index = index;
-				auto addr = curr_ctx.get_addr("__arg_" ~ to!string(arg_index));
-				return new Address(addr, get_reg(X64_Register.SPL));
+				auto val = curr_ctx.get_addr("__arg_" ~ to!string(arg_index));
+				auto addr = new Address(val[0], get_reg(X64_Register.SPL));
+				addr.set_width(val[1]);
+				return addr;
 			}
 
-			long addr = get_alloc_addr_by_name(r.name);
-			if (addr != -1) {
-				return new Address(addr, get_reg(X64_Register.SPL));
+			auto val = get_alloc_addr_by_name(r.name);
+			if (val[0] != -1) {
+				auto addr = new Address(val[0], get_reg(X64_Register.SPL));
+				addr.set_width(val[1]);
+				return addr;
 			}
 
 			// look for the value in the globals.
@@ -248,6 +255,7 @@ class X64_Generator {
 			// out the name?
 			if (r.name in mod.constants) {
 				// FIXME
+				// TODO get the type width here
 				return new Address(r.name, get_reg(X64_Register.RIP));
 			}
 
@@ -430,7 +438,11 @@ class X64_Generator {
 
 		reg.promote(addr_width);
 
+		// move value into a register
 		writer.mov(val, reg);
+
+		// and then move the value from
+		// the register into the stack.
 		writer.mov(reg, addr);
 	}
 
@@ -452,7 +464,7 @@ class X64_Generator {
 		// has been pushed to the stack!
 		writer.emitt_at(curr_ctx.alloc_instr_addr, "subq ${}, %rsp", to!string(curr_ctx.size()));
 
-		writer.add(make_const(curr_ctx.size()), get_reg(X64_Register.SPL));
+		writer.add(make_const(curr_ctx.size()), get_reg(X64_Register.RSP));
 
 		writer.pop(get_reg(X64_Register.RBP));
 		writer.ret();
@@ -542,15 +554,20 @@ class X64_Generator {
 				writer.lea(get_val(arg), get_reg(SYS_V_CALL_CONV_REG[i]));
 			}
 			else {
-				writer.mov(get_val(arg), get_reg(SYS_V_CALL_CONV_REG[i]));
+				auto left = get_val(arg);
+				auto reg = get_reg(SYS_V_CALL_CONV_REG[i]);
+				reg.promote(left.width());
+				writer.mov(left, reg);
 			}
 		}
 
 		if (c.args.length >= SYS_V_CALL_CONV_REG.length) {
 			foreach_reverse (i, arg; c.args[SYS_V_CALL_CONV_REG.length..$]) {
 				// move the value via. the stack
-				long addr = call_frame_ctx.get_addr("__arg_" ~ to!string(i));
-				writer.mov(get_val(arg), new Address(addr, get_reg(X64_Register.RSP)));
+				auto val = call_frame_ctx.get_addr("__arg_" ~ to!string(i));
+				auto addr = new Address(val[0], get_reg(X64_Register.RSP));
+				addr.set_width(val[1]);
+				writer.mov(get_val(arg), addr);
 			}
 		}		
 
@@ -625,8 +642,10 @@ class X64_Generator {
 		if (c.args.length >= SYS_V_CALL_CONV_REG.length) {
 			foreach_reverse (i, arg; c.args[SYS_V_CALL_CONV_REG.length..$]) {
 				// move the value via. the stack
-				long addr = call_frame_ctx.get_addr("__arg_" ~ to!string(i));
-				writer.mov(get_val(arg), new Address(addr, get_reg(X64_Register.RSP)));
+				auto val = call_frame_ctx.get_addr("__arg_" ~ to!string(i));
+				auto addr = new Address(val[0], get_reg(X64_Register.RSP));
+				addr.set_width(val[1]);
+				writer.mov(get_val(arg), addr);
 			}
 		}		
 
@@ -773,11 +792,14 @@ class X64_Generator {
 		foreach (ref idx, param; func.params) {
 			const auto twine = "__arg_" ~ to!string(idx);
 
-			long addr = curr_ctx.get_addr(twine);
-			if (addr == -1) {
-				addr = curr_ctx.push_local(twine, param.get_type());
+			auto val = curr_ctx.get_addr(twine);
+			if (val[0] == -1) {
+				val = curr_ctx.push_local(twine, param.get_type());
 			}
-			writer.mov(get_reg(SYS_V_CALL_CONV_REG[idx]), new Address(addr, get_reg(X64_Register.RSP)));
+
+			auto addr = new Address(val[0], get_reg(X64_Register.RSP));
+			addr.set_width(val[1]);
+			writer.mov(get_reg(SYS_V_CALL_CONV_REG[idx]), addr);
 		}
 
 		foreach (ref bb; func.blocks) {
