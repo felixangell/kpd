@@ -414,8 +414,6 @@ class X64_Generator {
 	}
 
 	void emit_store(Store s) {
-		writeln("emitting store for ", s);
-
 		// kind of hacky but ok
 		if (auto bin = cast(Binary_Op) s.val) {
 			emit_temp(s);

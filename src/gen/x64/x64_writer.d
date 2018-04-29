@@ -62,10 +62,6 @@ class Reg : Memory_Location {
 
 		auto new_value = cast(X64_Register)(cast(ubyte)(value + (offs*8)));
 		if (new_value < X64_Register.UNPROMOTABLE) {
-			debug {
-				writeln("promoting ", value, " to (", widthInBytes, ")", new_value);
-			}
-
 			value = new_value;
 		}
 	}
