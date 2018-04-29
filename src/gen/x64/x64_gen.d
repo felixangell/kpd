@@ -174,9 +174,9 @@ class X64_Generator {
 		Memory_Location v = get_val(u.v);
 		switch (u.op.lexeme) {
 		case "!":
-			writer.mov(v, get_reg(X64_Register.AX));
-			writer.xor(make_const(1), get_reg(X64_Register.AX));
-			return get_reg(X64_Register.AL);
+			writer.mov(v, get_reg(X64_Register.AL));
+			writer.xor(make_const(1), get_reg(X64_Register.AL));
+			return get_reg(X64_Register.AH);
 		default:
 			logger.fatal("unhandled unary op " ~ to!string(u));
 			assert(0);
@@ -227,7 +227,7 @@ class X64_Generator {
 		}
 		else if (auto a = cast(Alloc) v) {
 			long addr = get_alloc_addr(a);
-			return new Address(addr, get_reg(X64_Register.SP));
+			return new Address(addr, get_reg(X64_Register.SPL));
 		}
 		else if (auto r = cast(Identifier) v) {
 			// first check if this is a param
@@ -235,12 +235,12 @@ class X64_Generator {
 			if (index != -1) {
 				auto arg_index = index;
 				auto addr = curr_ctx.get_addr("__arg_" ~ to!string(arg_index));
-				return new Address(addr, get_reg(X64_Register.SP));
+				return new Address(addr, get_reg(X64_Register.SPL));
 			}
 
 			long addr = get_alloc_addr_by_name(r.name);
 			if (addr != -1) {
-				return new Address(addr, get_reg(X64_Register.SP));
+				return new Address(addr, get_reg(X64_Register.SPL));
 			}
 
 			// look for the value in the globals.
@@ -261,7 +261,7 @@ class X64_Generator {
 		}
 		else if (auto i = cast(Call) v) {
 			emit_call(i);
-			return get_reg(X64_Register.AX);
+			return get_reg(X64_Register.AL);
 		}
 		else if (auto idx = cast(Index) v) {
 			return get_index_addr(idx);
@@ -284,10 +284,10 @@ class X64_Generator {
 		auto bin = cast(Binary_Op) s.val;
 
 		// mov bin.left into eax
-		writer.mov(get_val(bin.a), get_reg(X64_Register.AX));
+		writer.mov(get_val(bin.a), get_reg(X64_Register.AL));
 		
 		// cmp bin.right with eax
-		writer.cmp(get_val(bin.b), get_reg(X64_Register.AX));
+		writer.cmp(get_val(bin.b), get_reg(X64_Register.AL));
 
 		// one opt i've noticed here is it seems to be
 		// cheaper instruction wise to emit a jump i.e.
@@ -322,8 +322,8 @@ class X64_Generator {
 			assert(0, "unhandled op!");
 		}
 
-		writer.movz(get_reg(X64_Register.AL), get_reg(X64_Register.AX));
-		writer.mov(get_reg(X64_Register.AX), get_val(s.address));
+		// writer.movz(get_reg(X64_Register.AL), get_reg(X64_Register.AL));//?
+		writer.mov(get_reg(X64_Register.AL), get_val(s.address));
 	}
 
 	// a store where the value is
@@ -333,7 +333,7 @@ class X64_Generator {
 	void emit_temp(Store s) {
 		auto bin = cast(Binary_Op) s.val;
 
-		Reg reg = get_reg(X64_Register.AX);
+		Reg reg = get_reg(X64_Register.AL);
 		
 		// TODO
 		bool is_floating = (cast(Floating)s.get_type()) !is null;
@@ -406,6 +406,8 @@ class X64_Generator {
 	}
 
 	void emit_store(Store s) {
+		writeln("emitting store for ", s);
+
 		// kind of hacky but ok
 		if (auto bin = cast(Binary_Op) s.val) {
 			emit_temp(s);
@@ -419,7 +421,7 @@ class X64_Generator {
 
 		auto addr_width = s.address.get_type().get_width();
 
-		Reg reg = get_reg(X64_Register.AX);
+		Reg reg = get_reg(X64_Register.AL);
 
 		bool is_floating = (cast(Floating)s.get_type()) !is null;
 		if (is_floating) {
@@ -435,7 +437,7 @@ class X64_Generator {
 	void emit_ret(Return ret) {
 		if (ret.results !is null) {
 			Value v = ret.results[0];
-			writer.mov(get_val(v), get_reg(X64_Register.AX));
+			writer.mov(get_val(v), get_reg(X64_Register.AL));
 		}
 
 		// FIXME this wont work all the time...
@@ -450,7 +452,7 @@ class X64_Generator {
 		// has been pushed to the stack!
 		writer.emitt_at(curr_ctx.alloc_instr_addr, "subq ${}, %rsp", to!string(curr_ctx.size()));
 
-		writer.add(make_const(curr_ctx.size()), get_reg(X64_Register.SP));
+		writer.add(make_const(curr_ctx.size()), get_reg(X64_Register.SPL));
 
 		writer.pop(get_reg(X64_Register.RBP));
 		writer.ret();

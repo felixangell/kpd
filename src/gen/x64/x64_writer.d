@@ -24,6 +24,12 @@ class Reg : Memory_Location {
 	}
 
 	void promote(int widthInBytes) {
+		// this shouldnt happen!
+		if (widthInBytes > 8) {
+			assert(0, " width is " ~ to!string(widthInBytes));
+			// widthInBytes = 8;
+		}
+
 		// 0, 1, 2, 4, 8
 		//
 		// log2(1) = 0
@@ -35,14 +41,22 @@ class Reg : Memory_Location {
 			return;
 		}
 
-		if (width() >= 8) {
-			writeln("NOT PROMOTING ", value);
+		// we can only promote 1 byte registers
+		// note that we could change it to do
+		// promotions from a 4 byte to an 8 byte
+		// but this is a TODO...
+		if (width() != 1) {
 			return;
 		}
 
 		ubyte offs = cast(ubyte)(log2(widthInBytes));
+
 		auto new_value = cast(X64_Register)(cast(ubyte)(value + (offs*8)));
 		if (new_value < X64_Register.UNPROMOTABLE) {
+			debug {
+				writeln("promoting ", value, " to (", widthInBytes, ")", new_value);
+			}
+
 			value = new_value;
 		}
 	}
@@ -208,11 +222,6 @@ uint nzmin(uint a, uint b) {
 
 class X64_Assembly_Writer : X64_Assembly {
 
-	void mov(Memory_Location src, Reg dest) {
-		dest.promote(src.width());
-		emitt("mov{} {}, {}", suffix(src.width()), src.emit(), dest.emit());
-	}
-
 	void mov(Memory_Location src, Address dest) {
 		emitt("mov{} {}, {}", suffix(src.width()), src.emit(), dest.emit());
 	}
@@ -238,16 +247,25 @@ class X64_Assembly_Writer : X64_Assembly {
 		emitt("mov{} {}, {}", suffix(src.width()), src.emit(), dest.emit());
 	}
 
+	// movz %rax, %rax
 	void movz(Reg a, Reg b) {
 		emitt("movz{} {}, {}", suffix(a.width()), a.emit(), b.emit());
 	}
 
+	// mov $1, 0(%rsp)
 	void mov(Const src, Address dest) {
-		
+		emitt("mov{} {}, {}", suffix(dest.width()), src.emit(), dest.emit());
 	}
 
+	// mov $1, %rax
 	void mov(Const src, Reg dest) {
+		emitt("mov{} {}, {}", suffix(dest.width()), src.emit(), dest.emit());
+	}
 
+	// mov mem, %rax
+	void mov(Memory_Location src, Reg dest) {
+		dest.promote(src.width());
+		emitt("mov{} {}, {}", suffix(dest.width()), src.emit(), dest.emit());
 	}
 
 	void lea(Memory_Location a, Reg b) {
