@@ -6,6 +6,7 @@ import std.format;
 import std.container.array;
 import std.range.primitives;
 import std.bitmanip : bitfields, FloatRep, DoubleRep;
+import std.typecons : tuple, Tuple;
 import std.ascii : isUpper;
 import std.algorithm.searching : countUntil;
 import std.math : log2;
@@ -25,53 +26,25 @@ import kir.ir_mod;
 import kir.instr;
 import kir.block_ctx;
 
-Reg[] SYS_V_CALL_CONV_REG;
-Reg[] SYS_V_CALL_CONV_REG_FLOATS;
+X64_Register[] SYS_V_CALL_CONV_REG;
+X64_Register[] SYS_V_CALL_CONV_REG_FLOATS;
 
-// indexed as log2(width) !
-Reg[] temp_ax;
-Reg[] floats;
+Reg get_reg(X64_Register val) {
+	return new Reg(val);
+}
 
 static this() {
 	SYS_V_CALL_CONV_REG = [
-		RDI,
-		RSI,
-		RDX,
-		RCX,
-		R8,
-		R9,
+		X64_Register.DIL,
+		X64_Register.SIL,
+		X64_Register.DL,
+		X64_Register.CL,
+		X64_Register.R8b,
+		X64_Register.R9b,
 	];
 
 	SYS_V_CALL_CONV_REG_FLOATS = [
-		XMM0,
-		XMM1,
-		XMM2,
-		XMM3,
-		XMM4,
-		XMM5,
-		XMM6,
-		XMM7,
-	];
-
-	temp_ax = [
-		AL,		// log2(1) = 0
-		AX,		// log2(2) = 1
-		EAX,	// log2(4) = 2
-		RAX,	// log2(8) = 3
-	];
-
-	// HACK
-	// we have to store
-	// five here because we
-	// access with log2(N)
-	// and the largest value we will
-	// get is log2(16) which is 4.
-	floats = [
-		XMM0, 
-		XMM0,
-		XMM0,
-		XMM0,
-		XMM0,  // 4!
+	// TODO
 	];
 }
 
@@ -100,10 +73,10 @@ class X64_Generator {
 
 	// gets the address of the given
 	// alloc in the current block context
-	long get_alloc_addr(Alloc a) {
+	Tuple!(long, int) get_alloc_addr(Alloc a) {
 		return curr_ctx.get_addr(a.name);
 	}
-	long get_alloc_addr_by_name(string name) {
+	Tuple!(long, int) get_alloc_addr_by_name(string name) {
 		return curr_ctx.get_addr(name);
 	}
 
@@ -116,7 +89,7 @@ class X64_Generator {
 			// todo mangle properly?
 			string name = "_FC_" ~ thisProcessID.to!string(36) ~ "_" ~ uniform!uint.to!string(36);
 			emit_data_const(name, c);
-			return new Address(name, RIP);
+			return new Address(name, get_reg(X64_Register.RIP));
 		}
 
 		logger.fatal("unhandled constant, -- " ~ to!string(c));
@@ -187,10 +160,10 @@ class X64_Generator {
 		// we get the address of the array
 		// we have to offset it by the value
 		auto v = get_val(i.index);
-		writer.mov(v, R9);
+		writer.mov(v, get_reg(X64_Register.R9));
 
 		if (auto addr = cast(Address) get_val(i.addr)) {
-			addr.index = R9;
+			addr.index = get_reg(X64_Register.R9);
 			addr.scale = i.get_type().get_width();
 			return addr;
 		}
@@ -202,9 +175,9 @@ class X64_Generator {
 		Memory_Location v = get_val(u.v);
 		switch (u.op.lexeme) {
 		case "!":
-			writer.mov(v, AL);
-			writer.xor(make_const(1), AL);
-			return AL;
+			writer.mov(v, get_reg(X64_Register.AL));
+			writer.xor(make_const(1), get_reg(X64_Register.AL));
+			return get_reg(X64_Register.AH);
 		default:
 			logger.fatal("unhandled unary op " ~ to!string(u));
 			assert(0);
@@ -214,29 +187,39 @@ class X64_Generator {
 	Memory_Location build_addr_of(Addr_Of a) {
 		Memory_Location v = get_val(a.v);
 		// leaq v, rax
-		writer.lea(v, R10);
-		return R10;
+		writer.lea(v, get_reg(X64_Register.R10b));
+		return get_reg(X64_Register.R10b);
 	}
 
 	Memory_Location build_deref(Deref d) {
 		Memory_Location v = get_val(d.v);
-		writer.mov(v, R10);
-		return new Address(R10);
+		writer.mov(v, get_reg(X64_Register.R10b));
+		return new Address(get_reg(X64_Register.R10b));
 	}
 
 	Memory_Location build_gep(Get_Element_Pointer g) {
 		Memory_Location v = get_val(g.addr);
-		writer.mov(make_const(g.index), R14);
+		auto addr = cast(Address) v;
+		if (addr is null) {
+			assert(0, "weird value for gep");
+		}
 
-		if (auto addr = cast(Address) v) {
-			addr.index = R14;
-			addr.scale = g.scale;
+		addr.set_width(g.get_width());
+
+		if (g.scale == 0) {
+			// set the offs to the index
+			addr.offs = g.index;
 			return addr;
 		}
 
-		// hm?
-		writeln("what is going on ", g);
-		return v;
+		// otherwise the addressing mode
+		// uses scale index base.
+
+		writer.mov(make_const(g.index), get_reg(X64_Register.R14b));
+		addr.index = get_reg(X64_Register.R14b);
+		addr.scale = g.scale;
+
+		return addr;
 	}
 
 	Memory_Location get_val(Value v) {
@@ -244,21 +227,27 @@ class X64_Generator {
 			return get_const(c);
 		}
 		else if (auto a = cast(Alloc) v) {
-			long addr = get_alloc_addr(a);
-			return new Address(addr, RSP);
+			auto val = get_alloc_addr(a);
+			auto addr = new Address(val[0], get_reg(X64_Register.SPL));
+			addr.set_width(val[1]);
+			return addr;
 		}
 		else if (auto r = cast(Identifier) v) {
 			// first check if this is a param
 			auto index = curr_ctx.parent.params.countUntil!("a.name == b")(r.name);
 			if (index != -1) {
 				auto arg_index = index;
-				auto addr = curr_ctx.get_addr("__arg_" ~ to!string(arg_index));
-				return new Address(addr, RSP);
+				auto val = curr_ctx.get_addr("__arg_" ~ to!string(arg_index));
+				auto addr = new Address(val[0], get_reg(X64_Register.SPL));
+				addr.set_width(val[1]);
+				return addr;
 			}
 
-			long addr = get_alloc_addr_by_name(r.name);
-			if (addr != -1) {
-				return new Address(addr, RSP);
+			auto val = get_alloc_addr_by_name(r.name);
+			if (val[0] != -1) {
+				auto addr = new Address(val[0], get_reg(X64_Register.SPL));
+				addr.set_width(val[1]);
+				return addr;
 			}
 
 			// look for the value in the globals.
@@ -266,21 +255,21 @@ class X64_Generator {
 			// out the name?
 			if (r.name in mod.constants) {
 				// FIXME
-				return new Address(r.name, RIP);
+				// TODO get the type width here
+				return new Address(r.name, get_reg(X64_Register.RIP));
 			}
 
 			assert(0);
 		}
 		else if (auto c = cast(Constant_Reference) v) {
-			return new Address(c.name, RIP);
+			return new Address(c.name, get_reg(X64_Register.RIP));
 		}
 		else if (auto u = cast(Unary_Op) v) {
 			return build_unary_op(u);
 		}
 		else if (auto i = cast(Call) v) {
-			// eax or rax ?
 			emit_call(i);
-			return EAX;
+			return get_reg(X64_Register.AL);
 		}
 		else if (auto idx = cast(Index) v) {
 			return get_index_addr(idx);
@@ -303,10 +292,10 @@ class X64_Generator {
 		auto bin = cast(Binary_Op) s.val;
 
 		// mov bin.left into eax
-		writer.mov(get_val(bin.a), EAX);
+		writer.mov(get_val(bin.a), get_reg(X64_Register.AL));
 		
 		// cmp bin.right with eax
-		writer.cmp(get_val(bin.b), EAX);
+		writer.cmp(get_val(bin.b), get_reg(X64_Register.AL));
 
 		// one opt i've noticed here is it seems to be
 		// cheaper instruction wise to emit a jump i.e.
@@ -317,32 +306,32 @@ class X64_Generator {
 
 		switch (bin.op) {
 		case ">":
-			writer.setg(AL);
+			writer.setg(get_reg(X64_Register.AL));
 			break;
 		case "<":
-			writer.setb(AL);
+			writer.setb(get_reg(X64_Register.AL));
 			break;
 
 		case ">=":
-			writer.setge(AL);
+			writer.setge(get_reg(X64_Register.AL));
 			break;
 		case "<=":
-			writer.setle(AL);
+			writer.setle(get_reg(X64_Register.AL));
 			break;
 
 		case "==":
-			writer.sete(AL);
+			writer.sete(get_reg(X64_Register.AL));
 			break;
 		case "!=":
-			writer.setne(AL);
+			writer.setne(get_reg(X64_Register.AL));
 			break;
 
 		default:
 			assert(0, "unhandled op!");
 		}
 
-		writer.movz(AL, EAX);
-		writer.mov(EAX, get_val(s.address));
+		// writer.movz(get_reg(X64_Register.AL), get_reg(X64_Register.AL));//?
+		writer.mov(get_reg(X64_Register.AL), get_val(s.address));
 	}
 
 	// a store where the value is
@@ -352,13 +341,13 @@ class X64_Generator {
 	void emit_temp(Store s) {
 		auto bin = cast(Binary_Op) s.val;
 
-		Reg[] source = temp_ax[];
+		Reg reg = get_reg(X64_Register.AL);
+		
+		// TODO
 		bool is_floating = (cast(Floating)s.get_type()) !is null;
 		if (is_floating) {
-			source = floats[];
+			assert(0);
 		}
-
-		Reg reg = source[cast(ulong)log2(bin.a.get_type().get_width())];
 
 		writer.mov(get_val(bin.a), reg);
 
@@ -403,8 +392,8 @@ class X64_Generator {
 				writer.divsd(get_val(bin.b), reg);
 			} else {
 				// TODO pick CX reg
-				writer.mov(get_val(bin.b), ECX);
-				writer.idiv(ECX);
+				writer.mov(get_val(bin.b), get_reg(X64_Register.CX));
+				writer.idiv(get_reg(X64_Register.CX));
 			}
 			break;
 
@@ -425,6 +414,8 @@ class X64_Generator {
 	}
 
 	void emit_store(Store s) {
+		writeln("emitting store for ", s);
+
 		// kind of hacky but ok
 		if (auto bin = cast(Binary_Op) s.val) {
 			emit_temp(s);
@@ -438,33 +429,27 @@ class X64_Generator {
 
 		auto addr_width = s.address.get_type().get_width();
 
-		Reg[] source = temp_ax[];
+		Reg reg = get_reg(X64_Register.AL);
+
 		bool is_floating = (cast(Floating)s.get_type()) !is null;
 		if (is_floating) {
-			source = floats[];
+			// TODO
 		}
 
-		auto src_indx = cast(ulong)log2(addr_width);
+		reg.promote(addr_width);
 
-		// FIXME... this mostly occurs with structs
-		// not really sure what to do otherwise
-		if (src_indx > source.length) {
-			src_indx = 3;
-		}
+		// move value into a register
+		writer.mov(val, reg);
 
-		Reg ax_temp = RAX;
-		if (src_indx < source.length) {
-			ax_temp = source[src_indx];
-		}
-
-		writer.mov(val, ax_temp);
-		writer.mov(ax_temp, addr);
+		// and then move the value from
+		// the register into the stack.
+		writer.mov(reg, addr);
 	}
 
 	void emit_ret(Return ret) {
 		if (ret.results !is null) {
 			Value v = ret.results[0];
-			writer.mov(get_val(v), EAX);
+			writer.mov(get_val(v), get_reg(X64_Register.AL));
 		}
 
 		// FIXME this wont work all the time...
@@ -479,9 +464,9 @@ class X64_Generator {
 		// has been pushed to the stack!
 		writer.emitt_at(curr_ctx.alloc_instr_addr, "subq ${}, %rsp", to!string(curr_ctx.size()));
 
-		writer.add(make_const(curr_ctx.size()), RSP);
+		writer.add(make_const(curr_ctx.size()), get_reg(X64_Register.RSP));
 
-		writer.pop(RBP);
+		writer.pop(get_reg(X64_Register.RBP));
 		writer.ret();
 	}
 
@@ -563,25 +548,30 @@ class X64_Generator {
 		// for the calling convention
 		foreach (i, arg; c.args[0..min(c.args.length,SYS_V_CALL_CONV_REG.length)]) {
 			if (auto flt = cast(Floating) arg.get_type()) {
-				writer.mov(get_val(arg), SYS_V_CALL_CONV_REG_FLOATS[next_float++]);
+				writer.mov(get_val(arg), get_reg(SYS_V_CALL_CONV_REG_FLOATS[next_float++]));
 			}
 			else if (auto ptr = cast(Pointer) arg.get_type()) {
-				writer.lea(get_val(arg), SYS_V_CALL_CONV_REG[i]);
+				writer.lea(get_val(arg), get_reg(SYS_V_CALL_CONV_REG[i]));
 			}
 			else {
-				writer.mov(get_val(arg), SYS_V_CALL_CONV_REG[i]);
+				auto left = get_val(arg);
+				auto reg = get_reg(SYS_V_CALL_CONV_REG[i]);
+				reg.promote(left.width());
+				writer.mov(left, reg);
 			}
 		}
 
 		if (c.args.length >= SYS_V_CALL_CONV_REG.length) {
 			foreach_reverse (i, arg; c.args[SYS_V_CALL_CONV_REG.length..$]) {
 				// move the value via. the stack
-				long addr = call_frame_ctx.get_addr("__arg_" ~ to!string(i));
-				writer.mov(get_val(arg), new Address(addr, RSP));
+				auto val = call_frame_ctx.get_addr("__arg_" ~ to!string(i));
+				auto addr = new Address(val[0], get_reg(X64_Register.RSP));
+				addr.set_width(val[1]);
+				writer.mov(get_val(arg), addr);
 			}
 		}		
 
-		writer.mov(make_const(next_float), AL);
+		writer.mov(make_const(next_float), get_reg(X64_Register.AL));
 		writer.call(call_name);
 	}
 
@@ -639,25 +629,27 @@ class X64_Generator {
 		// for the calling convention
 		foreach (i, arg; c.args[0..min(c.args.length,SYS_V_CALL_CONV_REG.length)]) {
 			if (auto flt = cast(Floating) arg.get_type()) {
-				writer.mov(get_val(arg), SYS_V_CALL_CONV_REG_FLOATS[next_float++]);
+				writer.mov(get_val(arg), get_reg(SYS_V_CALL_CONV_REG_FLOATS[next_float++]));
 			}
 			else if (auto ptr = cast(Pointer) arg.get_type()) {
-				writer.lea(get_val(arg), SYS_V_CALL_CONV_REG[i]);
+				writer.lea(get_val(arg), get_reg(SYS_V_CALL_CONV_REG[i]));
 			}
 			else {
-				writer.mov(get_val(arg), SYS_V_CALL_CONV_REG[i]);
+				writer.mov(get_val(arg), get_reg(SYS_V_CALL_CONV_REG[i]));
 			}
 		}
 
 		if (c.args.length >= SYS_V_CALL_CONV_REG.length) {
 			foreach_reverse (i, arg; c.args[SYS_V_CALL_CONV_REG.length..$]) {
 				// move the value via. the stack
-				long addr = call_frame_ctx.get_addr("__arg_" ~ to!string(i));
-				writer.mov(get_val(arg), new Address(addr, RSP));
+				auto val = call_frame_ctx.get_addr("__arg_" ~ to!string(i));
+				auto addr = new Address(val[0], get_reg(X64_Register.RSP));
+				addr.set_width(val[1]);
+				writer.mov(get_val(arg), addr);
 			}
 		}		
 
-		writer.mov(make_const(next_float), AL);
+		writer.mov(make_const(next_float), get_reg(X64_Register.AL));
 		writer.call(call_name);
 	}
 
@@ -736,12 +728,12 @@ class X64_Generator {
 			writer.emit(".global {}", entry_label);
 			writer.emit("{}:", entry_label);
 
-			writer.push(RBP);
-			writer.mov(RSP, RBP);
+			writer.push(get_reg(X64_Register.RBP));
+			writer.mov(get_reg(X64_Register.RSP), get_reg(X64_Register.RBP));
 
 			writer.call(mangle(main_func));
 
-			writer.pop(RBP);
+			writer.pop(get_reg(X64_Register.RBP));
 			writer.ret();
 		}			
 	}
@@ -783,8 +775,8 @@ class X64_Generator {
 
 		writer.emit("{}:", mangle(func));
 
-		writer.push(RBP);
-		writer.mov(RSP, RBP);
+		writer.push(get_reg(X64_Register.RBP));
+		writer.mov(get_reg(X64_Register.RSP), get_reg(X64_Register.RBP));
 
 		// PLACEHOLDER value here, we subtract 0 from the
 		// RSP but we later on MODIFY THIS to however much
@@ -800,11 +792,14 @@ class X64_Generator {
 		foreach (ref idx, param; func.params) {
 			const auto twine = "__arg_" ~ to!string(idx);
 
-			long addr = curr_ctx.get_addr(twine);
-			if (addr == -1) {
-				addr = curr_ctx.push_local(twine, param.get_type());
+			auto val = curr_ctx.get_addr(twine);
+			if (val[0] == -1) {
+				val = curr_ctx.push_local(twine, param.get_type());
 			}
-			writer.mov(SYS_V_CALL_CONV_REG[idx], new Address(addr, RSP));
+
+			auto addr = new Address(val[0], get_reg(X64_Register.RSP));
+			addr.set_width(val[1]);
+			writer.mov(get_reg(SYS_V_CALL_CONV_REG[idx]), addr);
 		}
 
 		foreach (ref bb; func.blocks) {

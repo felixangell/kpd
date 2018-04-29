@@ -347,7 +347,7 @@ class Tuple : Type {
 	// still pad these ?
 	override uint get_width() {
 		uint size = 0;
-		foreach (t; types) {
+		foreach (idx, t; types) {
 			size += align_by(t.get_width(), 8);
 		}
 		return size;

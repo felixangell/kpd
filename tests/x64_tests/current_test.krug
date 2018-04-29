@@ -1,7 +1,9 @@
 #module main
 
-#load "io/fmt.krug"
+#{c_func}
+func printf();
 
 func main() {
-	io::printf(c"hello world!");	
+	let g = 32;
+	printf(c"hello world %d\n", g);
 }
