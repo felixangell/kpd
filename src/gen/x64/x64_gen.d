@@ -25,10 +25,8 @@ import kir.ir_mod;
 import kir.instr;
 import kir.block_ctx;
 
-Reg[] SYS_V_CALL_CONV_REG;
-Reg[] SYS_V_CALL_CONV_REG_FLOATS;
-
-Reg[] floats;
+X64_Register[] SYS_V_CALL_CONV_REG;
+X64_Register[] SYS_V_CALL_CONV_REG_FLOATS;
 
 Reg get_reg(X64_Register val) {
 	return new Reg(val);
@@ -36,23 +34,16 @@ Reg get_reg(X64_Register val) {
 
 static this() {
 	SYS_V_CALL_CONV_REG = [
-		get_reg(X64_Register.DIL),
-		get_reg(X64_Register.SIL), // rsi
-		get_reg(X64_Register.DL),
-		get_reg(X64_Register.CL),
-		get_reg(X64_Register.R8b),
-		get_reg(X64_Register.R9b),
+		X64_Register.DIL,
+		X64_Register.SIL,
+		X64_Register.DL,
+		X64_Register.CL,
+		X64_Register.R8b,
+		X64_Register.R9b,
 	];
 
 	SYS_V_CALL_CONV_REG_FLOATS = [
-		get_reg(X64_Register.XMM0),
-		get_reg(X64_Register.XMM1),
-		get_reg(X64_Register.XMM2),
-		get_reg(X64_Register.XMM3),
-		get_reg(X64_Register.XMM4),
-		get_reg(X64_Register.XMM5),
-		get_reg(X64_Register.XMM6),
-		get_reg(X64_Register.XMM7),
+	// TODO
 	];
 }
 
@@ -343,9 +334,11 @@ class X64_Generator {
 		auto bin = cast(Binary_Op) s.val;
 
 		Reg reg = get_reg(X64_Register.AX);
+		
+		// TODO
 		bool is_floating = (cast(Floating)s.get_type()) !is null;
 		if (is_floating) {
-			reg = get_reg(X64_Register.XMM0);
+			assert(0);
 		}
 
 		writer.mov(get_val(bin.a), reg);
@@ -430,7 +423,7 @@ class X64_Generator {
 
 		bool is_floating = (cast(Floating)s.get_type()) !is null;
 		if (is_floating) {
-			reg = get_reg(X64_Register.XMM0);
+			// TODO
 		}
 
 		reg.promote(addr_width);
@@ -541,13 +534,13 @@ class X64_Generator {
 		// for the calling convention
 		foreach (i, arg; c.args[0..min(c.args.length,SYS_V_CALL_CONV_REG.length)]) {
 			if (auto flt = cast(Floating) arg.get_type()) {
-				writer.mov(get_val(arg), SYS_V_CALL_CONV_REG_FLOATS[next_float++]);
+				writer.mov(get_val(arg), get_reg(SYS_V_CALL_CONV_REG_FLOATS[next_float++]));
 			}
 			else if (auto ptr = cast(Pointer) arg.get_type()) {
-				writer.lea(get_val(arg), SYS_V_CALL_CONV_REG[i]);
+				writer.lea(get_val(arg), get_reg(SYS_V_CALL_CONV_REG[i]));
 			}
 			else {
-				writer.mov(get_val(arg), SYS_V_CALL_CONV_REG[i]);
+				writer.mov(get_val(arg), get_reg(SYS_V_CALL_CONV_REG[i]));
 			}
 		}
 
@@ -617,13 +610,13 @@ class X64_Generator {
 		// for the calling convention
 		foreach (i, arg; c.args[0..min(c.args.length,SYS_V_CALL_CONV_REG.length)]) {
 			if (auto flt = cast(Floating) arg.get_type()) {
-				writer.mov(get_val(arg), SYS_V_CALL_CONV_REG_FLOATS[next_float++]);
+				writer.mov(get_val(arg), get_reg(SYS_V_CALL_CONV_REG_FLOATS[next_float++]));
 			}
 			else if (auto ptr = cast(Pointer) arg.get_type()) {
-				writer.lea(get_val(arg), SYS_V_CALL_CONV_REG[i]);
+				writer.lea(get_val(arg), get_reg(SYS_V_CALL_CONV_REG[i]));
 			}
 			else {
-				writer.mov(get_val(arg), SYS_V_CALL_CONV_REG[i]);
+				writer.mov(get_val(arg), get_reg(SYS_V_CALL_CONV_REG[i]));
 			}
 		}
 
@@ -782,7 +775,7 @@ class X64_Generator {
 			if (addr == -1) {
 				addr = curr_ctx.push_local(twine, param.get_type());
 			}
-			writer.mov(SYS_V_CALL_CONV_REG[idx], new Address(addr, get_reg(X64_Register.RSP)));
+			writer.mov(get_reg(SYS_V_CALL_CONV_REG[idx]), new Address(addr, get_reg(X64_Register.RSP)));
 		}
 
 		foreach (ref bb; func.blocks) {

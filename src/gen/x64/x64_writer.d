@@ -31,11 +31,8 @@ class Reg : Memory_Location {
 		// log2(4) = 2
 		// log2(8) = 3
 
-		switch (value) {
-		case X64_Register.RIP:
+		if (value >= X64_Register.UNPROMOTABLE) {
 			return;
-		default:
-			break;		
 		}
 
 		if (width() >= 8) {
@@ -43,8 +40,11 @@ class Reg : Memory_Location {
 			return;
 		}
 
-		ubyte offs = cast(ubyte)(log2(widthInBytes)-1);
-		value = cast(X64_Register)(cast(ubyte)(value + (offs*8)));
+		ubyte offs = cast(ubyte)(log2(widthInBytes));
+		auto new_value = cast(X64_Register)(cast(ubyte)(value + (offs*8)));
+		if (new_value < X64_Register.UNPROMOTABLE) {
+			value = new_value;
+		}
 	}
 
 	override uint width() {

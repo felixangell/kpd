@@ -73,19 +73,12 @@ enum X64_Register : ubyte {
 	R14,
 	R15,
 
+	// hack
+	UNPROMOTABLE,
+
 	// high addressable bits
 	AH,
 	RIP,
-
-	XMM0,
-	XMM1,
-	XMM2,
-	XMM3,
-	XMM4,
-	XMM5,
-	XMM6,
-	XMM7,
-	XMM15,
 };
 
 enum X64_Instruction {
