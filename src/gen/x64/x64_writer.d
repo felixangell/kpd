@@ -151,6 +151,9 @@ class Address : Memory_Location {
 	override string emit() {
 		reg.promote(8); // 8 byte
 
+		// adjust offset by width
+		offs *= width();
+
 		if (iden.length > 0) {
 			return iden ~ "(" ~ reg.emit() ~ ")";
 		}
@@ -159,12 +162,20 @@ class Address : Memory_Location {
 			index.promote(8);
 
 			if (scale > 0) {
+				// n(a, b, c)
 				return sfmt("{}({}, {}, {})", to!string(disp + offs), reg.emit(), index.emit(), to!string(scale));
 			}
+
+			// n(a, b)
 			return sfmt("{}({}, {})", to!string(disp + offs), reg.emit(), index.emit());
 		}
 
+		// n(a)
 		return sfmt("{}({})", to!string(disp + offs), reg.emit());
+	}
+
+	override string toString() {
+		return emit();
 	}
 }
 

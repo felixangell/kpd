@@ -485,6 +485,7 @@ class Get_Element_Pointer : Basic_Value {
 		this.offs = offs;
 		this.index = index;
 		this.scale = scale;
+		this.width = width;
 	}
 
 	int get_width() {

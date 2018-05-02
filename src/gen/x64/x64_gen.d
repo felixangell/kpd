@@ -205,6 +205,7 @@ class X64_Generator {
 		}
 
 		addr.set_width(g.get_width());
+		writeln("--- addr is ", addr, " set width from ", g.get_width());
 
 		if (g.scale == 0) {
 			// set the offs to the index
