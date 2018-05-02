@@ -1,0 +1,15 @@
+#module main
+
+#{c_func}
+func printf();
+
+type Foo (u64, u64, u64);
+
+func main() {
+	let f Foo;
+	f.0 = 255 as u64;
+	f.1 = 0 as u64;
+	f.2 = 255 as u64;
+
+	printf(c"Hello world!\n");
+}

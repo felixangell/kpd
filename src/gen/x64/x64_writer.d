@@ -35,7 +35,7 @@ class Reg : Memory_Location {
 	void promote(int widthInBytes) {
 		// this shouldnt happen!
 		if (widthInBytes > 8) {
-			assert(0, " width is " ~ to!string(widthInBytes));
+			writeln(" width is " ~ to!string(widthInBytes));
 			// widthInBytes = 8;
 		}
 
@@ -187,6 +187,12 @@ string suffix(uint width) {
 	if (width == 0) {
 		return "b";
 	}
+	
+	// no suffix for this instr
+	if (width == 2) {
+		return "";
+	}
+
 	return to!string(type_name(width)[0]);
 }
 
