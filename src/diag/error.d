@@ -233,3 +233,9 @@ directive, like so:
     }
 
 `, "Krug program has no module directive specified '%s'"));
+
+mixin(make_err!("NO_KRUG_PROGRAM", "8u", `No krug source files have been
+given to the krug compiler. Simply pass a krug program to compile like so:
+
+    krug build main.krug
+`));

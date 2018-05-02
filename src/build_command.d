@@ -11,7 +11,7 @@ import std.parallelism;
 import std.getopt;
 import std.string;
 
-import compiler_error : DEPENDENCY_CYCLE;
+import compiler_error : DEPENDENCY_CYCLE, NO_KRUG_PROGRAM;
 
 import kargs.command;
 import cflags;
@@ -52,11 +52,15 @@ class Build_Command : Command {
 		compilerTimer.start();
 
 		if (args.length == 0) {
-			logger.error("No input files.");
+			logger.error("No arguments.");
 			return;
 		}
 
+		// FIXME none of these actually seem to work?!
 		getopt(args, 
+			"help|h", function() {
+				writeln("hi there");
+			},
 			"verbose|v", &VERBOSE_LOGGING,
 			"arch", &ARCH,
 			"release|r", &RELEASE_MODE,
@@ -77,106 +81,114 @@ class Build_Command : Command {
 
 		write_krug_info();
 
-		string entry_file = args[0];
-		auto main_source_file = new Source_File(entry_file);
-		Krug_Project proj = build_krug_project(main_source_file);
+		string entry_file;
+		foreach (a; args) {
+			if (a.endsWith(KRUG_EXT)) {
+				entry_file = a;
+			}
+		}
 
-		// run tarjan's strongly connected components
-		// algorithm on the graph of the project to ensure
-		// there are no cycles in the krug project graph
+		if (entry_file != "") {
+			auto main_source_file = new Source_File(entry_file);
+			Krug_Project proj = build_krug_project(main_source_file);
 
-		logger.verbose_header("Cycle detection:");		
-		SCC[] cycles = proj.graph.get_scc();
-		if (cycles.length > 0) {
-			foreach (ref cycle; cycles) {
-				string dep_string;
-				foreach (ref idx, mod; cycle) {
-					if (idx > 0) {
-						dep_string ~= " ";
+			// run tarjan's strongly connected components
+			// algorithm on the graph of the project to ensure
+			// there are no cycles in the krug project graph
+
+			logger.verbose_header("Cycle detection:");		
+			SCC[] cycles = proj.graph.get_scc();
+			if (cycles.length > 0) {
+				foreach (ref cycle; cycles) {
+					string dep_string;
+					foreach (ref idx, mod; cycle) {
+						if (idx > 0) {
+							dep_string ~= " ";
+						}
+						dep_string ~= "'" ~ mod.name ~ "'";
 					}
-					dep_string ~= "'" ~ mod.name ~ "'";
+
+					// TODO a better error message for this.
+					Diagnostic_Engine.throw_custom_error(DEPENDENCY_CYCLE,
+							"There is a cycle in the project dependencies: " ~
+							dep_string);
 				}
 
-				// TODO a better error message for this.
-				Diagnostic_Engine.throw_custom_error(DEPENDENCY_CYCLE,
-						"There is a cycle in the project dependencies: " ~
-						dep_string);
+				// let's not continue with compilation!
+				return;
 			}
 
-			// let's not continue with compilation!
-			return;
-		}
+			// TODO: we can move flatten -> sort into
+			// one thing instead of a two step solution!
 
-		// TODO: we can move flatten -> sort into
-		// one thing instead of a two step solution!
+			// flatten the dependency graph into an array
+			// of modules.
+			Dependency_Graph graph = proj.graph;
 
-		// flatten the dependency graph into an array
-		// of modules.
-		Dependency_Graph graph = proj.graph;
+			Module[] flattened;
+			foreach (ref mod; graph) {
+				flattened ~= mod;
+			}
 
-		Module[] flattened;
-		foreach (ref mod; graph) {
-			flattened ~= mod;
-		}
+			// sort the flattened modules such that the
+			// modules with the least amount of dependencies
+			// are first
+			auto sorted_modules = flattened.sort!((a, b) => a.dep_count() < b.dep_count());
 
-		// sort the flattened modules such that the
-		// modules with the least amount of dependencies
-		// are first
-		auto sorted_modules = flattened.sort!((a, b) => a.dep_count() < b.dep_count());
-
-		logger.verbose_header("Parsing:");
-		foreach (ref mod; sorted_modules) {
-			foreach (ref sub_mod_name, token_stream; mod.token_streams) {
-				logger.verbose("- " ~ mod.name ~ "::" ~ sub_mod_name);
-				// there is no point starting a parser instance
-				// if we have no tokens to parse
-				if (token_stream.length == 0) {
-					mod.as_trees[sub_mod_name] = [];
-					continue;
+			logger.verbose_header("Parsing:");
+			foreach (ref mod; sorted_modules) {
+				foreach (ref sub_mod_name, token_stream; mod.token_streams) {
+					logger.verbose("- " ~ mod.name ~ "::" ~ sub_mod_name);
+					// there is no point starting a parser instance
+					// if we have no tokens to parse
+					if (token_stream.length == 0) {
+						mod.as_trees[sub_mod_name] = [];
+						continue;
+					}
+					mod.as_trees[sub_mod_name] = new Parser(token_stream).parse();
 				}
-				mod.as_trees[sub_mod_name] = new Parser(token_stream).parse();
 			}
+
+			const auto parse_errors = logger.get_err_count();
+			if (parse_errors > 0) {
+				logger.error("Terminating compilation: ", to!string(parse_errors),
+						" parse errors encountered.");
+				return;
+			}
+
+			logger.verbose_header("Semantic Analysis: ");
+			foreach (ref mod; sorted_modules) {
+				auto sema = new Semantic_Analysis(graph);
+				sema.process(mod);
+			}
+
+			const auto sema_errors = logger.get_err_count();
+			if (sema_errors > 0) {
+				logger.error("Terminating compilation: ", to!string(sema_errors),
+						" semantic errors encountered.");
+				return;
+			}
+
+			// a single module (made up of potentially
+			// multiple files) is compiled into on IR Module.
+			logger.verbose_header("Generating Krug IR:");
+
+			IR_Module[] krug_program;
+			foreach (ref mod; sorted_modules) {
+				krug_program ~= build_ir(mod);
+			}
+
+			logger.verbose_header("Control flow analysis of Krug IR:");
+			foreach (ref ir_mod; krug_program) {
+				build_graphs(ir_mod);
+			}
+
+			logger.verbose_header("Optimisation Pass: ");
+			optimise(krug_program, OPTIMIZATION_LEVEL);
+
+			logger.verbose_header("Code Generation: ");
+			generate_code(BUILD_TARGET, krug_program);
 		}
-
-		const auto parse_errors = logger.get_err_count();
-		if (parse_errors > 0) {
-			logger.error("Terminating compilation: ", to!string(parse_errors),
-					" parse errors encountered.");
-			return;
-		}
-
-		logger.verbose_header("Semantic Analysis: ");
-		foreach (ref mod; sorted_modules) {
-			auto sema = new Semantic_Analysis(graph);
-			sema.process(mod);
-		}
-
-		const auto sema_errors = logger.get_err_count();
-		if (sema_errors > 0) {
-			logger.error("Terminating compilation: ", to!string(sema_errors),
-					" semantic errors encountered.");
-			return;
-		}
-
-		// a single module (made up of potentially
-		// multiple files) is compiled into on IR Module.
-		logger.verbose_header("Generating Krug IR:");
-
-		IR_Module[] krug_program;
-		foreach (ref mod; sorted_modules) {
-			krug_program ~= build_ir(mod);
-		}
-
-		logger.verbose_header("Control flow analysis of Krug IR:");
-		foreach (ref ir_mod; krug_program) {
-			build_graphs(ir_mod);
-		}
-
-		logger.verbose_header("Optimisation Pass: ");
-		optimise(krug_program, OPTIMIZATION_LEVEL);
-
-		logger.verbose_header("Code Generation: ");
-		generate_code(BUILD_TARGET, krug_program);
 
 		auto duration = compilerTimer.peek();
 		logger.info("Compiler took ", to!string(duration.total!"msecs"),
