@@ -1,0 +1,21 @@
+#module piecetable
+
+#{c_func}
+func printf();
+
+type Line s32;
+
+type Piece_Table struct {
+	a *Line, // array!
+	b [Line; 32], // array!
+	c (Line, Line, *Line),
+	
+	// TODO handle in infer!
+	// d func(a Line, b Line, c Line) Line,
+	// e func() Line,
+	// f func(),
+};
+
+func main() {
+	printf(c"hello world!\n");
+}
