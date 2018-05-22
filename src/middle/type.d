@@ -466,6 +466,25 @@ class Fn : Type {
 	}
 }
 
+// cstring is an alias of *u8
+class CString : Type {
+	this() {
+		super("cstr", [new Pointer(get_int(false, 8))]);
+	}
+
+	override bool cmp(Type other) {
+		assert(0);
+	}
+
+	override uint get_width() {
+		assert(0);
+	}
+
+	override string toString() const {
+		return "cstr";
+	}
+}
+
 class Module_Info : Type {
 	string[] names;
 

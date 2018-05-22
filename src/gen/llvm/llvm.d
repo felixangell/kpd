@@ -36,26 +36,42 @@ extern(C) {
 
 	void LLVMDumpModule(LLVMModuleRef);
 
-	// type val
+	// values
+	struct LLVMOpaqueValue{};
+	alias LLVMValueRef = LLVMOpaqueValue*;
+
+	LLVMValueRef LLVMConstInt(LLVMTypeRef, ulong val, bool);
+	LLVMValueRef LLVMConstString(LLVMString, ulong, bool);
+
+	// types
 	struct LLVMOpaqueType{};
 	alias LLVMTypeRef = LLVMOpaqueType*;
 
-	struct LLVMOpaqueValue{};
-	alias LLVMValueRef = LLVMOpaqueValue*;
-	
 	// types
 	LLVMTypeRef LLVMVoidType();
+	LLVMTypeRef LLVMInt8Type();
+	LLVMTypeRef LLVMInt16Type();
 	LLVMTypeRef LLVMInt32Type();
-	LLVMTypeRef LLVMFunctionType(LLVMTypeRef, LLVMTypeRef[], ulong, int);
+	LLVMTypeRef LLVMInt64Type();
+	LLVMTypeRef LLVMFunctionType(LLVMTypeRef, LLVMTypeRef*, ulong, int);
+	LLVMTypeRef LLVMPointerType(LLVMTypeRef, int);
 
 	void LLVMSetLinkage(LLVMValueRef, LLVMLinkage);
 
-	// b
-	struct LLVMBasicBlockRef{};
+	// basic blocks
+	struct LLVMOpaqueBasicBlock{};
+	alias LLVMBasicBlockRef = LLVMOpaqueBasicBlock*;
+
+	LLVMBasicBlockRef LLVMAppendBasicBlock(LLVMValueRef, LLVMString);
 
 	// builder
 	struct LLVMOpaqueBuilder{};
 	alias LLVMBuilderRef = LLVMOpaqueBuilder*;
 
 	LLVMBuilderRef LLVMCreateBuilder();
+	void LLVMPositionBuilderAtEnd(LLVMBuilderRef, LLVMBasicBlockRef);
+	LLVMValueRef LLVMBuildAlloca(LLVMBuilderRef, LLVMTypeRef, LLVMString);
+	LLVMValueRef LLVMBuildStore(LLVMBuilderRef, LLVMValueRef, LLVMValueRef);
+	LLVMValueRef LLVMBuildCall(LLVMBuilderRef, LLVMValueRef, LLVMValueRef*, ulong, LLVMString);
+	LLVMValueRef LLVMBuildRetVoid(LLVMBuilderRef);
 }

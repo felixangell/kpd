@@ -400,8 +400,8 @@ class IR_Builder : Top_Level_Node_Visitor {
 		// generate a constant 
 		// as well as a reference to the
 		// constant
-		string const_ref = add_constant(new Constant(new Pointer(get_int(false, 8)), str.value));
-		auto string_data_ptr = new Constant_Reference(new Pointer(get_int(false, 8)), const_ref);
+		string const_ref = add_constant(new Constant(new CString(), str.value));
+		auto string_data_ptr = new Constant_Reference(new CString(), const_ref);
 
 		// c-style string is simply a raw unsigned
 		// 8 bit integer pointer
