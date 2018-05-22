@@ -34,8 +34,6 @@ import kir.ir_mod;
 import kir.ir_verify;
 import kir.builder;
 
-import gen.bc.opcode;
-
 import sema.analyzer;
 
 import opt.opt_manager;
@@ -69,7 +67,7 @@ class Run_Command : Command {
 			"out|o", &OUT_NAME,
 		);
 
-		// set build target to bytecode.
+		// set build target to LLVM
 		
 		write_krug_info();
 

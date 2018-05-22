@@ -11,7 +11,9 @@ endif
 D_SOURCES := $(shell find src -type f -name '*.d')
 D_OBJ_FILES := $(patsubst %.d,%.o,$(D_SOURCES))
 
-LD_FLAGS := -L=vm/krugvm.a -vcolumns $(llvm-config --ldflags --libs | sed -e 's/-L/-L-L/g' | sed -e 's/-l/-L-l/g') -L-lstdc++ 
+LLVM_CONF := `llvm-config --ldflags --libs core executionengine analysis native bitwriter --system-libs | sed -e 's/-L/-L-L/g' | sed -e 's/-l/-L-l/g'`
+
+LD_FLAGS := -L=vm/krugvm.a -vcolumns $(LLVM_CONF)
 KRUG_OUT_DIR := bin
 KRUG_OUT := $(KRUG_OUT_DIR)/krug
 

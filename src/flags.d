@@ -10,7 +10,7 @@ import gen.target : Target;
 enum VERSION = "0.0.1";
 enum KRUG_EXT = ".krug";
 
-Target BUILD_TARGET = Target.X64;
+Target BUILD_TARGET = Target.LLVM;
 uint OPTIMIZATION_LEVEL = 0;
 bool RELEASE_MODE = false;
 string ARCH = arch_type();
