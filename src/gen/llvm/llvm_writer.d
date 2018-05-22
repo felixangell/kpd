@@ -72,6 +72,13 @@ class LLVM_Writer : LLVM_Gen_Output {
 		return constants[cref.name];
 	}
 
+	LLVMValueRef emit_binary_op(Binary_Op bin) {
+		final switch (bin.op) {
+		case "+":
+			return LLVMBuildAdd(builder, emit_val(bin.a), emit_val(bin.b), "foobar");
+		}
+	}
+
 	LLVMValueRef emit_val(Value v) {
 		if (auto c = cast(Constant) v) {
 			return emit_const(c);
@@ -85,6 +92,9 @@ class LLVM_Writer : LLVM_Gen_Output {
 				return function_protos[iden.name];
 			}			
 			return allocs[iden.name];
+		}
+		else if (auto binary = cast(Binary_Op) v) {
+			return emit_binary_op(binary);
 		}
 
 		writeln("unhandled value!", v);

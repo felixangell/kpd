@@ -4,6 +4,6 @@
 func printf();
 
 func main() {
-	let g = 32;
+	let g = 32 + 12;
 	printf(c"hello world %d\n", g);
 }
