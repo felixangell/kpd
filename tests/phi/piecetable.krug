@@ -1,5 +1,18 @@
 #module piecetable
 
+// sdl!
+#{c_func}
+func SDL_Init();
+
+#{c_func}
+func SDL_Quit();
+
+#{c_func}
+func SDL_Delay();
+
+#{c_func}
+func SDL_CreateWindow();
+
 #{c_func}
 func printf();
 
@@ -17,5 +30,12 @@ type Piece_Table struct {
 };
 
 func main() {
+	SDL_Init();
+
+	let window = SDL_CreateWindow(c"Window name", 0, 0, 1280, 720, 0);
 	printf(c"hello world!\n");
+
+	SDL_Delay(2000);
+
+	SDL_Quit();
 }

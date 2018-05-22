@@ -93,6 +93,9 @@ class Top_Level_Name_Resolve_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 				resolve(func.recv.type);
 			}
 		}
+		else if (cast(Primitive_Type_Node) tn) {
+			// nop
+		}
 		else {
 			writeln("unhandled!!? ", to!string(typeid(tn)));
 		}

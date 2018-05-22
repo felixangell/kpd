@@ -104,9 +104,15 @@ class Reg : Memory_Location {
 
 class Const : Memory_Location {
 	string val;
+	uint width_in_bytes = 0;
 
 	this(string val) {
+		this(val, 0);
+	}
+
+	this(string val, uint width) {
 		this.val = val;
+		this.width_in_bytes = width;
 	}
 
 	override string emit() {
@@ -114,7 +120,7 @@ class Const : Memory_Location {
 	}
 
 	override uint width() {
-		return 0;
+		return width_in_bytes;
 	}
 }
 
@@ -276,6 +282,9 @@ class X64_Assembly_Writer : X64_Assembly {
 
 	// mov $1, %rax
 	void mov(Const src, Reg dest) {
+		if (src.width != 0) {
+			dest.promote(src.width);
+		}
 		emitt("mov{} {}, {}", suffix(dest.width()), src.emit(), dest.emit());
 	}
 

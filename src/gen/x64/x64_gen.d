@@ -48,8 +48,8 @@ static this() {
 	];
 }
 
-Const make_const(T)(T val) {
-	return new Const(to!string(val));
+Const make_const(T)(T val, uint width = 0) {
+	return new Const(to!string(val), width);
 }
 
 /*
@@ -83,7 +83,7 @@ class X64_Generator {
 	Memory_Location get_const(Constant c) {
 		auto type = c.get_type();
 		if (auto integer = cast(Integer) type) {
-			return make_const(c.value);
+			return make_const(c.value, 4);
 		}
 		else if (auto floating = cast(Floating) type) {
 			// todo mangle properly?
