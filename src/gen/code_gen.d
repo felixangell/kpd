@@ -18,9 +18,6 @@ void generate_code(Target t, IR_Module[] modules) {
 	case Target.X64:
 		backend = new X64_Backend;
 		break;
-	case Target.KURBY:
-		backend = new Bytecode_Driver;
-		break;
 	}
 
 	Generated_Output[] output_program;

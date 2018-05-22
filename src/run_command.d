@@ -69,7 +69,8 @@ class Run_Command : Command {
 			"out|o", &OUT_NAME,
 		);
 
-		BUILD_TARGET = Target.KURBY;
+		// set build target to bytecode.
+		
 		write_krug_info();
 
 		writeln("- unimplemented");
