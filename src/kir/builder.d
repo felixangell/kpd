@@ -140,7 +140,7 @@ class IR_Builder : Top_Level_Node_Visitor {
 
 		// only generate the bb0 params block
 		// if we have params on this function
-		if (!is_proto) push_bb();
+		if (!is_proto && func.params.length > 0) push_bb();
 
 		// alloc all the params
 		foreach (p; func.params) {

@@ -1,7 +1,7 @@
 #module main
 
 #{c_func}
-func printf();
+func printf(str *u8) s32;
 
 func main() {
 	let g = 32 + 12;
