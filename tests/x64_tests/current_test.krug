@@ -1,6 +1,6 @@
 #module main
 
-#{c_func}
+#{c_func, variadic}
 func printf(str *u8) s32;
 
 func main() {

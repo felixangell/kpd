@@ -171,10 +171,12 @@ class LLVM_Writer : LLVM_Gen_Output {
 
 		const auto mangled_fname = mangle(f);
 
+		bool variadic = f.has_attribute("variadic");
+
 		auto ret_type = to_llvm_type(f.get_type());
-		auto func_type = LLVMFunctionType(ret_type, cast(LLVMTypeRef*)params, params.length, 0);
+		auto func_type = LLVMFunctionType(ret_type, cast(LLVMTypeRef*)params, params.length, variadic);
 		LLVMValueRef func = LLVMAddFunction(llvm_mod, mangled_fname.toStringz, func_type);
-		
+
 		functions[func] = f;
 		function_protos[f.name] = func;
 	}

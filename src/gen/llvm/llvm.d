@@ -53,7 +53,7 @@ extern(C) {
 	LLVMTypeRef LLVMInt16Type();
 	LLVMTypeRef LLVMInt32Type();
 	LLVMTypeRef LLVMInt64Type();
-	LLVMTypeRef LLVMFunctionType(LLVMTypeRef, LLVMTypeRef*, ulong, int);
+	LLVMTypeRef LLVMFunctionType(LLVMTypeRef, LLVMTypeRef*, ulong, bool);
 	LLVMTypeRef LLVMPointerType(LLVMTypeRef, int);
 
 	void LLVMSetLinkage(LLVMValueRef, LLVMLinkage);
