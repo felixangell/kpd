@@ -13,12 +13,18 @@ import keyword;
 
 import logger;
 import colour;
-import sema.type : PRIMITIVE_TYPES;
 
 static Token EOF_TOKEN;
+static bool[string] PRIMITIVE_TYPES;
 
 static this() {
 	EOF_TOKEN = new Token("<EOF>", Token_Type.EOF);
+	PRIMITIVE_TYPES = [
+        "u8" : true, "u16" : true, "u32" : true, "u64" : true,
+        "s8" : true, "s16" : true, "s32" : true, "s64" : true,
+        "rune" : true, "bool" : true, "string" : true,
+        "f32" : true, "f64" : true,
+	];
 }
 
 // a stack that keeps track of

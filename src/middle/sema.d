@@ -9,6 +9,7 @@ import tok;
 
 import sema.visitor;
 import sema.decl;
+import sema.top_level_name_resolve;
 import sema.method_decl;
 import sema.name_resolve;
 import sema.top_level_type_decl;
@@ -44,6 +45,9 @@ Semantic_Pass[] passes = [
 	// are done in a linear sequence from top to bottom
 	// we might not know what Foo is.
 	new Method_Declaration_Pass,
+
+	// resolves all of the names inside of types
+	new Top_Level_Name_Resolve_Pass,
 
 	// the name resolve pass looks for all the symbols that
 	// have been referenced in expressions. now that we have
