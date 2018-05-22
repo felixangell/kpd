@@ -11,7 +11,7 @@ endif
 D_SOURCES := $(shell find src -type f -name '*.d')
 D_OBJ_FILES := $(patsubst %.d,%.o,$(D_SOURCES))
 
-LD_FLAGS := -L=vm/krugvm.a -vcolumns
+LD_FLAGS := -L=vm/krugvm.a -vcolumns $(llvm-config --ldflags --libs | sed -e 's/-L/-L-L/g' | sed -e 's/-l/-L-l/g') -L-lstdc++ 
 KRUG_OUT_DIR := bin
 KRUG_OUT := $(KRUG_OUT_DIR)/krug
 

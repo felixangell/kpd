@@ -17,8 +17,8 @@ import logger;
 
 import sema.type;
 
+import gen.mangler;
 import gen.x64.asm_file;
-import gen.x64.mangler;
 import gen.x64.asm_writer;
 import gen.x64.instr;
 

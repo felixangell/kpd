@@ -12,11 +12,11 @@ import logger;
 import kir.ir_mod;
 
 import gen.backend;
+import gen.mangler;
 import gen.x64.instr;
 import gen.x64.asm_writer;
 import gen.x64.asm_file;
 import gen.x64.generator;
-import gen.x64.mangler;
 import gen.x64.link;
 
 // parses the the stdout/err? from the

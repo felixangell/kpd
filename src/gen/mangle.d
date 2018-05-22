@@ -1,4 +1,4 @@
-module gen.x64.mangler;
+module gen.mangler;
 
 import std.conv : to;
 import std.traits : isInstanceOf;
