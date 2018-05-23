@@ -1,4 +1,6 @@
-SHELL := /usr/local/bin/fish
+ifeq ($(shell whoami), felix)
+	SHELL := /usr/local/bin/fish
+endif
 
 ifeq ($(DC),)
 	DC := dmd
