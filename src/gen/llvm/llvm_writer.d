@@ -124,6 +124,18 @@ class LLVM_Writer {
 		return LLVMBuildICmp(builder, LLVMIntPredicate.LLVMIntEQ, lhs, rhs, "");
 	}
 
+	LLVMValueRef emit_and(Binary_Op bin) {
+		auto lhs = emit_val(bin.a);
+		auto rhs = emit_val(bin.b);
+		return LLVMBuildAnd(builder, lhs, rhs, "");
+	}
+
+	LLVMValueRef emit_or(Binary_Op bin) {
+		auto lhs = emit_val(bin.a);
+		auto rhs = emit_val(bin.b);
+		return LLVMBuildOr(builder, lhs, rhs, "");
+	}
+
 	LLVMValueRef emit_binary_op(Binary_Op bin) {
 		switch (bin.op) {
 		case "-":
@@ -132,6 +144,10 @@ class LLVM_Writer {
 			return LLVMBuildAdd(builder, emit_val(bin.a), emit_val(bin.b), "");
 		case "==":
 			return emit_cmp(bin);
+		case "&&":
+			return emit_and(bin);
+		case "||":
+			return emit_or(bin);
 		default:
 			assert(0, "emit_binary_op: operator unhandled '" ~ to!string(bin.op) ~ "'");
 		}

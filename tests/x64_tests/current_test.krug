@@ -6,7 +6,7 @@ func printf(str *u8) s32;
 #{no_mangle}
 func main() s32 {
 	let g = 15 - 3;
-	if true {
+	if true || true {
 		return g;
 	}
 	return g + 50;
