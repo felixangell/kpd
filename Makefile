@@ -38,12 +38,12 @@ $(VM_OUT): $(VM_CC_OBJ_FILES)
 
 $(KRUG_OUT): $(VM_OUT) $(D_SOURCES)
 	@mkdir -p $(KRUG_OUT_DIR)
-	$(DC) -c -of$@ -dip1000 $(D_FLAGS) $(LD_FLAGS) $(D_SOURCES) -v
+	$(DC) -c -of$@ -dip1000 $(D_FLAGS) $(LD_FLAGS) $(D_SOURCES)
 	g++ bin/krug.o -o bin/krug -g $(GCC_FLAGS) -stdlib=libc++
 
 notmac:
 	@mkdir -p $(KRUG_OUT_DIR)
-	$(DC) -of$@ -dip1000 $(D_FLAGS) $(LD_FLAGS) $(LLVM_CONF) $(D_SOURCES) -v
+	$(DC) -of$@ -dip1000 $(D_FLAGS) $(LD_FLAGS) $(LLVM_CONF) $(D_SOURCES)
 
 optimized: $(VM_OUT) $(D_SOURCES)
 	$(DC) -of$(KRUG_OUT) -O -dip1000 $(D_FLAGS) $(LD_FLAGS) $(D_SOURCES)
