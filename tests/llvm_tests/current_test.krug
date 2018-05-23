@@ -1,0 +1,8 @@
+#module main
+
+#{no_mangle}
+func main() {
+	loop {
+	
+	}
+}

@@ -344,6 +344,8 @@ class LLVM_Writer {
 		}
 
 		LLVMDumpModule(llvm_mod);
+
+		pop_func();
 	}
 
 	LLVM_Gen_Output gen(LLVMTargetMachineRef target_machine) {
