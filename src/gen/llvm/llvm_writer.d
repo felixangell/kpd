@@ -85,8 +85,10 @@ class LLVM_Writer {
 
 	LLVMValueRef emit_binary_op(Binary_Op bin) {
 		final switch (bin.op) {
+		case "-":
+			return LLVMBuildSub(builder, emit_val(bin.a), emit_val(bin.b), "");
 		case "+":
-			return LLVMBuildAdd(builder, emit_val(bin.a), emit_val(bin.b), "foobar");
+			return LLVMBuildAdd(builder, emit_val(bin.a), emit_val(bin.b), "");
 		}
 	}
 

@@ -85,6 +85,7 @@ extern(C) {
 	
 	LLVMValueRef LLVMBuildRetVoid(LLVMBuilderRef);
 	LLVMValueRef LLVMBuildRet(LLVMBuilderRef, LLVMValueRef);
+	LLVMValueRef LLVMBuildSub(LLVMBuilderRef, LLVMValueRef, LLVMValueRef, LLVMString);
 	LLVMValueRef LLVMBuildAdd(LLVMBuilderRef, LLVMValueRef, LLVMValueRef, LLVMString);
 	LLVMValueRef LLVMBuildLoad(LLVMBuilderRef, LLVMValueRef, LLVMString);
 
