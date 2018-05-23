@@ -138,20 +138,17 @@ class IR_Builder : Top_Level_Node_Visitor {
 		// this is kinda hacky.
 		bool is_proto = func.func_body is null;
 
-		// only generate the bb0 params block
-		// if we have params on this function
-		if (!is_proto && func.params.length > 0) push_bb();
+		if (is_proto) return;
+
+		auto entry = push_bb();
 
 		// alloc all the params
 		foreach (p; func.params) {
 			auto param_alloc = new Alloc(curr_sym_table.env.conv_type(p.type), p.twine.lexeme);
-			if (!is_proto) curr_func.add_alloc(param_alloc);
 			curr_func.params ~= param_alloc;
 		}
 
-		if (is_proto) return;
-
-		build_block(curr_func, func.func_body);
+		build_block(curr_func, func.func_body, entry);
 
 		// if there are no instructions in the last basic
 		// block add a return
@@ -348,6 +345,9 @@ class IR_Builder : Top_Level_Node_Visitor {
 		foreach (arg; call.args) {
 			args ~= build_expr(env, arg);
 		}
+
+		// re-write identifier to function thing?
+
 		return new Call(left.get_type(), left, args);
 	}
 

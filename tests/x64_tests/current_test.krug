@@ -4,10 +4,13 @@
 func printf(str *u8) s32;
 
 #{no_mangle}
+func add(a s32, b s32) s32 {
+	// lol pranked
+	return a - b;
+}
+
+#{no_mangle}
 func main() s32 {
-	let g = 15 - 3;
-	if true || true {
-		return g;
-	}
-	return g + 50;
+	let foo = add(10, 5);
+	return foo;
 }

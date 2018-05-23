@@ -83,6 +83,10 @@ extern(C) {
 	LLVMBasicBlockRef LLVMInsertBasicBlock(LLVMBasicBlockRef, LLVMString);
 	LLVMBasicBlockRef LLVMGetPreviousBasicBlock(LLVMBasicBlockRef);
 
+	LLVMValueRef LLVMGetNamedFunction(LLVMModuleRef, LLVMString);
+	LLVMValueRef LLVMGetParam(LLVMValueRef, uint);
+	uint LLVMCountParams(LLVMValueRef);
+
 	// builder
 	struct LLVMOpaqueBuilder{};
 	alias LLVMBuilderRef = LLVMOpaqueBuilder*;

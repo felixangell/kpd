@@ -82,10 +82,11 @@ class LLVM_Writer {
 		this.builder = LLVMCreateBuilder();
 	}
 
-	void write_alloc(Alloc a) {
+	LLVMValueRef write_alloc(Alloc a) {
 		auto alloc_name = a.name;
 		auto var = LLVMBuildAlloca(builder, to_llvm_type(a.get_type()), alloc_name.toStringz);
 		allocs[alloc_name] = var;
+		return var;
 	}
 
 	LLVMValueRef emit_const(Constant c) {
@@ -162,14 +163,17 @@ class LLVM_Writer {
 		}
 		else if (auto iden = cast(Identifier) v) {
 			if (iden.name !in allocs) {
-				// FIXME
+				assert(iden.name in function_addr, "no such iden '" ~ to!string(iden.name) ~ "'");
 				return function_addr[iden.name];
-			}	
+			}
 			LLVMValueRef a = allocs[iden.name];
 			return LLVMBuildLoad(builder, a, "");
 		}
 		else if (auto binary = cast(Binary_Op) v) {
 			return emit_binary_op(binary);
+		}
+		else if (auto invoke = cast(Call) v) {
+			return emit_invoke(invoke);
 		}
 
 		writeln("unhandled value!", v);
@@ -190,7 +194,7 @@ class LLVM_Writer {
 		}
 	}
 
-	void write_invoke(Call i) {
+	LLVMValueRef emit_invoke(Call i) {
 		LLVMValueRef[] args;
 		foreach (arg; i.args) {
 			args ~= emit_val(arg);
@@ -200,7 +204,7 @@ class LLVM_Writer {
 		auto ir_func = functions[func_addr];
 		auto name = mangle(ir_func);
 
-		LLVMBuildCall(builder, func_addr, cast(LLVMValueRef*)args, args.length, name.toStringz);
+		return LLVMBuildCall(builder, func_addr, cast(LLVMValueRef*)args, args.length, name.toStringz);
 	}
 
 	void write_ret(Return r) {
@@ -247,7 +251,7 @@ class LLVM_Writer {
 			write_store(store);
 		}
 		else if (auto invoke = cast(Call) instr) {
-			write_invoke(invoke);
+			emit_invoke(invoke);
 		}
 		else if (auto ret = cast(Return) instr) {
 			write_ret(ret);
@@ -288,11 +292,9 @@ class LLVM_Writer {
 		auto ret_type = to_llvm_type(f.get_type());
 		auto func_type = LLVMFunctionType(ret_type, cast(LLVMTypeRef*)params, params.length, variadic);
 
-		if (f.has_attribute("c_func")) {
-			LLVMValueRef func = LLVMAddFunction(llvm_mod, mangled_fname.toStringz, func_type);
-			function_addr[f.name] = func;
-			functions[func] = f;
-		}
+		LLVMValueRef func = LLVMAddFunction(llvm_mod, mangled_fname.toStringz, func_type);
+		function_addr[f.name] = func;
+		functions[func] = f;
 		function_protos[f.name] = func_type;
 	}
 
@@ -301,7 +303,7 @@ class LLVM_Writer {
 
 		auto fname = f.has_attribute("no_mangle") ? f.name : mangle(f);
 
-		LLVMValueRef func = LLVMAddFunction(llvm_mod, fname.toStringz, func_type);
+		LLVMValueRef func = LLVMGetNamedFunction(llvm_mod, fname.toStringz);
 		function_addr[f.name] = func;
 		functions[func] = f;
 
@@ -316,8 +318,27 @@ class LLVM_Writer {
 			auto llvmbb = curr_func.push_bb(mangle(bb));
 		}
 
+		// generate the first basic block
+		// we do this manually so we can set the
+		// allocas to be the values passed from the params
+		auto fs = f.blocks[0];
+		auto llvm_fs_bb = curr_func.get_bb(mangle(fs));
+		{
+			LLVMPositionBuilderAtEnd(builder, llvm_fs_bb);
+
+			auto param_count = LLVMCountParams(curr_func.addr);
+			for (auto i = 0; i < param_count; i++) {
+				auto alloca = write_alloc(f.params[i]);
+				allocs[f.params[i].name] = alloca;
+
+				LLVMBuildStore(builder, LLVMGetParam(curr_func.addr, i), alloca);
+			}
+		}
+
+		write_bb(llvm_fs_bb, func, fs);
+
 		// then we populate.
-		foreach (bb; f.blocks) {
+		foreach (bb; f.blocks[1..$]) {
 			auto llvmbb = curr_func.get_bb(mangle(bb));
 			write_bb(llvmbb, func, bb);
 		}
