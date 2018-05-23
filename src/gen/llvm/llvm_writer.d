@@ -61,7 +61,18 @@ class LLVM_Writer {
 			return LLVMConstInt(conv_type, to!ulong(c.value), false);
 		}
 		else if (auto cstr = cast(CString) type) {
-			return LLVMConstString(c.value.toStringz, c.value.length, false);
+			auto strlen = c.value.length;
+			auto str = LLVMAddGlobal(llvm_mod, LLVMPointerType(LLVMInt8Type(), 0), "");
+			LLVMSetLinkage(str, LLVMLinkage.LLVMInternalLinkage);
+			LLVMSetGlobalConstant(str, true);
+
+			auto str_const = LLVMConstString(c.value[1..$-1].toStringz, strlen, true);
+			LLVMSetInitializer(str, str_const);
+
+			auto indices = [
+				LLVMConstInt(LLVMInt64Type(), 0, false),
+			];
+			return LLVMBuildGEP(builder, str_const, cast(LLVMValueRef*)indices, indices.length, "");
 		}
 
 		writeln("unhandled constant type ", c, " of type ", c.get_type());
@@ -90,8 +101,9 @@ class LLVM_Writer {
 			if (iden.name !in allocs) {
 				// FIXME
 				return function_addr[iden.name];
-			}			
-			return allocs[iden.name];
+			}	
+			LLVMValueRef a = allocs[iden.name];
+			return LLVMBuildLoad(builder, a, ("_in_" ~ iden.name).toStringz);
 		}
 		else if (auto binary = cast(Binary_Op) v) {
 			return emit_binary_op(binary);
@@ -133,6 +145,9 @@ class LLVM_Writer {
 			LLVMBuildRetVoid(builder);
 			return;
 		}
+
+		// TODO build multiple values?
+		LLVMBuildRet(builder, emit_val(r.results[0]));
 	}
 
 	void write_instr(Instruction instr) {

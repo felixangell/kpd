@@ -36,6 +36,8 @@ extern(C) {
 	LLVMModuleRef LLVMModuleCreateWithName(LLVMString name);
 
 	LLVMValueRef LLVMAddFunction(LLVMModuleRef, LLVMString, LLVMTypeRef);
+	LLVMValueRef LLVMAddGlobal(LLVMModuleRef, LLVMTypeRef, LLVMString);
+
 	void LLVMVerifyModule(LLVMModuleRef, LLVMVerifierFailureAction, LLVMString* out_msg);
 
 	void LLVMDumpModule(LLVMModuleRef);
@@ -57,10 +59,13 @@ extern(C) {
 	LLVMTypeRef LLVMInt16Type();
 	LLVMTypeRef LLVMInt32Type();
 	LLVMTypeRef LLVMInt64Type();
+	LLVMTypeRef LLVMArrayType(LLVMTypeRef, ulong);
 	LLVMTypeRef LLVMFunctionType(LLVMTypeRef, LLVMTypeRef*, ulong, bool);
 	LLVMTypeRef LLVMPointerType(LLVMTypeRef, int);
 
 	void LLVMSetLinkage(LLVMValueRef, LLVMLinkage);
+	void LLVMSetInitializer(LLVMValueRef, LLVMValueRef);
+	void LLVMSetGlobalConstant(LLVMValueRef, bool);
 
 	// basic blocks
 	struct LLVMOpaqueBasicBlock{};
@@ -77,8 +82,18 @@ extern(C) {
 	LLVMValueRef LLVMBuildAlloca(LLVMBuilderRef, LLVMTypeRef, LLVMString);
 	LLVMValueRef LLVMBuildStore(LLVMBuilderRef, LLVMValueRef, LLVMValueRef);
 	LLVMValueRef LLVMBuildCall(LLVMBuilderRef, LLVMValueRef, LLVMValueRef*, ulong, LLVMString);
+	
 	LLVMValueRef LLVMBuildRetVoid(LLVMBuilderRef);
+	LLVMValueRef LLVMBuildRet(LLVMBuilderRef, LLVMValueRef);
 	LLVMValueRef LLVMBuildAdd(LLVMBuilderRef, LLVMValueRef, LLVMValueRef, LLVMString);
+	LLVMValueRef LLVMBuildLoad(LLVMBuilderRef, LLVMValueRef, LLVMString);
+
+	LLVMValueRef LLVMBuildGlobalStringPtr(LLVMBuilderRef, LLVMString, LLVMString);
+
+	// get element ptr stuff
+	LLVMValueRef LLVMBuildInBoundsGEP(LLVMBuilderRef, LLVMValueRef, LLVMValueRef*, ulong, LLVMString);
+
+	LLVMValueRef LLVMBuildGEP(LLVMBuilderRef, LLVMValueRef, LLVMValueRef*, ulong, LLVMString);
 
 	//
 	// writing to asm obj etc.

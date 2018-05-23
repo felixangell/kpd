@@ -4,7 +4,7 @@
 func printf(str *u8) s32;
 
 #{no_mangle}
-func main() {
-	let g = 32 + 12;
-	printf(c"hello world %d\n", g);
+func main() s32 {
+	let g = 3;
+	return g;
 }
