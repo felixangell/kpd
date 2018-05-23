@@ -561,6 +561,11 @@ class IR_Builder : Top_Level_Node_Visitor {
 		}
 	}
 
+	/*
+		entry:
+			jmp entry
+		exit:
+	*/
 	void build_loop_node(ast.Loop_Statement_Node loop) {
 		auto entry = new Label(push_bb());
 		build_block(curr_func, loop.block, entry.reference);

@@ -23,16 +23,18 @@ class Function_Context {
 	LLVMBasicBlockRef push_bb(string label) {
 		auto bb = LLVMAppendBasicBlock(addr, label.toStringz);
 		assert(label !in bb_entries);
-		bb_entries[label] = bb;
+		register_bb(label, bb);
 		return bb;
 	}
 
 	LLVMBasicBlockRef register_bb(string label, LLVMBasicBlockRef bb) {
+		writeln("registering entry ", label);
 		bb_entries[label] = bb;
 		return bb;
 	}
 
 	LLVMBasicBlockRef get_bb(string label) {
+		writeln("looking up ", label);
 		return bb_entries[label];
 	}
 
@@ -218,7 +220,7 @@ class LLVM_Writer {
 	}
 
 	void write_jmp(Jump j) {
-		auto bb = curr_func.get_bb(j.label.name);
+		auto bb = curr_func.get_bb(mangle(j.label));
 		LLVMBuildBr(builder, bb);
 	}
 
