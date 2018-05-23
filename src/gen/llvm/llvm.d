@@ -65,6 +65,8 @@ extern(C) {
 	LLVMTypeRef LLVMInt16Type();
 	LLVMTypeRef LLVMInt32Type();
 	LLVMTypeRef LLVMInt64Type();
+	LLVMTypeRef LLVMIntType(uint);
+
 	LLVMTypeRef LLVMArrayType(LLVMTypeRef, ulong);
 	LLVMTypeRef LLVMFunctionType(LLVMTypeRef, LLVMTypeRef*, ulong, bool);
 	LLVMTypeRef LLVMPointerType(LLVMTypeRef, int);
@@ -91,6 +93,8 @@ extern(C) {
 	LLVMValueRef LLVMBuildStore(LLVMBuilderRef, LLVMValueRef, LLVMValueRef);
 	LLVMValueRef LLVMBuildCall(LLVMBuilderRef, LLVMValueRef, LLVMValueRef*, ulong, LLVMString);
 	LLVMValueRef LLVMBuildBr(LLVMBuilderRef, LLVMBasicBlockRef);
+
+	LLVMValueRef LLVMBuildTrunc(LLVMBuilderRef, LLVMValueRef, LLVMTypeRef, LLVMString);
 
 	LLVMValueRef LLVMBuildCondBr(LLVMBuilderRef, LLVMValueRef, LLVMBasicBlockRef, LLVMBasicBlockRef);
 

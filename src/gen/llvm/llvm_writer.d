@@ -219,7 +219,8 @@ class LLVM_Writer {
 		// entry block
 		LLVMPositionBuilderAtEnd(builder, entry);
 		auto do_br = emit_val(iff.condition);
-		LLVMBuildCondBr(builder, do_br, if_true, end);
+		auto do_br_trunc = LLVMBuildTrunc(builder, do_br, LLVMIntType(1), "");
+		LLVMBuildCondBr(builder, do_br_trunc, if_true, end);
 	}
 
 	void write_instr(Instruction instr) {
