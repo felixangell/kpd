@@ -3,6 +3,8 @@ module gen.x64.asm_file;
 import std.stdio;
 import std.conv;
 import std.array : replicate;
+import std.process;
+import std.random;
 
 import logger;
 import gen.backend;
@@ -96,5 +98,17 @@ class X64_Assembly : Generated_Output {
 		uint emit_addr = current_seg.index++;
 		emitt_at(emit_addr, fmt, s);
 		return emit_addr;
+	}
+
+	override File write() {
+		string file_name = "krug-asm-" ~ thisProcessID.to!string(36) ~ "-" ~ uniform!uint.to!string(36) ~ ".as";
+		auto temp_file = File(file_name, "w");
+		writeln("Assembly file '", temp_file.name, "' created.");
+
+		temp_file.write(assembly_code);
+		temp_file.close();
+
+		if (VERBOSE_LOGGING) dump_to_stdout();
+		return temp_file;
 	}
 }

@@ -17,7 +17,7 @@ import gen.llvm.type_conv;
 class Function_Context {
 }
 
-class LLVM_Writer : LLVM_Gen_Output {
+class LLVM_Writer {
 	IR_Module mod;
 
 	LLVMModuleRef llvm_mod;
@@ -198,8 +198,6 @@ class LLVM_Writer : LLVM_Gen_Output {
 	}
 
 	LLVM_Gen_Output gen() {
-		LLVM_Gen_Output generated_llvm_mod;
-		
 		foreach (key, constant; mod.constants) {
 			constants[key] = emit_val(constant);
 		}
@@ -220,6 +218,6 @@ class LLVM_Writer : LLVM_Gen_Output {
 			write_func(func);
 		}
 
-		return generated_llvm_mod;
+		return new LLVM_Gen_Output(llvm_mod);
 	}
 }

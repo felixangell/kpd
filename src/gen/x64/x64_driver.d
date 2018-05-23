@@ -3,9 +3,8 @@ module gen.x64.backend;
 import std.stdio;
 import std.path;
 import std.file;
-import std.process;
-import std.random;
 import std.conv;
+import std.process : execute;
 
 import cflags;
 import logger;
@@ -31,7 +30,7 @@ void parse_asm_out(string asm_out) {
 	// TODO move all generation out of here
 	// because its mostly for hacky reasons!
 */
-class X64_Backend : Code_Generator_Backend {
+class X64_Driver : Backend_Driver {
 	X64_Assembly code_gen(IR_Module mod) {
 		auto gen = new X64_Generator;
 		gen.emit_mod(mod);
@@ -42,6 +41,7 @@ class X64_Backend : Code_Generator_Backend {
 		writeln("- we've got ", output.length, " generated files.");
 
 		File[] as_files;
+
 		scope(exit) {
 			// we dont want to remove
 			// the assembly files if thats
@@ -57,17 +57,7 @@ class X64_Backend : Code_Generator_Backend {
 		// into assembly files
 		// feed them into the gnu AS 
 		foreach (ref code_file; output) {
-			auto x64_code = cast(X64_Assembly) code_file;
-			
-			string file_name = "krug-asm-" ~ thisProcessID.to!string(36) ~ "-" ~ uniform!uint.to!string(36) ~ ".as";
-			auto temp_file = File(file_name, "w");
-			writeln("Assembly file '", temp_file.name, "' created.");
-
-			temp_file.write(x64_code.assembly_code);
-			as_files ~= temp_file;
-			temp_file.close();
-
-			if (VERBOSE_LOGGING) x64_code.dump_to_stdout();
+			as_files ~= code_file.write();
 		}
 
 		if (OUT_TYPE == Output_Type.Assembly) {

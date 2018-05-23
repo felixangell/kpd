@@ -1,7 +1,7 @@
 module gen.llvm.ir;
 
 extern(C) {
-	private alias LLVMString = immutable(char)*;
+	alias LLVMString = immutable(char)*;
 
 	enum LLVMLinkage {
 		LLVMExternalLinkage,
@@ -75,4 +75,84 @@ extern(C) {
 	LLVMValueRef LLVMBuildCall(LLVMBuilderRef, LLVMValueRef, LLVMValueRef*, ulong, LLVMString);
 	LLVMValueRef LLVMBuildRetVoid(LLVMBuilderRef);
 	LLVMValueRef LLVMBuildAdd(LLVMBuilderRef, LLVMValueRef, LLVMValueRef, LLVMString);
+
+	//
+	// writing to asm obj etc.
+	//
+
+	enum LLVMCodeGenFileType {
+		LLVMAssemblyFile,
+		LLVMObjectFile,	
+	};
+
+	enum LLVMCodeGenOptLevel {
+		LLVMCodeGenLevelNone,
+		LLVMCodeGenLevelLess,
+		LLVMCodeGenLevelDefault,
+		LLVMCodeGenLevelAggressive,
+	};
+
+	enum LLVMCodeModel {
+		LLVMCodeModelDefault,
+		LLVMCodeModelJITDefault,
+		LLVMCodeModelSmall,
+		LLVMCodeModelKernel,
+		LLVMCodeModelMedium,
+		LLVMCodeModelLarge,
+	};
+
+	enum LLVMRelocMode {
+		LLVMRelocDefault,
+		LLVMRelocStatic,
+		LLVMRelocPIC,
+		LLVMRelocDynamicNoPic,
+	};
+
+	void LLVMDisposeMessage(LLVMString);
+
+	// memory buffer
+	struct LLVMOpaqueMemoryBuffer{};
+	alias LLVMMemoryBufferRef = LLVMOpaqueMemoryBuffer*;
+
+	struct LLVMOpaqueTargetMachine{};
+	alias LLVMTargetMachineRef = LLVMOpaqueTargetMachine*;
+
+	void LLVMTargetMachineEmitToMemoryBuffer(LLVMTargetMachineRef, LLVMModuleRef, LLVMCodeGenFileType, LLVMString*, LLVMMemoryBufferRef*);
+
+	struct LLVMTarget{};
+	alias LLVMTargetRef = LLVMTarget*;
+
+	/*
+	LLVM_TARGET(AArch64)
+	LLVM_TARGET(AMDGPU)
+	LLVM_TARGET(ARM)
+	LLVM_TARGET(BPF)
+	LLVM_TARGET(Hexagon)
+	LLVM_TARGET(Lanai)
+	LLVM_TARGET(Mips)
+	LLVM_TARGET(MSP430)
+	LLVM_TARGET(NVPTX)
+	LLVM_TARGET(PowerPC)
+	LLVM_TARGET(Sparc)
+	LLVM_TARGET(SystemZ)
+	LLVM_TARGET(X86)
+	LLVM_TARGET(XCore)
+
+	*LLVMInitializeAllTargets()
+
+	TODO the initialize all * are compiled static inline
+	so they dont end up in the object files
+	which gives us an undefined reference.
+	do some d magic stuff to generate all of these
+	*/
+
+	int LLVMInitializeX86TargetInfo();
+	int LLVMInitializeX86Target();
+	int LLVMInitializeX86TargetMC();
+	int LLVMInitializeX86AsmPrinter();
+	int LLVMInitializeX86AsmParser();
+
+	LLVMString LLVMGetDefaultTargetTriple();
+	int LLVMGetTargetFromTriple(LLVMString, LLVMTargetRef*, LLVMString*);
+	LLVMTargetMachineRef LLVMCreateTargetMachine(LLVMTargetRef, LLVMString, LLVMString, LLVMString, LLVMCodeGenOptLevel, LLVMRelocMode, LLVMCodeModel);
 }

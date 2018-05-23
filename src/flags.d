@@ -21,6 +21,8 @@ bool SHOW_WARNINGS = false;
 enum Output_Type {
 	Assembly,
 	Object_Files,
+	Krug_IR, // TODO
+	LLVM_IR,
 	Executable,
 }
 Output_Type OUT_TYPE = Output_Type.Executable;

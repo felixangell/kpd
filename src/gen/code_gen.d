@@ -13,13 +13,13 @@ import kir.ir_mod;
 import logger;
 
 void generate_code(Target t, IR_Module[] modules) {
-	Code_Generator_Backend backend;
+	Backend_Driver backend;
 	final switch (t) {
 	case Target.LLVM:
 		backend = new LLVM_Driver;
 		break;
 	case Target.X64:
-		backend = new X64_Backend;
+		backend = new X64_Driver;
 		break;
 	}
 
