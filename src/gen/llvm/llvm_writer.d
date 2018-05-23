@@ -27,6 +27,11 @@ class Function_Context {
 		return bb;
 	}
 
+	LLVMBasicBlockRef register_bb(string label, LLVMBasicBlockRef bb) {
+		bb_entries[label] = bb;
+		return bb;
+	}
+
 	LLVMBasicBlockRef get_bb(string label) {
 		return bb_entries[label];
 	}
@@ -198,23 +203,23 @@ class LLVM_Writer {
 	}
 
 	void write_iff(If iff) {
-		auto entry = curr_func.push_bb("entry");
-		auto if_true = curr_func.push_bb("if_true");
-		auto end = curr_func.push_bb("end");
+		auto if_true = curr_func.get_bb(mangle(iff.a));
+		auto end = curr_func.get_bb(mangle(iff.b));
+
+		auto prev = LLVMGetPreviousBasicBlock(if_true);
+
+		// register before the if_true block.
+		auto entry = LLVMInsertBasicBlock(if_true, "if_condition");
+		curr_func.register_bb("if_condition", entry);
+
+		// add a jump from the prev block to our if_condition
+		LLVMPositionBuilderAtEnd(builder, prev);
+		LLVMBuildBr(builder, entry);
 
 		// entry block
 		LLVMPositionBuilderAtEnd(builder, entry);
 		auto do_br = emit_val(iff.condition);
 		LLVMBuildCondBr(builder, do_br, if_true, end);
-
-		// if true
-		write_bb(if_true, curr_func.addr, iff.a.reference);
-
-		// false/end
-		LLVMPositionBuilderAtEnd(builder, end);
-		if (iff.b !is null) {
-			write_bb(end, curr_func.addr, iff.b.reference);
-		}
 	}
 
 	void write_instr(Instruction instr) {
@@ -240,6 +245,10 @@ class LLVM_Writer {
 			writeln("unhandled instruction!!! ", to!string(instr));
 			assert(0);
 		}
+	}
+
+	bool is_branching_instr(Instruction i) {
+		return cast(Jump)i || cast(Return) i || cast(If) i;
 	}
 
 	void write_bb(LLVMBasicBlockRef bb, LLVMValueRef func, Basic_Block b) {
@@ -284,8 +293,15 @@ class LLVM_Writer {
 		// TODO
 		LLVMSetLinkage(func, LLVMLinkage.LLVMExternalLinkage);
 
+		// create llvm bbs for all
+		// the blocks in the func for now.
 		foreach (bb; f.blocks) {
 			auto llvmbb = curr_func.push_bb(mangle(bb));
+		}
+
+		// then we populate.
+		foreach (bb; f.blocks) {
+			auto llvmbb = curr_func.get_bb(mangle(bb));
 			write_bb(llvmbb, func, bb);
 		}
 

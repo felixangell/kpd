@@ -544,23 +544,20 @@ class IR_Builder : Top_Level_Node_Visitor {
 			last_if = elif_jmp;
 		}
 
-		// no last if and no else statement
+		// we have an else stat and a last if.
 		if (if_stat.else_stat !is null && last_if !is null) {
 			last_if.b = build_block(curr_func, if_stat.else_stat.block);
 		}
-		// no last if
-		else if (last_if !is null) {
+		else {
 			last_if.b = new Label(push_bb());
 		}
 
-		auto end = new Label(push_bb());
-
 		if (jmp.b is null) {
-			jmp.b = end;
+			jmp.b = last_if.b;
 		}
 
 		foreach (rw; re_writes) {
-			rw.label = end;
+			rw.label = last_if.b;
 		}
 	}
 

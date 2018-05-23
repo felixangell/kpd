@@ -78,6 +78,8 @@ extern(C) {
 	alias LLVMBasicBlockRef = LLVMOpaqueBasicBlock*;
 
 	LLVMBasicBlockRef LLVMAppendBasicBlock(LLVMValueRef, LLVMString);
+	LLVMBasicBlockRef LLVMInsertBasicBlock(LLVMBasicBlockRef, LLVMString);
+	LLVMBasicBlockRef LLVMGetPreviousBasicBlock(LLVMBasicBlockRef);
 
 	// builder
 	struct LLVMOpaqueBuilder{};
