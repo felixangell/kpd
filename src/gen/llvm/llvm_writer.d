@@ -197,7 +197,7 @@ class LLVM_Writer {
 		LLVMDumpModule(llvm_mod);
 	}
 
-	LLVM_Gen_Output gen() {
+	LLVM_Gen_Output gen(LLVMTargetMachineRef target_machine) {
 		foreach (key, constant; mod.constants) {
 			constants[key] = emit_val(constant);
 		}
@@ -218,6 +218,6 @@ class LLVM_Writer {
 			write_func(func);
 		}
 
-		return new LLVM_Gen_Output(llvm_mod);
+		return new LLVM_Gen_Output(llvm_mod, target_machine);
 	}
 }

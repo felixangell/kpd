@@ -152,6 +152,9 @@ extern(C) {
 	int LLVMInitializeX86AsmPrinter();
 	int LLVMInitializeX86AsmParser();
 
+	immutable(char)* LLVMGetBufferStart(LLVMMemoryBufferRef buff);
+	int LLVMGetBufferSize(LLVMMemoryBufferRef buff);
+
 	LLVMString LLVMGetDefaultTargetTriple();
 	int LLVMGetTargetFromTriple(LLVMString, LLVMTargetRef*, LLVMString*);
 	LLVMTargetMachineRef LLVMCreateTargetMachine(LLVMTargetRef, LLVMString, LLVMString, LLVMString, LLVMCodeGenOptLevel, LLVMRelocMode, LLVMCodeModel);
