@@ -513,19 +513,19 @@ class IR_Builder : Top_Level_Node_Visitor {
 
 		Jump[] re_writes;
 
+		// generate the if jmp
 		If jmp = new If(condition);
 		curr_func.add_instr(jmp);
+
+		// if true part
 		jmp.a = build_block(curr_func, if_stat.block);
 
-		/*
-			Else_If_Statement_Node[] else_ifs;
-			Else_Statement_Node else_stat;
-		*/
 		If last_if = jmp;
 		if (if_stat.else_ifs.length > 0) {
 			last_if = jmp;
 		}
 
+		// build all the else ifs
 		foreach (ref idx, elif; if_stat.else_ifs) {
 			auto elif_block = new Label(push_bb());
 			Value cond = build_expr(curr_sym_table.env, elif.condition);
@@ -544,9 +544,11 @@ class IR_Builder : Top_Level_Node_Visitor {
 			last_if = elif_jmp;
 		}
 
+		// no last if and no else statement
 		if (if_stat.else_stat !is null && last_if !is null) {
 			last_if.b = build_block(curr_func, if_stat.else_stat.block);
 		}
+		// no last if
 		else if (last_if !is null) {
 			last_if.b = new Label(push_bb());
 		}

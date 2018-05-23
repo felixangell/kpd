@@ -17,6 +17,10 @@ D_OBJ_FILES := $(patsubst %.d,%.o,$(D_SOURCES))
 
 LLVM_CONF := $(shell llvm-config --cflags --ldflags --libs core executionengine analysis native bitwriter --system-libs)
 
+# this should use llvm-config but the first four flags are not
+# valid for non gcc things
+LLVM_DCONF := -L-lLLVMX86Disassembler -L-lLLVMX86AsmParser -L-lLLVMX86CodeGen -L-lLLVMGlobalISel -L-lLLVMSelectionDAG -L-lLLVMAsmPrinter -L-lLLVMDebugInfoCodeView -L-lLLVMDebugInfoMSF -L-lLLVMCodeGen -L-lLLVMScalarOpts -L-lLLVMInstCombine -L-lLLVMTransformUtils -L-lLLVMBitWriter -L-lLLVMX86Desc -L-lLLVMMCDisassembler -L-lLLVMX86Info -L-lLLVMX86AsmPrinter -L-lLLVMX86Utils -L-lLLVMExecutionEngine -L-lLLVMTarget -L-lLLVMAnalysis -L-lLLVMProfileData -L-lLLVMRuntimeDyld -L-lLLVMObject -L-lLLVMMCParser -L-lLLVMBitReader -L-lLLVMMC -L-lLLVMCore -L-lLLVMBinaryFormat -L-lLLVMSupport -L-lLLVMDemangle
+
 LD_FLAGS := -L=vm/krugvm.a -vcolumns
 KRUG_OUT_DIR := bin
 KRUG_OUT := $(KRUG_OUT_DIR)/krug
@@ -47,7 +51,7 @@ $(KRUG_OUT): $(VM_OUT) $(D_SOURCES)
 
 notmac:
 	@mkdir -p $(KRUG_OUT_DIR)
-	$(DC) -of$@ -dip1000 $(D_FLAGS) $(LD_FLAGS) $(LLVM_CONF) $(D_SOURCES)
+	$(DC) -of$@ -dip1000 $(D_FLAGS) $(LD_FLAGS) -L/usr/local/Cellar/llvm/6.0.0/lib $(LLVM_DCONF) $(D_SOURCES)
 
 optimized: $(VM_OUT) $(D_SOURCES)
 	$(DC) -of$(KRUG_OUT) -O -dip1000 $(D_FLAGS) $(LD_FLAGS) $(D_SOURCES)

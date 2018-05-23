@@ -18,6 +18,19 @@ class Function_Context {
 	Function_Context outer;
 	LLVMValueRef addr;
 
+	LLVMBasicBlockRef[string] bb_entries;
+
+	LLVMBasicBlockRef push_bb(string label) {
+		auto bb = LLVMAppendBasicBlock(addr, label.toStringz);
+		assert(label !in bb_entries);
+		bb_entries[label] = bb;
+		return bb;
+	}
+
+	LLVMBasicBlockRef get_bb(string label) {
+		return bb_entries[label];
+	}
+
 	this(Function_Context outer, LLVMValueRef addr) {
 		this.outer = outer;
 		this.addr = addr;
@@ -180,13 +193,14 @@ class LLVM_Writer {
 	}
 
 	void write_jmp(Jump j) {
-		// todo...
+		auto bb = curr_func.get_bb(j.label.name);
+		LLVMBuildBr(builder, bb);
 	}
 
 	void write_iff(If iff) {
-		auto entry = LLVMAppendBasicBlock(curr_func.addr, "entry");
-		auto if_true = LLVMAppendBasicBlock(curr_func.addr, "if_true");
-		auto end = LLVMAppendBasicBlock(curr_func.addr, "end");
+		auto entry = curr_func.push_bb("entry");
+		auto if_true = curr_func.push_bb("if_true");
+		auto end = curr_func.push_bb("end");
 
 		// entry block
 		LLVMPositionBuilderAtEnd(builder, entry);
@@ -271,7 +285,7 @@ class LLVM_Writer {
 		LLVMSetLinkage(func, LLVMLinkage.LLVMExternalLinkage);
 
 		foreach (bb; f.blocks) {
-			auto llvmbb = LLVMAppendBasicBlock(curr_func.addr, mangle(bb).toStringz);
+			auto llvmbb = curr_func.push_bb(mangle(bb));
 			write_bb(llvmbb, func, bb);
 		}
 
