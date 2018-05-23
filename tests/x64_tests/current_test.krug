@@ -3,7 +3,7 @@
 #{c_func, variadic}
 func printf(str *u8) s32;
 
-#{c_func}
+#{no_mangle}
 func main() {
 	let g = 32 + 12;
 	printf(c"hello world %d\n", g);

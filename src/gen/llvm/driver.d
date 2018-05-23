@@ -90,15 +90,17 @@ class LLVM_Driver : Backend_Driver {
 		}
 
 		Linker_Info info;
-		info.add_flags("-lc", "-lm", "-no-pie");
-		link_objs("/usr/bin/ld", info, obj_file_paths, OUT_NAME);
+		info.add_flags("-lc", "-fPIC", "-no-pie");
+		link_objs("/usr/bin/gcc", info, obj_file_paths, OUT_NAME);
 	}
 
 	override LLVM_Gen_Output code_gen(IR_Module mod) {
 		auto writer = new LLVM_Writer(mod);
-		// TODO
-		// verify module
 		// run passes with a PassManager thing
-		return writer.gen(target_machine);
+		auto output = writer.gen(target_machine);
+		LLVMString error;
+		LLVMVerifyModule(output.llvm_mod, LLVMVerifierFailureAction.LLVMAbortProcessAction, &error);
+		writeln(to!string(error));
+		return output;
 	} 
 }

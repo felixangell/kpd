@@ -23,7 +23,11 @@ extern(C) {
 		LLVMLinkerPrivateWeakLinkage
 	};
 
-	struct LLVMVerifierFailureAction{};
+	enum LLVMVerifierFailureAction {
+		LLVMAbortProcessAction, 	
+		LLVMPrintMessageAction, 	
+		LLVMReturnStatusAction,
+	};
 
 	// modules
 	struct LLVMOpaqueModule{};

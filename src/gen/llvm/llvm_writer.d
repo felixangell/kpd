@@ -31,7 +31,7 @@ class LLVM_Writer {
 	// names cannot collide with variable names.
 	LLVMValueRef[string] allocs;
 
-	LLVMValueRef[string] function_protos;	
+	LLVMTypeRef[string] function_protos;
 	LLVMValueRef[string] function_addr;
 	Function[LLVMValueRef] functions;
 
@@ -89,7 +89,7 @@ class LLVM_Writer {
 		else if (auto iden = cast(Identifier) v) {
 			if (iden.name !in allocs) {
 				// FIXME
-				return function_protos[iden.name];
+				return function_addr[iden.name];
 			}			
 			return allocs[iden.name];
 		}
@@ -156,6 +156,7 @@ class LLVM_Writer {
 
 	void write_bb(LLVMValueRef func, Basic_Block b) {
 		auto bb = LLVMAppendBasicBlock(func, mangle(b).toStringz);
+		LLVMPositionBuilderAtEnd(builder, bb);
 
 		foreach (instr; b.instructions) {
 			write_instr(instr);
@@ -168,22 +169,30 @@ class LLVM_Writer {
 			params ~= to_llvm_type(alloc.get_type());
 		}
 
-		const auto mangled_fname = mangle(f);
+		const auto mangled_fname = f.has_attribute("no_mangle") || f.has_attribute("c_func") ? f.name : mangle(f);
 
 		bool variadic = f.has_attribute("variadic");
 
 		auto ret_type = to_llvm_type(f.get_type());
 		auto func_type = LLVMFunctionType(ret_type, cast(LLVMTypeRef*)params, params.length, variadic);
 
-		LLVMValueRef func = LLVMAddFunction(llvm_mod, mangled_fname.toStringz, func_type);
-
-		functions[func] = f;
-		function_protos[f.name] = func;
+		if (f.has_attribute("c_func")) {
+			LLVMValueRef func = LLVMAddFunction(llvm_mod, mangled_fname.toStringz, func_type);
+			function_addr[f.name] = func;
+			functions[func] = f;
+		}
+		function_protos[f.name] = func_type;
 	}
 
 	void write_func(Function f) {
-		auto func = function_protos[f.name];
-		
+		auto func_type = function_protos[f.name];
+
+		auto fname = f.has_attribute("no_mangle") ? f.name : mangle(f);
+
+		LLVMValueRef func = LLVMAddFunction(llvm_mod, fname.toStringz, func_type);
+		function_addr[f.name] = func;
+		functions[func] = f;
+
 		// TODO
 		curr_func_addr = func;
 		
