@@ -84,11 +84,13 @@ class LLVM_Writer {
 	}
 
 	LLVMValueRef emit_binary_op(Binary_Op bin) {
-		final switch (bin.op) {
+		switch (bin.op) {
 		case "-":
 			return LLVMBuildSub(builder, emit_val(bin.a), emit_val(bin.b), "");
 		case "+":
 			return LLVMBuildAdd(builder, emit_val(bin.a), emit_val(bin.b), "");
+		default:
+			assert(0, "emit_binary_op: operator unhandled '" ~ to!string(bin.op) ~ "'");
 		}
 	}
 
@@ -105,7 +107,7 @@ class LLVM_Writer {
 				return function_addr[iden.name];
 			}	
 			LLVMValueRef a = allocs[iden.name];
-			return LLVMBuildLoad(builder, a, ("_in_" ~ iden.name).toStringz);
+			return LLVMBuildLoad(builder, a, "");
 		}
 		else if (auto binary = cast(Binary_Op) v) {
 			return emit_binary_op(binary);
