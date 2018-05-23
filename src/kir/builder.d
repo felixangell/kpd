@@ -517,10 +517,6 @@ class IR_Builder : Top_Level_Node_Visitor {
 		curr_func.add_instr(jmp);
 		jmp.a = build_block(curr_func, if_stat.block);
 
-		// our if branch needs to jump to the end of the
-		// if chain
-		re_writes ~= cast(Jump) curr_func.add_instr(new Jump(null));
-
 		/*
 			Else_If_Statement_Node[] else_ifs;
 			Else_Statement_Node else_stat;

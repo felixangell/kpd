@@ -15,6 +15,13 @@ import gen.llvm.ir;
 import gen.llvm.type_conv;
 
 class Function_Context {
+	Function_Context outer;
+	LLVMValueRef addr;
+
+	this(Function_Context outer, LLVMValueRef addr) {
+		this.outer = outer;
+		this.addr = addr;
+	}
 }
 
 class LLVM_Writer {
@@ -23,8 +30,18 @@ class LLVM_Writer {
 	LLVMModuleRef llvm_mod;
 	LLVMBuilderRef builder;
 
-	LLVMValueRef curr_func_addr;
-	Function_Context[LLVMValueRef] ctx;
+	Function_Context curr_func;
+
+	void push_func(LLVMValueRef addr) {
+		auto old_func = curr_func;
+		curr_func = new Function_Context(old_func, addr);
+	}
+
+	Function_Context pop_func() {
+		auto old = curr_func;
+		curr_func = curr_func.outer;
+		return old;
+	}
 
 	// TODO put this into a func context
 	// this technically would be ok since parameters
@@ -83,12 +100,20 @@ class LLVM_Writer {
 		return constants[cref.name];
 	}
 
+	LLVMValueRef emit_cmp(Binary_Op bin) {
+		auto lhs = emit_val(bin.a);
+		auto rhs = emit_val(bin.b);
+		return LLVMBuildICmp(builder, LLVMIntPredicate.LLVMIntEQ, lhs, rhs, "");
+	}
+
 	LLVMValueRef emit_binary_op(Binary_Op bin) {
 		switch (bin.op) {
 		case "-":
 			return LLVMBuildSub(builder, emit_val(bin.a), emit_val(bin.b), "");
 		case "+":
 			return LLVMBuildAdd(builder, emit_val(bin.a), emit_val(bin.b), "");
+		case "==":
+			return emit_cmp(bin);
 		default:
 			assert(0, "emit_binary_op: operator unhandled '" ~ to!string(bin.op) ~ "'");
 		}
@@ -154,6 +179,30 @@ class LLVM_Writer {
 		LLVMBuildRet(builder, emit_val(r.results[0]));
 	}
 
+	void write_jmp(Jump j) {
+		// todo...
+	}
+
+	void write_iff(If iff) {
+		auto entry = LLVMAppendBasicBlock(curr_func.addr, "entry");
+		auto if_true = LLVMAppendBasicBlock(curr_func.addr, "if_true");
+		auto end = LLVMAppendBasicBlock(curr_func.addr, "end");
+
+		// entry block
+		LLVMPositionBuilderAtEnd(builder, entry);
+		auto do_br = emit_val(iff.condition);
+		LLVMBuildCondBr(builder, do_br, if_true, end);
+
+		// if true
+		write_bb(if_true, curr_func.addr, iff.a.reference);
+
+		// false/end
+		LLVMPositionBuilderAtEnd(builder, end);
+		if (iff.b !is null) {
+			write_bb(end, curr_func.addr, iff.b.reference);
+		}
+	}
+
 	void write_instr(Instruction instr) {
 		if (auto alloc = cast(Alloc) instr) {
 			write_alloc(alloc);
@@ -167,16 +216,20 @@ class LLVM_Writer {
 		else if (auto ret = cast(Return) instr) {
 			write_ret(ret);
 		}
+		else if (auto iff = cast(If) instr) {
+			write_iff(iff);
+		}
+		else if (auto j = cast(Jump) instr) {
+			write_jmp(j);
+		}
 		else {
 			writeln("unhandled instruction!!! ", to!string(instr));
 			assert(0);
 		}
 	}
 
-	void write_bb(LLVMValueRef func, Basic_Block b) {
-		auto bb = LLVMAppendBasicBlock(func, mangle(b).toStringz);
+	void write_bb(LLVMBasicBlockRef bb, LLVMValueRef func, Basic_Block b) {
 		LLVMPositionBuilderAtEnd(builder, bb);
-
 		foreach (instr; b.instructions) {
 			write_instr(instr);
 		}
@@ -212,14 +265,14 @@ class LLVM_Writer {
 		function_addr[f.name] = func;
 		functions[func] = f;
 
-		// TODO
-		curr_func_addr = func;
+		push_func(func);
 		
 		// TODO
 		LLVMSetLinkage(func, LLVMLinkage.LLVMExternalLinkage);
 
 		foreach (bb; f.blocks) {
-			write_bb(func, bb);
+			auto llvmbb = LLVMAppendBasicBlock(curr_func.addr, mangle(bb).toStringz);
+			write_bb(llvmbb, func, bb);
 		}
 
 		LLVMDumpModule(llvm_mod);

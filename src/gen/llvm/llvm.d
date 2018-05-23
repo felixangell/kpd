@@ -29,6 +29,12 @@ extern(C) {
 		LLVMReturnStatusAction,
 	};
 
+	enum LLVMIntPredicate { 
+		LLVMIntEQ = 32, LLVMIntNE, LLVMIntUGT, LLVMIntUGE, 
+		LLVMIntULT, LLVMIntULE, LLVMIntSGT, LLVMIntSGE, 
+		LLVMIntSLT, LLVMIntSLE 
+	}
+
 	// modules
 	struct LLVMOpaqueModule{};
 	alias LLVMModuleRef = LLVMOpaqueModule*;
@@ -82,12 +88,17 @@ extern(C) {
 	LLVMValueRef LLVMBuildAlloca(LLVMBuilderRef, LLVMTypeRef, LLVMString);
 	LLVMValueRef LLVMBuildStore(LLVMBuilderRef, LLVMValueRef, LLVMValueRef);
 	LLVMValueRef LLVMBuildCall(LLVMBuilderRef, LLVMValueRef, LLVMValueRef*, ulong, LLVMString);
-	
+	LLVMValueRef LLVMBuildBr(LLVMBuilderRef, LLVMBasicBlockRef);
+
+	LLVMValueRef LLVMBuildCondBr(LLVMBuilderRef, LLVMValueRef, LLVMBasicBlockRef, LLVMBasicBlockRef);
+
 	LLVMValueRef LLVMBuildRetVoid(LLVMBuilderRef);
 	LLVMValueRef LLVMBuildRet(LLVMBuilderRef, LLVMValueRef);
 	LLVMValueRef LLVMBuildSub(LLVMBuilderRef, LLVMValueRef, LLVMValueRef, LLVMString);
 	LLVMValueRef LLVMBuildAdd(LLVMBuilderRef, LLVMValueRef, LLVMValueRef, LLVMString);
 	LLVMValueRef LLVMBuildLoad(LLVMBuilderRef, LLVMValueRef, LLVMString);
+
+	LLVMValueRef LLVMBuildICmp(LLVMBuilderRef, LLVMIntPredicate, LLVMValueRef, LLVMValueRef, LLVMString);
 
 	LLVMValueRef LLVMBuildGlobalStringPtr(LLVMBuilderRef, LLVMString, LLVMString);
 
