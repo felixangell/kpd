@@ -2,13 +2,18 @@ module gen.llvm.driver;
 
 import std.stdio;
 import std.process;
+import std.path;
+import std.file;
 import std.string : toStringz;
 import std.random;
 import std.conv : to;
 
+import cflags;
 import logger;
 import kir.ir_mod;
+
 import gen.backend;
+import gen.x64.link;
 import gen.llvm.writer;
 import gen.llvm.ir;
 
@@ -26,17 +31,20 @@ class LLVM_Gen_Output : Generated_Output {
 	override File write() {
 		LLVMMemoryBufferRef buff;
 		LLVMString error;
-		LLVMTargetMachineEmitToMemoryBuffer(target_machine, llvm_mod, LLVMCodeGenFileType.LLVMAssemblyFile, &error, &buff);
+		LLVMTargetMachineEmitToMemoryBuffer(target_machine, llvm_mod, 
+			LLVMCodeGenFileType.LLVMObjectFile,  // FIXME!!
+			&error, &buff);
 
 		auto st = LLVMGetBufferStart(buff);
 		auto end = LLVMGetBufferSize(buff);
 
-		auto data = cast(immutable(char)*)(st)[0..end];
+		auto data = cast(immutable(byte)*)(st)[0..end];
+
 
 		string file_name = "krug-llvm-asm-" ~ thisProcessID.to!string(36) ~ "-" ~ uniform!uint.to!string(36) ~ ".as";
-		auto temp_file = File(file_name, "w");
+		auto temp_file = File(file_name, "wb");
 		writeln("LLVM Assembly file '", temp_file.name, "' created.");
-		temp_file.write(to!string(data));
+		temp_file.rawWrite(cast(byte[])(data[0..end]));
 		temp_file.close();
 
 		if (VERBOSE_LOGGING) LLVMDumpModule(llvm_mod);
@@ -67,9 +75,23 @@ class LLVM_Driver : Backend_Driver {
 	}
 
 	override void write(Generated_Output[] output) {
-		foreach (o; output) {
-			o.write();
+		File[] obj_files;
+		scope(exit) {
+			foreach (f; obj_files) {
+				remove(f.name);
+			}
 		}
+
+		string[] obj_file_paths;
+		foreach (o; output) {
+			auto obj_file = o.write();
+			obj_files ~= obj_file;
+			obj_file_paths ~= absolutePath(obj_file.name);
+		}
+
+		Linker_Info info;
+		info.add_flags("-lc", "-lm", "-no-pie");
+		link_objs("/usr/bin/ld", info, obj_file_paths, OUT_NAME);
 	}
 
 	override LLVM_Gen_Output code_gen(IR_Module mod) {

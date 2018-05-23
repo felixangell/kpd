@@ -5,6 +5,7 @@ import std.path;
 import std.file;
 import std.process;
 
+import cflags : OUT_NAME;
 import logger;
 
 /*
@@ -97,7 +98,7 @@ Linker_Info link_objs_osx() {
 // use a c compiler as the linker frontend
 // in the future I want the compiler to not
 // depend on gcc/clang..
-void link_objs(string[] obj_paths, string out_name) {
+void link_objs(string linker_process, Linker_Info info, string[] obj_paths, string out_name) {
 	logger.verbose("Linking...");
 
 	string obj_files;
@@ -105,11 +106,6 @@ void link_objs(string[] obj_paths, string out_name) {
 		if (i > 0) obj_files ~= " ";
 		obj_files ~= obj;
 	}
-
-	Linker_Info info;
-
-	string linker_process = "/usr/bin/gcc";
-	info.add_flags("-fpic", "-no-pie");
 
 	// TODO could we invoke ld ourselves and
 	// drop the gcc dependency?

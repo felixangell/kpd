@@ -120,6 +120,8 @@ class X64_Driver : Backend_Driver {
 		// we link via GCC/clang instead!
 		// this is kind of messy but for now itll do
 
-		link_objs(obj_file_paths, OUT_NAME);
+		Linker_Info info;
+		info.add_flags("-fpic", "-no-pie");
+		link_objs("/usr/bin/gcc", info, obj_file_paths, OUT_NAME);
 	}
 }

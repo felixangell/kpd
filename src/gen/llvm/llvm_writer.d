@@ -156,7 +156,6 @@ class LLVM_Writer {
 
 	void write_bb(LLVMValueRef func, Basic_Block b) {
 		auto bb = LLVMAppendBasicBlock(func, mangle(b).toStringz);
-		LLVMPositionBuilderAtEnd(builder, bb);
 
 		foreach (instr; b.instructions) {
 			write_instr(instr);
@@ -175,6 +174,7 @@ class LLVM_Writer {
 
 		auto ret_type = to_llvm_type(f.get_type());
 		auto func_type = LLVMFunctionType(ret_type, cast(LLVMTypeRef*)params, params.length, variadic);
+
 		LLVMValueRef func = LLVMAddFunction(llvm_mod, mangled_fname.toStringz, func_type);
 
 		functions[func] = f;
