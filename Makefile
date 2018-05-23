@@ -1,3 +1,5 @@
+SHELL := /usr/local/bin/fish
+
 ifeq ($(DC),)
 	DC := dmd
 endif
@@ -11,7 +13,7 @@ endif
 D_SOURCES := $(shell find src -type f -name '*.d')
 D_OBJ_FILES := $(patsubst %.d,%.o,$(D_SOURCES))
 
-LLVM_CONF := `llvm-config --cflags --ldflags --libs core executionengine analysis native bitwriter --system-libs`
+LLVM_CONF := $(shell llvm-config --cflags --ldflags --libs core executionengine analysis native bitwriter --system-libs)
 
 LD_FLAGS := -L=vm/krugvm.a -vcolumns
 KRUG_OUT_DIR := bin
@@ -38,7 +40,7 @@ $(VM_OUT): $(VM_CC_OBJ_FILES)
 
 $(KRUG_OUT): $(VM_OUT) $(D_SOURCES)
 	@mkdir -p $(KRUG_OUT_DIR)
-	$(DC) -c -of$@ -dip1000 $(D_FLAGS) $(LD_FLAGS) $(D_SOURCES)
+	$(DC) -c -of$@.o -dip1000 $(D_FLAGS) $(LD_FLAGS) $(D_SOURCES)
 	g++ bin/krug.o -o bin/krug -g $(GCC_FLAGS) -stdlib=libc++
 
 notmac:
