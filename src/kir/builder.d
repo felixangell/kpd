@@ -357,7 +357,7 @@ class IR_Builder : Top_Level_Node_Visitor {
 		auto new_block = curr_func.push_block(namespace);
 		if (prev_block !is null) {
 			if (!is_branching_instr(prev_block.last_instr())) {
-				prev_block.add_instr(new Jump(new Label(new_block)));
+				prev_block.add_instr(new Jump(new Label(new_block)).setfallthru);
 			}
 		}
 		return new_block;

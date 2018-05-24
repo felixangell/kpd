@@ -552,8 +552,14 @@ class Jump : Basic_Instruction {
 		this.label = label;
 	}
 
+	bool fallthru = false;
+	Jump setfallthru() {
+		fallthru = true;
+		return this;
+	}
+
 	override string toString() {
-		return "jmp " ~ to!string(label);
+		return (fallthru ? "fallthrough" : "jmp") ~ " " ~ to!string(label);
 	}
 }
 
