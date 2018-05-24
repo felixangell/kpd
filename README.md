@@ -20,6 +20,10 @@ You'll need a few bits of software to compile the compiler:
 * `make` - GNU make
 
 ### building
+Note: Krug uses LLVM as its primary target. LLVM can be a bit
+tricky to build, and it's a bit of a pain to link with D. Because of
+this some of the flags are hard-coded for my personal machine, so the
+Makefiles might not work for you.
 
 #### Mac
 The easiest way to get going is use homebrew:
