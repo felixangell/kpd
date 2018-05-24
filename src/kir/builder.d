@@ -578,8 +578,11 @@ class IR_Builder : Top_Level_Node_Visitor {
 		push_bb();
 
 		auto loop_start = new Label(push_bb());
-		build_block(curr_func, loop.block, loop_start.reference);
-		curr_func.add_instr(new Jump(loop_start));
+		
+		auto last_block = build_block(curr_func, loop.block, loop_start.reference);
+		if (!is_branching_instr(last_block.reference.last_instr)) {
+			curr_func.add_instr(new Jump(loop_start));
+		}
 
 		// jump must be the last instruction in it's block!
 		// so we need to push a basic block here.
