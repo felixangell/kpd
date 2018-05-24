@@ -225,9 +225,28 @@ class LLVM_Writer {
 		assert(0);
 	}
 
+	LLVMValueRef upcast(LLVMValueRef val, LLVMTypeRef to) {
+		auto value_type = LLVMTypeOf(val);
+
+		auto new_val = val;
+		
+		// TODO only do this if the integer is larger
+		// otherwise down cast!
+		if (LLVMGetTypeKind(to) == LLVMTypeKind.LLVMPointerTypeKind) {
+			auto base = LLVMGetElementType(to);
+			new_val = LLVMBuildZExt(builder, val, base, "");
+		}
+
+		return new_val;
+	}
+
 	void write_store(Alloc a, Store s) {
 		auto addr = allocs[a.name];
-		LLVMBuildStore(builder, emit_val(s.val), addr);
+
+		auto value = emit_val(s.val);
+		
+		auto addr_type = LLVMTypeOf(addr);
+		LLVMBuildStore(builder, upcast(value, addr_type), addr);
 	}
 
 	void write_store(Store s) {

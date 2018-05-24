@@ -55,6 +55,16 @@ extern(C) {
 	LLVMValueRef LLVMConstInt(LLVMTypeRef, ulong val, bool);
 	LLVMValueRef LLVMConstString(LLVMString, ulong, bool);
 
+	enum LLVMTypeKind { 
+		LLVMVoidTypeKind, LLVMHalfTypeKind, LLVMFloatTypeKind, LLVMDoubleTypeKind, 
+		LLVMX86_FP80TypeKind, LLVMFP128TypeKind, LLVMPPC_FP128TypeKind, LLVMLabelTypeKind, 
+		LLVMIntegerTypeKind, LLVMFunctionTypeKind, LLVMStructTypeKind, LLVMArrayTypeKind, 
+		LLVMPointerTypeKind, LLVMVectorTypeKind, LLVMMetadataTypeKind, LLVMX86_MMXTypeKind, 
+		LLVMTokenTypeKind
+	};
+
+	LLVMTypeKind LLVMGetTypeKind(LLVMTypeRef);
+
 	// types
 	struct LLVMOpaqueType{};
 	alias LLVMTypeRef = LLVMOpaqueType*;
@@ -70,6 +80,9 @@ extern(C) {
 	LLVMTypeRef LLVMArrayType(LLVMTypeRef, ulong);
 	LLVMTypeRef LLVMFunctionType(LLVMTypeRef, LLVMTypeRef*, ulong, bool);
 	LLVMTypeRef LLVMPointerType(LLVMTypeRef, int);
+
+	LLVMTypeRef LLVMTypeOf(LLVMValueRef);
+	LLVMTypeRef LLVMGetElementType(LLVMTypeRef);
 
 	void LLVMSetLinkage(LLVMValueRef, LLVMLinkage);
 	void LLVMSetInitializer(LLVMValueRef, LLVMValueRef);
@@ -97,6 +110,8 @@ extern(C) {
 	LLVMValueRef LLVMBuildStore(LLVMBuilderRef, LLVMValueRef, LLVMValueRef);
 	LLVMValueRef LLVMBuildCall(LLVMBuilderRef, LLVMValueRef, LLVMValueRef*, ulong, LLVMString);
 	LLVMValueRef LLVMBuildBr(LLVMBuilderRef, LLVMBasicBlockRef);
+
+	LLVMValueRef LLVMBuildZExt(LLVMBuilderRef, LLVMValueRef, LLVMTypeRef, LLVMString);
 
 	LLVMValueRef LLVMBuildOr(LLVMBuilderRef, LLVMValueRef, LLVMValueRef, LLVMString);
 	LLVMValueRef LLVMBuildAnd(LLVMBuilderRef, LLVMValueRef, LLVMValueRef, LLVMString);
