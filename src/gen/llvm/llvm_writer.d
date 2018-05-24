@@ -320,6 +320,11 @@ class LLVM_Writer {
 			auto llvmbb = curr_func.push_bb(mangle(bb));
 		}
 
+		if (f.blocks.length == 0) {
+			writeln("oh dear this isnt going to bode well. ", f);
+			assert(0);			
+		}
+
 		// generate the first basic block
 		// we do this manually so we can set the
 		// allocas to be the values passed from the params
