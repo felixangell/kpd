@@ -103,6 +103,10 @@ struct Dom_Info {
 	int pre, post;
 }
 
+bool is_branching_instr(Instruction i) {
+	return cast(Jump)i || cast(Return) i || cast(If) i;
+}
+
 class Basic_Block {
 	ulong id;
 	

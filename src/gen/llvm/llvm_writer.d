@@ -270,10 +270,6 @@ class LLVM_Writer {
 		}
 	}
 
-	bool is_branching_instr(Instruction i) {
-		return cast(Jump)i || cast(Return) i || cast(If) i;
-	}
-
 	void write_bb(LLVMBasicBlockRef bb, LLVMValueRef func, Basic_Block b) {
 		LLVMPositionBuilderAtEnd(builder, bb);
 		foreach (instr; b.instructions) {

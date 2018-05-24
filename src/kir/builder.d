@@ -153,8 +153,8 @@ class IR_Builder : Top_Level_Node_Visitor {
 		// if there are no instructions in the last basic
 		// block add a return
 		// OR if the last instruction is not a return!
-		if (curr_func.curr_block.instructions.length == 0 || !cast(Return) curr_func
-				.last_instr()) {
+		if (curr_func.curr_block.instructions.length == 0 
+				|| is_branching_instr(curr_func.last_instr())) {
 			curr_func.add_instr(new Return(new Void()));
 		}
 	}
@@ -353,7 +353,14 @@ class IR_Builder : Top_Level_Node_Visitor {
 
 	// TODO remove namespace shit
 	Basic_Block push_bb(string namespace = "") {
-		return curr_func.push_block(namespace);
+		auto prev_block = curr_func.curr_block;
+		auto new_block = curr_func.push_block(namespace);
+		if (prev_block !is null) {
+			if (!is_branching_instr(prev_block.last_instr())) {
+				prev_block.add_instr(new Jump(new Label(new_block)));
+			}
+		}
+		return new_block;
 	}
 
 	// this is a specialize block thingy majig
@@ -567,9 +574,12 @@ class IR_Builder : Top_Level_Node_Visitor {
 		exit:
 	*/
 	void build_loop_node(ast.Loop_Statement_Node loop) {
-		auto entry = new Label(push_bb());
-		build_block(curr_func, loop.block, entry.reference);
-		curr_func.add_instr(new Jump(entry));
+		// loop entry.
+		push_bb();
+
+		auto loop_start = new Label(push_bb());
+		build_block(curr_func, loop.block, loop_start.reference);
+		curr_func.add_instr(new Jump(loop_start));
 
 		// jump must be the last instruction in it's block!
 		// so we need to push a basic block here.
@@ -587,7 +597,7 @@ class IR_Builder : Top_Level_Node_Visitor {
 		// are for next statements to jump
 		// to the entry basic block
 		foreach (k, v; next_rewrites) {
-			k.instructions[v] = new Jump(entry);
+			k.instructions[v] = new Jump(loop_start);
 			next_rewrites.remove(k);
 		}
 	}
