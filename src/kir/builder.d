@@ -620,7 +620,14 @@ class IR_Builder : Top_Level_Node_Visitor {
 
 	void build_break_node(ast.Break_Statement_Node b) {
 		auto jmp_addr = curr_func.curr_block.instructions.length;
-		curr_func.add_instr(new Jump(null));
+
+		auto last_instr = curr_func.curr_block.last_instr();
+
+		// only add instr if its not a branching one
+		if (!is_branching_instr(last_instr)) {
+			curr_func.add_instr(new Jump(null));
+		} 
+
 		break_rewrites[curr_func.curr_block] = jmp_addr;
 	}
 

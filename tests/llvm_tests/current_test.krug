@@ -1,8 +1,21 @@
 #module main
 
+/*
+bug:
+
+	let i = 10;
+	loop {
+		if false {
+			break;
+		}
+		break;
+	}
+*/
+
 #{no_mangle}
 func main() {
+	let i = 10;
 	loop {
-	
+		break;
 	}
 }
