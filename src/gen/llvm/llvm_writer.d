@@ -139,6 +139,41 @@ class LLVM_Writer {
 		return LLVMBuildOr(builder, lhs, rhs, "");
 	}
 
+	/*
+		LLVMIntEQ = 32, LLVMIntNE, LLVMIntUGT, LLVMIntUGE, 
+		LLVMIntULT, LLVMIntULE, LLVMIntSGT, LLVMIntSGE, 
+		LLVMIntSLT, LLVMIntSLE 
+	*/
+
+	// TODO change operators to be signed or unsigned
+	// dependeing on type
+	// i.e. if there is a signed value on either type a | b
+	// use Signed ops, otherwise Unsigned ops.
+
+	LLVMValueRef emit_lt(Binary_Op bin) {
+		auto lhs = emit_val(bin.a);
+		auto rhs = emit_val(bin.b);
+		return LLVMBuildICmp(builder, LLVMIntPredicate.LLVMIntSLT, lhs, rhs, "");
+	}
+
+	LLVMValueRef emit_lte(Binary_Op bin) {
+		auto lhs = emit_val(bin.a);
+		auto rhs = emit_val(bin.b);
+		return LLVMBuildICmp(builder, LLVMIntPredicate.LLVMIntSLE, lhs, rhs, "");
+	}
+
+	LLVMValueRef emit_gt(Binary_Op bin) {
+		auto lhs = emit_val(bin.a);
+		auto rhs = emit_val(bin.b);
+		return LLVMBuildICmp(builder, LLVMIntPredicate.LLVMIntSGT, lhs, rhs, "");
+	}
+
+	LLVMValueRef emit_gte(Binary_Op bin) {
+		auto lhs = emit_val(bin.a);
+		auto rhs = emit_val(bin.b);
+		return LLVMBuildICmp(builder, LLVMIntPredicate.LLVMIntSGE, lhs, rhs, "");
+	}
+
 	LLVMValueRef emit_binary_op(Binary_Op bin) {
 		switch (bin.op) {
 		case "-":
@@ -151,6 +186,14 @@ class LLVM_Writer {
 			return emit_and(bin);
 		case "||":
 			return emit_or(bin);
+		case "<":
+			return emit_lt(bin);
+		case "<=":
+			return emit_lte(bin);
+		case ">":
+			return emit_gt(bin);
+		case ">=":
+			return emit_gte(bin);
 		default:
 			assert(0, "emit_binary_op: operator unhandled '" ~ to!string(bin.op) ~ "'");
 		}

@@ -13,9 +13,17 @@ bug:
 */
 
 #{no_mangle}
-func main() {
-	let i = 10;
+func add(a s32, b s32) s32 {
+	return a + b;
+}
+
+#{no_mangle}
+func main() s32 {
+	let g = 0;
 	loop {
-		break;
+		if g < 10 {
+			g = g + 1;
+		}
 	}
+	return g;
 }

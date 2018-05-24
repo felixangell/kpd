@@ -154,7 +154,7 @@ class IR_Builder : Top_Level_Node_Visitor {
 		// block add a return
 		// OR if the last instruction is not a return!
 		if (curr_func.curr_block.instructions.length == 0 
-				|| is_branching_instr(curr_func.last_instr())) {
+				|| !is_branching_instr(curr_func.last_instr())) {
 			curr_func.add_instr(new Return(new Void()));
 		}
 	}
