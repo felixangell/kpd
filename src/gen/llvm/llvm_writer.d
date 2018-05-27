@@ -91,6 +91,8 @@ class LLVM_Writer {
 		return var;
 	}
 
+	LLVMValueRef[Constant] consts;
+
 	LLVMValueRef emit_const(Constant c) {
 		auto type = c.get_type();
 		auto conv_type = to_llvm_type(type);
@@ -99,18 +101,23 @@ class LLVM_Writer {
 			return LLVMConstInt(conv_type, to!ulong(c.value), false);
 		}
 		else if (auto cstr = cast(CString) type) {
+			// string constants are cached (lazily).
+
+			if (c in consts) {
+				return consts[c];
+			}
+
 			auto strlen = c.value.length;
-			auto str = LLVMAddGlobal(llvm_mod, LLVMPointerType(LLVMInt8Type(), 0), "");
+			auto str = LLVMAddGlobal(llvm_mod, LLVMArrayType(LLVMInt8Type(), strlen), "");
 			LLVMSetLinkage(str, LLVMLinkage.LLVMInternalLinkage);
 			LLVMSetGlobalConstant(str, true);
 
 			auto str_const = LLVMConstString(c.value[1..$-1].toStringz, strlen, true);
 			LLVMSetInitializer(str, str_const);
 
-			auto indices = [
-				LLVMConstInt(LLVMInt64Type(), 0, false),
-			];
-			return LLVMBuildGEP(builder, str_const, cast(LLVMValueRef*)indices, indices.length, "");
+			consts[c] = str;
+
+			return str;
 		}
 
 		writeln("unhandled constant type ", c, " of type ", c.get_type());
@@ -417,7 +424,7 @@ class LLVM_Writer {
 		auto ir_func = functions[func_addr];
 		auto name = mangle(ir_func);
 
-		return LLVMBuildCall(builder, func_addr, cast(LLVMValueRef*)args, args.length, name.toStringz);
+		return LLVMBuildCall(builder, func_addr, cast(LLVMValueRef*)args, args.length, "");
 	}
 
 	void write_ret(Return r) {
