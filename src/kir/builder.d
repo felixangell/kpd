@@ -658,6 +658,18 @@ class IR_Builder : Top_Level_Node_Visitor {
 		// TODO handle global variables.
 		auto addr = curr_func.add_alloc(new Alloc(type, var.twine.lexeme));
 
+		// this handles setting the default initializer values.
+		// clean me up!
+		if (auto structure = cast(Structure) type) {
+			foreach (index, value; structure.values) {
+				auto val = build_expr(curr_sym_table.env, value);
+
+				// FIXME?
+				auto gep = new Get_Element_Pointer(new Identifier(type, var.twine.lexeme), 0, index, 0, val.get_type.get_width);
+				curr_func.add_instr(new Store(val.get_type(), gep, val));
+			}
+		}
+
 		if (var.value !is null) {
 			auto val = build_expr(curr_sym_table.env, var.value);
 			curr_func.add_instr(new Store(val.get_type(), addr, val));

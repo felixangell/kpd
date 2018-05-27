@@ -14,7 +14,7 @@ func main() s32 {
 	let a = p.x;
 	let b = p.y;
 
-	return a + b; // 42
+	return a + b; // 98
 }
 
 /*
