@@ -131,7 +131,18 @@ class LLVM_Writer {
 	LLVMValueRef emit_cmp(Binary_Op bin) {
 		auto lhs = emit_val(bin.a);
 		auto rhs = emit_val(bin.b);
-		return LLVMBuildICmp(builder, LLVMIntPredicate.LLVMIntEQ, lhs, rhs, "");
+
+		LLVMIntPredicate pred;
+		final switch (bin.op) {
+		case "==":
+			pred = LLVMIntPredicate.LLVMIntEQ;
+			break;
+		case "!=":
+			pred = LLVMIntPredicate.LLVMIntNE;
+			break;
+		}
+
+		return LLVMBuildICmp(builder, pred, lhs, rhs, "");
 	}
 
 	LLVMValueRef emit_and(Binary_Op bin) {
@@ -224,6 +235,9 @@ class LLVM_Writer {
 
 		case "==":
 			return emit_cmp(bin);
+		case "!=":
+			return emit_cmp(bin);
+
 		case "<":
 			return emit_lt(bin);
 		case "<=":

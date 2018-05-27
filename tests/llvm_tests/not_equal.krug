@@ -5,5 +5,9 @@ func printf(fmt *u8) s32;
 
 #{no_mangle}
 func main() s32 {
-	
+	let g = 3;
+	while g != 10 {
+		g += 1;
+	}
+	return g;
 }
