@@ -180,6 +180,18 @@ class LLVM_Writer {
 		return LLVMBuildICmp(builder, LLVMIntPredicate.LLVMIntSGE, lhs, rhs, "");
 	}
 
+	LLVMValueRef emit_shl(Binary_Op bin) {
+		auto lhs = emit_val(bin.a);
+		auto rhs = emit_val(bin.b);
+		return LLVMBuildShl(builder, lhs, rhs, "");
+	}
+
+	LLVMValueRef emit_shr(Binary_Op bin) {
+		auto lhs = emit_val(bin.a);
+		auto rhs = emit_val(bin.b);
+		return LLVMBuildLShr(builder, lhs, rhs, "");
+	}
+
 	LLVMValueRef emit_unary_op(Unary_Op unary) {
 		switch (unary.op.lexeme) {
 		case "!":
@@ -228,6 +240,11 @@ class LLVM_Writer {
 		// bitwise and takes a & b where a : number, b : number and returns -> number
 		case "&":
 			return emit_and(bin);
+
+		case "<<":
+			return emit_shl(bin);
+		case ">>":
+			return emit_shr(bin);
 
 		default:
 			assert(0, "emit_binary_op: operator unhandled '" ~ to!string(bin.op) ~ "'");

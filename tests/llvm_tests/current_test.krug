@@ -2,5 +2,7 @@
 
 #{no_mangle}
 func main() s32 {
-	return 0 ^ 0;
+	mut foo = 32;
+	foo = foo >> 2;
+	return foo;
 }
