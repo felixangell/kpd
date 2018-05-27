@@ -135,6 +135,7 @@ extern(C) {
 	// get element ptr stuff
 	LLVMValueRef LLVMBuildInBoundsGEP(LLVMBuilderRef, LLVMValueRef, LLVMValueRef*, ulong, LLVMString);
 
+	LLVMValueRef LLVMBuildStructGEP(LLVMBuilderRef, LLVMValueRef, ulong, LLVMString);
 	LLVMValueRef LLVMBuildGEP(LLVMBuilderRef, LLVMValueRef, LLVMValueRef*, ulong, LLVMString);
 
 	//

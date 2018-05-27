@@ -220,6 +220,9 @@ class LLVM_Writer {
 		else if (auto invoke = cast(Call) v) {
 			return emit_invoke(invoke);
 		}
+		else if (auto gep = cast(Get_Element_Pointer) v) {
+			return emit_gep(gep);
+		}
 
 		writeln("unhandled value!", v);
 		assert(0);
@@ -260,12 +263,41 @@ class LLVM_Writer {
 		LLVMBuildStore(builder, upcast(value, addr_type), addr);
 	}
 
+	LLVMValueRef get_alloca(Value addr) {
+		if (auto iden = cast(Identifier) addr) {
+			return allocs[iden.name];
+		}
+		assert(0, "unhandled alloca value!");
+	}
+
+	LLVMValueRef emit_gep(Get_Element_Pointer g) {
+		auto alloca = get_alloca(g.addr);
+		return LLVMBuildLoad(builder, LLVMBuildStructGEP(builder, alloca, g.index, ""), "");
+	}
+
+	void write_store(Get_Element_Pointer g, Store s) {
+		auto alloca = get_alloca(g.addr);
+		auto value = emit_val(s.val);
+
+		auto indices = [
+			LLVMConstInt(LLVMInt64Type(), 0, true),
+		];
+
+		auto gep = LLVMBuildStructGEP(builder, alloca, g.index, "");
+
+		auto addr_type = LLVMTypeOf(gep);
+		LLVMBuildStore(builder, value, gep);
+	}
+
 	void write_store(Store s) {
 		if (auto alloc = cast(Alloc) s.address) {
 			write_store(alloc, s);
 		}
 		else if (auto iden = cast(Identifier) s.address) {
 			write_store(iden, s);
+		}
+		else if (auto gep = cast(Get_Element_Pointer) s.address) {
+			write_store(gep, s);
 		}
 		else {
 			assert(0, "unhandled write store address ! " ~ to!string(s));

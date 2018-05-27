@@ -9,7 +9,8 @@ type Player struct {
 func main() s32 {
 	let p Player;
 	p.x = 32;
-	return 0;
+	let g = p.x;
+	return g;
 }
 
 /*
