@@ -246,6 +246,12 @@ class LLVM_Writer {
 		case ">>":
 			return emit_shr(bin);
 
+		// these operations should be flattened out
+		// during the ir builder phase.
+		case "+=":
+		case "-=":
+			assert(0, "illegal binary op!");
+
 		default:
 			assert(0, "emit_binary_op: operator unhandled '" ~ to!string(bin.op) ~ "'");
 		}

@@ -159,17 +159,42 @@ class IR_Builder : Top_Level_Node_Visitor {
 		}
 	}
 
-	// i feel like this is all completely shit and
-	// probably wont work. do this properly! but for now
-	// it works for most of the test cases?
+	// re-writes 
+	// a += b into
+	// a = a + b
+	// i.e. 
+	// a binary op and a store.
+	Value build_incdec_shorthand(Type_Environment env, ast.Binary_Expression_Node binary) {
+		Value lhs = build_expr(env, binary.left);
+		Value rhs = build_expr(env, binary.right);
+
+		// this is a hack but should work in most cases.
+		// TODO/FIXME/NOTE: does not work for >>= and <<= but we havent
+		// added those yet!
+		char operand = binary.operand.lexeme[0];
+
+		auto operation = new Binary_Op(lhs.get_type(), to!string(operand), lhs, rhs);
+		return new Store(lhs.get_type(), lhs, operation);
+	}
+
 	Value build_binary_expr(Type_Environment env, ast.Binary_Expression_Node binary) {
 		Value left = build_expr(env, binary.left);
 		Value right = build_expr(env, binary.right);
 		auto expr = new Binary_Op(left.get_type(), binary.operand, left, right);
 
-		// create a store if we're dealing with an assignment
-		if (binary.operand.lexeme == "=") {
+		switch (binary.operand.lexeme) {
+		// special inc/dec ops
+		case "+=":
+		case "-=":
+			return build_incdec_shorthand(env, binary);
+
+		// asign is a store.
+		case "=":
 			return new Store(left.get_type(), left, right);
+
+		// fallthru
+		default:
+			break;
 		}
 
 		auto temp = new Alloc(left.get_type(), gen_temp());
