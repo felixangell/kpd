@@ -17,30 +17,23 @@ LLVM_CONF := $(shell llvm-config --cflags --ldflags --libs core executionengine 
 # valid for non gcc things
 LLVM_DCONF := -L-L/usr/lib -L-lLLVM-6.0
 
-LD_FLAGS := -L=vm/krugvm.a -vcolumns
+LD_FLAGS := -vcolumns
 KRUG_OUT_DIR := bin
 KRUG_OUT := $(KRUG_OUT_DIR)/krug
 
 default: $(KRUG_OUT)
-
-VM_CC_SRC_FILES := $(wildcard vm/src/*.c)
-VM_CC_OBJ_FILES := $(patsubst %.c,%.o,$(VM_CC_SRC_FILES))
-VM_OUT := vm/krugvm.a
 
 ifeq ($(CC),)
 	CC := clang
 endif
 
 CC_FLAGS := -Wall -Wextra -g3 -std=c99 -Wno-unused-function
-GCC_FLAGS := $(LLVM_CONF) -m64 -Xlinker -no_compact_unwind -Xlinker vm/krugvm.a -lz -lcurses -lm -L/usr/local/opt/dmd/lib -lphobos2 -lpthread -lm
+GCC_FLAGS := $(LLVM_CONF) -m64 -Xlinker -no_compact_unwind -Xlinker -lz -lcurses -lm -L/usr/local/opt/dmd/lib -lphobos2 -lpthread -lm
 
 %.o: %.c
 	$(CC) -fPIC $(CC_FLAGS) -c $< -o $@
 
-$(VM_OUT): $(VM_CC_OBJ_FILES)
-	ar -cvq $(VM_OUT) $(VM_CC_OBJ_FILES)
-
-$(KRUG_OUT): $(VM_OUT) $(D_SOURCES)
+$(KRUG_OUT): $(D_SOURCES)
 ifeq ($(shell uname), Darwin)
 	@mkdir -p $(KRUG_OUT_DIR)
 	$(DC) -c -of$@.o -dip1000 $(D_FLAGS) $(LD_FLAGS) $(D_SOURCES)
@@ -52,12 +45,7 @@ endif
 
 mac:
 
-optimized: $(VM_OUT) $(D_SOURCES)
-	$(DC) -of$(KRUG_OUT) -O -dip1000 $(D_FLAGS) $(LD_FLAGS) $(D_SOURCES)
-
 clean:
-	-rm $(VM_CC_OBJ_FILES)
-	-rm $(VM_OUT)
 	-rm $(KRUG_OUT)
 
 .PHONY: clean default all lib $(VM_OUT) $(KRUG_OUT) tests

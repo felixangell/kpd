@@ -199,8 +199,6 @@ class LLVM_Writer {
 
 		case "==":
 			return emit_cmp(bin);
-		case "&&":
-			return emit_and(bin);
 		case "||":
 			return emit_or(bin);
 		case "<":
@@ -211,6 +209,15 @@ class LLVM_Writer {
 			return emit_gt(bin);
 		case ">=":
 			return emit_gte(bin);
+
+		// logical and takes a && b where a : bool, b : bool -> bool
+		case "&&":
+			return emit_and(bin);
+
+		// bitwise and takes a & b where a : number, b : number and returns -> number
+		case "&":
+			return emit_and(bin);
+
 		default:
 			assert(0, "emit_binary_op: operator unhandled '" ~ to!string(bin.op) ~ "'");
 		}
