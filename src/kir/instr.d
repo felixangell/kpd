@@ -291,7 +291,15 @@ class Function : Basic_Instruction {
 	}
 
 	void dump() {
-		write(name, "():");
+		string args;
+		foreach (idx, p; params) {
+			if (idx > 0) {
+				args ~= ", ";
+			}
+			args ~= to!string(p.type);
+		}
+
+		write(name, "(" ~ args ~ "):");
 
 		if (blocks.length > 0) {
 			writeln(" #entry = ", blocks[0].name());

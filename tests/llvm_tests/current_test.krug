@@ -1,8 +1,14 @@
 #module main
 
-let foo = 69;
+#{c_func, variadic}
+func printf(fmt *u8) s32;
+
+func add(a s32, b s32) {
+	
+}
 
 #{no_mangle}
 func main() s32 {
-	return foo;
+	printf(c"Hello world!\n");
+	return 0;
 }
