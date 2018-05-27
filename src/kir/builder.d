@@ -680,7 +680,8 @@ class IR_Builder : Top_Level_Node_Visitor {
 
 	override void analyze_var_stat_node(ast.Variable_Statement_Node var) {
 		Type type = curr_sym_table.env.conv_type(var);
-		if (curr_func.curr_block is null) {
+		
+		if (curr_func is null) {
 			// it's a global
 			analyze_global(var);
 			return;

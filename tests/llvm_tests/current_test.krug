@@ -1,16 +1,8 @@
 #module main
 
+let foo = 69;
+
 #{no_mangle}
 func main() s32 {
-	mut numbers [s32; 128];
-	numbers[0] = 69;
-	numbers[1] = 32;
-
-	let g = 3;
-	g += 6; // 9
-	g -= 2; // 7
-	g *= 4; // 28
-	g /= 2; // 14
-
-	return g;
+	return foo;
 }

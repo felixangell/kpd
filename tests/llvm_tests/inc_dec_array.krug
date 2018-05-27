@@ -1,0 +1,19 @@
+#module main
+
+#{no_mangle}
+func main() s32 {
+	mut numbers [s32; 128];
+	numbers[0] = 69;
+	numbers[1] = 32;
+
+	numbers[0] += 1;
+
+	let g = 3;
+	g += 6; // 9
+	g -= 2; // 7
+	g *= 4; // 28
+	g /= 2; // 14
+	g += 1; // 15
+
+	return g + numbers[0]; // 15 + 70 = 85
+}
