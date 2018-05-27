@@ -1,5 +1,12 @@
 #module main
 
+#{no_mangle}
+func main() s32 {
+	mut g = 69;
+	g = g - 1;
+	return g;
+}
+
 /*
 bug:
 
@@ -10,7 +17,6 @@ bug:
 		}
 		break;
 	}
-*/
 
 #{no_mangle}
 func add(a s32, b s32) s32 {
@@ -27,3 +33,4 @@ func main() s32 {
 	}
 	return g;
 }
+*/

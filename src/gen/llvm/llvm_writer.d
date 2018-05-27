@@ -240,8 +240,19 @@ class LLVM_Writer {
 		return new_val;
 	}
 
+	// is this necessary since an alloc
+	// is looked up with its name anyway?
 	void write_store(Alloc a, Store s) {
 		auto addr = allocs[a.name];
+
+		auto value = emit_val(s.val);
+		
+		auto addr_type = LLVMTypeOf(addr);
+		LLVMBuildStore(builder, upcast(value, addr_type), addr);
+	}
+
+	void write_store(Identifier iden, Store s) {
+		auto addr = allocs[iden.name];
 
 		auto value = emit_val(s.val);
 		
@@ -253,8 +264,11 @@ class LLVM_Writer {
 		if (auto alloc = cast(Alloc) s.address) {
 			write_store(alloc, s);
 		}
+		else if (auto iden = cast(Identifier) s.address) {
+			write_store(iden, s);
+		}
 		else {
-			writeln("unhandled write store address ! ", s);
+			assert(0, "unhandled write store address ! " ~ to!string(s));
 		}
 	}
 
