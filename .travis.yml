@@ -1,5 +1,9 @@
 language: d
 
+before_installation:
+  - sudo apt-get -qq update
+  - sudo apt-get install -y llvm
+
 d:
   - dmd
   - ldc
