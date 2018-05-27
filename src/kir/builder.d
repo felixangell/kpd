@@ -383,7 +383,10 @@ class IR_Builder : Top_Level_Node_Visitor {
 		return new Call(left.get_type(), left, args);
 	}
 
-	// TODO remove namespace shit
+	// TODO rename
+	// this pushes a basic block which will join
+	// with its predecessor IF the previous block
+	// does not have a branching instruction
 	Basic_Block push_bb(string namespace = "") {
 		auto prev_block = curr_func.curr_block;
 		auto new_block = curr_func.push_block(namespace);
@@ -393,6 +396,12 @@ class IR_Builder : Top_Level_Node_Visitor {
 			}
 		}
 		return new_block;
+	}
+
+	// pushes a block and doesn't connect it to anything
+	// it is assumed the bb will be targetted later.
+	Basic_Block push_target_bb(string namespace = "") {
+		return curr_func.push_block(namespace);
 	}
 
 	// this is a specialize block thingy majig
@@ -535,68 +544,128 @@ class IR_Builder : Top_Level_Node_Visitor {
 	If last_else_if = null;
 
 	/*
-		if {
-			E:
-		} else if {
-			D:
-		} else if {
-			C:
-		} else {
-			B:
-		}
+		TODO clean this function up
 
-		A:
+		if_stat_entry:
+			fall
+		
+		check_a:
+			...
+			if cond then check_a_true else next_check
+		check_a_true:
+			jmp exit;									re-write
+
+		check_b:
+			if cond then check_b_true else exit
+		check_b_true:
+			jmp exit;									re-write
+
+		else:
+			...
+			fallthrough
+
+		exit:
 	*/
 	void build_if_node(ast.If_Statement_Node if_stat) {
+		// a list of instructions which will
+		// be re-written to jump to the end
+		Jump[] jump_to_ends;
+
+		auto if_entry = push_bb();
 		Value condition = build_expr(curr_sym_table.env, if_stat.condition);
 
-		Jump[] re_writes;
+		If last_if = new If(condition);
 
-		// generate the if jmp
-		If jmp = new If(condition);
-		curr_func.add_instr(jmp);
+		auto if_check = push_bb();
+		curr_func.add_instr(last_if);
 
-		// if true part
-		jmp.a = build_block(curr_func, if_stat.block);
+		last_if.a = build_block(curr_func, if_stat.block);
 
-		If last_if = jmp;
-		if (if_stat.else_ifs.length > 0) {
-			last_if = jmp;
-		}
+		// 		jump to exit rewrite
+		jump_to_ends ~= cast(Jump) curr_func.add_instr(new Jump(null));
 
-		// build all the else ifs
-		foreach (ref idx, elif; if_stat.else_ifs) {
-			auto elif_block = new Label(push_bb());
-			Value cond = build_expr(curr_sym_table.env, elif.condition);
-
-			auto elif_check = new Label(push_bb());
-			If elif_jmp = new If(cond);
-			curr_func.add_instr(elif_jmp);
-
-			elif_jmp.a = build_block(curr_func, elif.block);
-
-			re_writes ~= cast(Jump) curr_func.add_instr(new Jump(null));
-
-			if (last_if !is null) {
-				last_if.b = elif_block;
+		// there is no else if chain so we need to generate
+		// the else statement here _if necessary_ and hookup the
+		// else, or jump to the exit.
+		if (if_stat.else_ifs.length == 0) {
+			// we have an else stat so generate it
+			// and join it to this if
+			if (if_stat.else_stat !is null) {
+				auto else_bb = push_target_bb();
+				last_if.b = build_block(curr_func, if_stat.else_stat.block);
+	
+				// 		jump to exit rewrite
+				jump_to_ends ~= cast(Jump) curr_func.add_instr(new Jump(null));
 			}
-			last_if = elif_jmp;
-		}
+			// we dont have an else statement so we
+			// jump to the exit. the easiest way to do this
+			// is with another block that is joined to the prev.
+			else {
+				auto jte = push_target_bb();
+				last_if.b = new Label(jte);
 
-		// we have an else stat and a last if.
-		if (if_stat.else_stat !is null && last_if !is null) {
-			last_if.b = build_block(curr_func, if_stat.else_stat.block);
+				// 		jump to exit rewrite
+				jump_to_ends ~= cast(Jump) curr_func.add_instr(new Jump(null));
+			}
 		}
 		else {
-			last_if.b = new Label(push_bb());
+			while (if_stat.else_ifs.length > 0) {
+				auto fst = if_stat.else_ifs[0];
+				if_stat.else_ifs.popFront();
+
+				// check_fst:
+				auto check_fst = push_target_bb();
+
+				// this is an else if we have to join together.
+				if (last_if !is null) {
+					last_if.b = new Label(check_fst);
+				}
+
+				//		if cond then check_fst_true else LABEL
+				auto cond = build_expr(curr_sym_table.env, fst.condition);
+				auto elif_jmp = new If(cond);
+				curr_func.add_instr(elif_jmp);
+
+				// check_fst_true:
+				elif_jmp.a = build_block(curr_func, fst.block);
+
+				// 		jump to exit rewrite
+				jump_to_ends ~= cast(Jump) curr_func.add_instr(new Jump(null));
+
+				// if we have else_ifs left over, we
+				// set the last if to the if and re-write it
+				// in the next iteration to jump false to the
+				// iterations block.
+				if (if_stat.else_ifs.length > 0) {
+					last_if = elif_jmp;
+				}
+				else {
+					// we have an else stat so generate it
+					// and join it to this if
+					if (if_stat.else_stat !is null) {
+						auto else_bb = push_target_bb();
+						elif_jmp.b = build_block(curr_func, if_stat.else_stat.block);
+			
+						// 		jump to exit rewrite
+						jump_to_ends ~= cast(Jump) curr_func.add_instr(new Jump(null));
+					}
+					// we dont have an else statement so we
+					// jump to the exit. the easiest way to do this
+					// is with another block that is joined to the prev.
+					else {
+						auto jte = push_target_bb();
+						elif_jmp.b = new Label(jte);
+
+						// 		jump to exit rewrite
+						jump_to_ends ~= cast(Jump) curr_func.add_instr(new Jump(null));
+					}
+				}
+			}
 		}
 
-		if (jmp.b is null) {
-			jmp.b = last_if.b;
-		}
-
-		foreach (rw; re_writes) {
-			rw.label = last_if.b;
+		auto exit = push_target_bb();
+		foreach (re; jump_to_ends) {
+			re.label = new Label(exit);
 		}
 	}
 
