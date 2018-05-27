@@ -72,6 +72,9 @@ Type conv_type(Type_Environment env, Node t) {
 	else if (auto ptr = cast(Pointer_Type_Node) t) {
 		return new Pointer(env.conv_type(ptr.base_type));
 	}
+	else if (auto c = cast(Cast_Expression_Node) t) {
+		return conv_type(env, c.type);
+	}
 
 	else if (auto i = cast(Integer_Constant_Node) t) {
 		// FIXME

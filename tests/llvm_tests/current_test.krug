@@ -1,10 +1,15 @@
 #module main
 
+type Player struct {
+	x s32,
+	y s32,
+};
+
 #{no_mangle}
 func main() s32 {
-	mut g = 69;
-	g = g - 1;
-	return g;
+	let p Player;
+	p.x = 32;
+	return 0;
 }
 
 /*

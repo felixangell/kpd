@@ -19,6 +19,16 @@ LLVMTypeRef to_llvm_int(Integer i) {
 	}
 }
 
+LLVMTypeRef to_llvm_type(Structure s) {
+	LLVMTypeRef[] conv_types;
+	foreach (t; s.types) {
+		conv_types ~= to_llvm_type(t);
+	}
+
+	// TODO packed attribute.
+	return LLVMStructType(cast(LLVMTypeRef*)conv_types, conv_types.length, false);
+}
+
 LLVMTypeRef to_llvm_type(Type t) {
 	if (t is null) {
 		assert(0);
@@ -37,6 +47,9 @@ LLVMTypeRef to_llvm_type(Type t) {
 	else if (auto cstr = cast(CString) t) {
 		// questionable...
 		return to_llvm_type(cstr.types[0]);
+	}
+	else if (auto structure = cast(Structure) t) {
+		return to_llvm_type(structure);
 	}
 
 	writeln("unhandled type ! ", t, typeid(t));

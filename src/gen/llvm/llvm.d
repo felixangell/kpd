@@ -75,6 +75,8 @@ extern(C) {
 	LLVMTypeRef LLVMInt16Type();
 	LLVMTypeRef LLVMInt32Type();
 	LLVMTypeRef LLVMInt64Type();
+
+	LLVMTypeRef LLVMStructType(LLVMTypeRef*, ulong, bool);
 	LLVMTypeRef LLVMIntType(uint);
 
 	LLVMTypeRef LLVMArrayType(LLVMTypeRef, ulong);
