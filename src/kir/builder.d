@@ -195,13 +195,13 @@ class IR_Builder : Top_Level_Node_Visitor {
 			if (auto structure = cast(Structure) last.get_type()) {
 				auto idx = structure.get_field_index(sym.value.lexeme);
 				auto type_width = structure.types[idx].get_width();
-				return new Get_Element_Pointer(identifier, 0, idx, 0, type_width);
+				return new Get_Element_Pointer(identifier, idx, type_width);
 			}
 			else if (auto tuple = cast(Tuple) last.get_type()) {
 				// TODO ensure that the symbol thing here is a number?
 				int idx = to!int(sym.value.lexeme);
 				auto type_width = tuple.types[idx].get_width();
-				return new Get_Element_Pointer(identifier, 0, idx, 0, type_width);
+				return new Get_Element_Pointer(identifier, idx, type_width);
 			}
 			else if (auto ptr = cast(Pointer) last.get_type()) {
 				// TODO we need to handle accessing pointers
@@ -216,6 +216,10 @@ class IR_Builder : Top_Level_Node_Visitor {
 				logger.fatal("what is " ~ to!string(last) ~ " " ~ to!string(last.get_type()));
 				assert(0);
 			}
+		}
+		else if (auto gep = cast(Get_Element_Pointer) last) {
+			// how the fuck
+			return gep;
 		}
 
 		logger.fatal("what is " ~ to!string(last));
@@ -665,7 +669,7 @@ class IR_Builder : Top_Level_Node_Visitor {
 				auto val = build_expr(curr_sym_table.env, value);
 
 				// FIXME?
-				auto gep = new Get_Element_Pointer(new Identifier(type, var.twine.lexeme), 0, index, 0, val.get_type.get_width);
+				auto gep = new Get_Element_Pointer(new Identifier(type, var.twine.lexeme), index, val.get_type.get_width);
 				curr_func.add_instr(new Store(val.get_type(), gep, val));
 			}
 		}

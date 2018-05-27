@@ -216,6 +216,10 @@ class LLVM_Writer {
 		}
 	}
 
+	LLVMValueRef emit_addr_of(Addr_Of addr) {
+		return get_alloca(addr.v);
+	}
+
 	LLVMValueRef emit_val(Value v) {
 		if (auto c = cast(Constant) v) {
 			return emit_const(c);
@@ -242,6 +246,9 @@ class LLVM_Writer {
 		}
 		else if (auto gep = cast(Get_Element_Pointer) v) {
 			return emit_gep(gep);
+		}
+		else if (auto addr_of = cast(Addr_Of) v) {
+			return emit_addr_of(addr_of);
 		}
 
 		writeln("unhandled value!", v);
@@ -287,7 +294,7 @@ class LLVM_Writer {
 		if (auto iden = cast(Identifier) addr) {
 			return allocs[iden.name];
 		}
-		assert(0, "unhandled alloca value!");
+		assert(0, "unhandled alloca value! " ~ to!string(addr));
 	}
 
 	LLVMValueRef emit_gep(Get_Element_Pointer g) {
@@ -309,6 +316,10 @@ class LLVM_Writer {
 		LLVMBuildStore(builder, value, gep);
 	}
 
+	void write_store(Deref d, Store s) {
+		assert(0, "unimplemented write_store");
+	}
+
 	void write_store(Store s) {
 		if (auto alloc = cast(Alloc) s.address) {
 			write_store(alloc, s);
@@ -318,6 +329,9 @@ class LLVM_Writer {
 		}
 		else if (auto gep = cast(Get_Element_Pointer) s.address) {
 			write_store(gep, s);
+		}
+		else if (auto de_ref = cast(Deref) s.address) {
+			write_store(de_ref, s);
 		}
 		else {
 			assert(0, "unhandled write store address ! " ~ to!string(s));

@@ -13,7 +13,7 @@ import logger;
 import kir.ir_mod;
 
 import gen.backend;
-import gen.x64.link;
+import gen.link;
 import gen.llvm.writer;
 import gen.llvm.ir;
 

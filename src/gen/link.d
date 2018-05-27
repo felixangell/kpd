@@ -1,4 +1,4 @@
-module gen.x64.link;
+module gen.link;
 
 import std.stdio;
 import std.path;

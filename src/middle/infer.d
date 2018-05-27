@@ -274,6 +274,9 @@ class Type_Inferrer {
 			assert(type !is null);
 			return type;
 		}
+		else if (auto ptr = cast(Pointer) last) {
+			return ptr.base;
+		}
 
 		logger.error("unhandled type " ~ to!string(last));
 		assert(0);

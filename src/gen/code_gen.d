@@ -3,7 +3,6 @@ module gen.code_gen;
 import std.conv;
 
 import gen.backend;
-import gen.x64.backend;
 import gen.target;
 
 import gen.llvm.driver;
@@ -17,9 +16,6 @@ void generate_code(Target t, IR_Module[] modules) {
 	final switch (t) {
 	case Target.LLVM:
 		backend = new LLVM_Driver;
-		break;
-	case Target.X64:
-		backend = new X64_Driver;
 		break;
 	}
 

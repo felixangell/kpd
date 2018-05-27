@@ -480,15 +480,13 @@ class Deref : Basic_Value {
 // specified by the offs, index, scale
 class Get_Element_Pointer : Basic_Value {
 	Value addr;
-	ulong offs, index, scale;
+	ulong index;
 	int width;
 
-	this(Value addr, ulong offs, ulong index, ulong scale, int width) {
+	this(Value addr, ulong index, int width) {
 		super(addr.get_type());
 		this.addr = addr;
-		this.offs = offs;
 		this.index = index;
-		this.scale = scale;
 		this.width = width;
 	}
 
@@ -497,7 +495,7 @@ class Get_Element_Pointer : Basic_Value {
 	}
 
 	override string toString() {
-		return "gep(" ~ to!string(addr) ~ " " ~ to!string(offs) ~ "+(" ~ to!string(index) ~ "*" ~ to!string(scale) ~ "))";
+		return "gep(" ~ to!string(addr) ~ ", " ~ to!string(index) ~ ")";
 	}
 }
 
