@@ -1,5 +1,7 @@
 module sema.type;
 
+import ast;
+
 import std.conv;
 import std.algorithm.searching : countUntil;
 
@@ -360,9 +362,16 @@ class Tuple : Type {
 
 class Structure : Type {
 	string[] names;
+	Expression_Node[ulong] values;
 
 	this(Type[] args...) {
 		super("struct", args);
+	}
+
+	this(Type[] args, string[] names, Expression_Node[ulong] values) {
+		super("struct", args);
+		this.names = names;
+		this.values = values;
 	}
 
 	this(Type[] args, string[] names = []) {

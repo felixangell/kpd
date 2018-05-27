@@ -507,12 +507,17 @@ class Type_Inferrer {
 		else if (auto structure = cast(Structure_Type_Node) node) {
 			Type[] types;
 			string[] names;
-			foreach (ref field; structure.fields) {
+			Expression_Node[ulong] values;
+			foreach (ref idx, field; structure.fields) {
 				types ~= analyze(field.type, e, generics);
 				// TODO attach token info to this type.
 				names ~= field.name.lexeme;
+				
+				if (field.value !is null) {
+					values[idx] = field.value;
+				}
 			}
-			return new Structure(types, names);
+			return new Structure(types, names, values);
 		}
 
 		else if (auto tuple = cast(Tuple_Type_Node) node) {

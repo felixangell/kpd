@@ -22,16 +22,21 @@ class Top_Level_Type_Decl_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 	void declare_structure(string name, ast.Structure_Type_Node s) {
 		string[] names;
 		Type[] types;
+		Expression_Node[ulong] values;
 
 		names.reserve(s.fields.length);
 		types.reserve(s.fields.length);
 
-		foreach (field; s.fields) {
+		foreach (idx, field; s.fields) {
 			types ~= inferrer.analyze(field.type, curr_sym_table.env);
 			names ~= field.name.lexeme;
+			
+			if (field.value !is null) {
+				values[idx] = field.value;
+			}
 		}
 
-		auto s_type = new Structure(types, names);
+		auto s_type = new Structure(types, names, values);
 		curr_sym_table.env.register_type(name, s_type);
 	}
 

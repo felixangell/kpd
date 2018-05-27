@@ -5,8 +5,6 @@ import std.stdio;
 import std.conv;
 import std.typetuple;
 
-import diag.engine;
-
 /*
     COMPILER ERROR GUIDELINES
     -------------------------
