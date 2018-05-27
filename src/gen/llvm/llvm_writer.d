@@ -133,6 +133,12 @@ class LLVM_Writer {
 		return LLVMBuildAnd(builder, lhs, rhs, "");
 	}
 
+	LLVMValueRef emit_xor(Binary_Op bin) {
+		auto lhs = emit_val(bin.a);
+		auto rhs = emit_val(bin.b);
+		return LLVMBuildXor(builder, lhs, rhs, "");
+	}
+
 	LLVMValueRef emit_or(Binary_Op bin) {
 		auto lhs = emit_val(bin.a);
 		auto rhs = emit_val(bin.b);
@@ -199,8 +205,6 @@ class LLVM_Writer {
 
 		case "==":
 			return emit_cmp(bin);
-		case "||":
-			return emit_or(bin);
 		case "<":
 			return emit_lt(bin);
 		case "<=":
@@ -209,6 +213,13 @@ class LLVM_Writer {
 			return emit_gt(bin);
 		case ">=":
 			return emit_gte(bin);
+
+		case "^":
+			return emit_xor(bin);
+
+		case "|":
+		case "||":
+			return emit_or(bin);
 
 		// logical and takes a && b where a : bool, b : bool -> bool
 		case "&&":

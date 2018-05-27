@@ -2,5 +2,5 @@
 
 #{no_mangle}
 func main() s32 {
-	return 0;
+	return 0 ^ 0;
 }
