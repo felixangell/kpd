@@ -1,0 +1,28 @@
+#module main
+
+#{c_func, variadic}
+func printf(fmt *u8) s32;
+
+func do_things(mut a s32, b s32) s32 {
+	a = a + b;
+	return a;
+}
+
+#{no_mangle}
+func main() s32 {
+	mut foo [s32; 128];
+
+	let age = 19;
+	printf(c"Hello world i am %d years old!\n", age);
+
+	foo[0] = age;
+
+	printf(c"wow! %d\n", foo[0]);
+
+	let bar = do_things(5, 10);
+	foo[bar] = 32;
+
+	printf(c"foo[bar] is %d\n", foo[do_things(5, 10)]);
+
+	return bar;
+}

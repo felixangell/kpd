@@ -3,12 +3,18 @@
 #{c_func, variadic}
 func printf(fmt *u8) s32;
 
-func add(a s32, b s32) {
-	
-}
-
 #{no_mangle}
 func main() s32 {
-	printf(c"Hello world!\n");
+	mut i = 0;
+
+	loop {
+		if i == 10 {
+			break;
+		}
+
+		printf(c"i is %d\n", i);
+		i += 1;
+	}
+
 	return 0;
 }

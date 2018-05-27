@@ -18,6 +18,7 @@ import sema.type;
 import diag.engine;
 import compiler_error;
 import logger;
+import tok : Token, Token_Type;
 import ast;
 import logger;
 import krug_module;
@@ -600,40 +601,16 @@ class IR_Builder : Top_Level_Node_Visitor {
 	}
 
 	/*
-		entry:
-			jmp entry
-		exit:
+		loop node generates an ast.While_Statement_Node
+		with a condition of a true boolean.
 	*/
 	void build_loop_node(ast.Loop_Statement_Node loop) {
-		// loop entry.
-		push_bb();
+		// TODO some nice api for generating AST stuff perhaps?
 
-		auto loop_start = new Label(push_bb());
-		
-		auto last_block = build_block(curr_func, loop.block, loop_start.reference);
-		if (!is_branching_instr(last_block.reference.last_instr)) {
-			curr_func.add_instr(new Jump(loop_start));
-		}
-
-		// jump must be the last instruction in it's block!
-		// so we need to push a basic block here.
-		auto exit = new Label(push_bb());
-
-		// re-write all of the jumps that
-		// are for break statements to jump to
-		// the exit basic block
-		foreach (k, v; break_rewrites) {
-			k.instructions[v] = new Jump(exit);
-			break_rewrites.remove(k);
-		}
-
-		// re-write all of the jumps that
-		// are for next statements to jump
-		// to the entry basic block
-		foreach (k, v; next_rewrites) {
-			k.instructions[v] = new Jump(loop_start);
-			next_rewrites.remove(k);
-		}
+		// re-write a loop to a while(true)
+		auto true_bool = new Boolean_Constant_Node(new Token("true", Token_Type.Identifier));
+		auto while_node = new While_Statement_Node(true_bool, loop.block);
+		build_while_loop_node(while_node);
 	}
 
 	// these maps keep track of the jump addresses
