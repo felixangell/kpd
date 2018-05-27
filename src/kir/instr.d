@@ -198,7 +198,7 @@ class Index : Basic_Instruction, Value {
 	}
 
 	override string toString() {
-		return to!string(addr) ~ " [" ~ to!string(index) ~ "] : " ~ to!string(get_type());
+		return "index(" ~ to!string(addr) ~ " , " ~ to!string(index) ~ ")";
 	}
 }
 

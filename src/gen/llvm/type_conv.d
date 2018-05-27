@@ -29,6 +29,10 @@ LLVMTypeRef to_llvm_type(Structure s) {
 	return LLVMStructType(cast(LLVMTypeRef*)conv_types, conv_types.length, false);
 }
 
+LLVMTypeRef to_llvm_type(Array a) {
+	return LLVMArrayType(to_llvm_type(a.base), a.length);
+}
+
 LLVMTypeRef to_llvm_type(Type t) {
 	if (t is null) {
 		assert(0);
@@ -50,6 +54,9 @@ LLVMTypeRef to_llvm_type(Type t) {
 	}
 	else if (auto structure = cast(Structure) t) {
 		return to_llvm_type(structure);
+	}
+	else if (auto array = cast(Array) t) {
+		return to_llvm_type(array);
 	}
 
 	writeln("unhandled type ! ", t, typeid(t));

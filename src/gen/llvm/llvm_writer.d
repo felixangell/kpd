@@ -255,6 +255,17 @@ class LLVM_Writer {
 		return get_alloca(addr.v);
 	}
 
+	LLVMValueRef emit_index(Index i) {
+		auto alloca = get_alloca(i.addr);
+		auto indices = [
+			LLVMConstInt(LLVMInt64Type(), 0, false),
+			emit_val(i.index),
+		];
+
+		auto gep = LLVMBuildGEP(builder, alloca, cast(LLVMValueRef*) indices, indices.length, "");
+		return LLVMBuildLoad(builder, gep, "");
+	}
+
 	LLVMValueRef emit_val(Value v) {
 		if (auto c = cast(Constant) v) {
 			return emit_const(c);
@@ -278,6 +289,9 @@ class LLVM_Writer {
 		}
 		else if (auto invoke = cast(Call) v) {
 			return emit_invoke(invoke);
+		}
+		else if (auto index = cast(Index) v) {
+			return emit_index(index);
 		}
 		else if (auto gep = cast(Get_Element_Pointer) v) {
 			return emit_gep(gep);
@@ -355,6 +369,17 @@ class LLVM_Writer {
 		assert(0, "unimplemented write_store");
 	}
 
+	void write_store(Index i, Store s) {
+		auto alloca = get_alloca(i.addr);
+		auto indices = [
+			LLVMConstInt(LLVMInt64Type(), 0, false),
+			emit_val(i.index),
+		];
+		auto gep = LLVMBuildGEP(builder, alloca, cast(LLVMValueRef*) indices, indices.length, "");
+
+		LLVMBuildStore(builder, emit_val(s.val), gep);
+	}
+
 	void write_store(Store s) {
 		if (auto alloc = cast(Alloc) s.address) {
 			write_store(alloc, s);
@@ -367,6 +392,9 @@ class LLVM_Writer {
 		}
 		else if (auto de_ref = cast(Deref) s.address) {
 			write_store(de_ref, s);
+		}
+		else if (auto index = cast(Index) s.address) {
+			write_store(index, s);
 		}
 		else {
 			assert(0, "unhandled write store address ! " ~ to!string(s));

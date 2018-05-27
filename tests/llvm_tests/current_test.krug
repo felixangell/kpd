@@ -2,7 +2,8 @@
 
 #{no_mangle}
 func main() s32 {
-	mut foo = 32;
-	foo = foo >> 2;
-	return foo;
+	mut numbers [s32; 128];
+	numbers[0] = 69;
+	numbers[1] = 32;
+	return numbers[0];
 }
