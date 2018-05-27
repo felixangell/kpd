@@ -7,7 +7,10 @@ func main() s32 {
 	numbers[1] = 32;
 
 	let g = 3;
-	g += 6;
+	g += 6; // 9
+	g -= 2; // 7
+	g *= 4; // 28
+	g /= 2; // 14
 
-	return numbers[0] + g;
+	return g;
 }

@@ -186,6 +186,8 @@ class IR_Builder : Top_Level_Node_Visitor {
 		// special inc/dec ops
 		case "+=":
 		case "-=":
+		case "*=":
+		case "/=":
 			return build_incdec_shorthand(env, binary);
 
 		// asign is a store.
