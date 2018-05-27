@@ -1,2 +1,2 @@
 #!/bin/bash
-git ls-files | grep -E "(\.d)|(\.c)|(\.h)" | xargs cat | wc -l
+git ls-files | grep -E "(\.d)" | xargs cat | wc -l
