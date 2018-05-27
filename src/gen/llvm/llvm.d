@@ -124,10 +124,23 @@ extern(C) {
 
 	LLVMValueRef LLVMBuildRetVoid(LLVMBuilderRef);
 	LLVMValueRef LLVMBuildRet(LLVMBuilderRef, LLVMValueRef);
+
 	LLVMValueRef LLVMBuildSub(LLVMBuilderRef, LLVMValueRef, LLVMValueRef, LLVMString);
 	LLVMValueRef LLVMBuildAdd(LLVMBuilderRef, LLVMValueRef, LLVMValueRef, LLVMString);
+	LLVMValueRef LLVMBuildMul(LLVMBuilderRef, LLVMValueRef, LLVMValueRef, LLVMString);
+
+	LLVMValueRef LLVMBuildURem(LLVMBuilderRef, LLVMValueRef, LLVMValueRef, LLVMString);
+	LLVMValueRef LLVMBuildSRem(LLVMBuilderRef, LLVMValueRef, LLVMValueRef, LLVMString);
+	
+	LLVMValueRef LLVMBuildUDiv(LLVMBuilderRef, LLVMValueRef, LLVMValueRef, LLVMString);
+	LLVMValueRef LLVMBuildSDiv(LLVMBuilderRef, LLVMValueRef, LLVMValueRef, LLVMString);
+
+	// unary
+	LLVMValueRef LLVMBuildNeg(LLVMBuilderRef, LLVMValueRef, LLVMString);
+
 	LLVMValueRef LLVMBuildLoad(LLVMBuilderRef, LLVMValueRef, LLVMString);
 
+	// comparison
 	LLVMValueRef LLVMBuildICmp(LLVMBuilderRef, LLVMIntPredicate, LLVMValueRef, LLVMValueRef, LLVMString);
 
 	LLVMValueRef LLVMBuildGlobalStringPtr(LLVMBuilderRef, LLVMString, LLVMString);

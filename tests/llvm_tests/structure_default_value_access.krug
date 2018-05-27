@@ -1,0 +1,18 @@
+#module main
+
+type Player struct {
+	x s32,
+	y s32 = 66,
+};
+
+#{no_mangle}
+func main() s32 {
+	let p Player;
+
+	p.x = 32;
+
+	let a = p.x;
+	let b = p.y;
+
+	return a + b; // 98
+}

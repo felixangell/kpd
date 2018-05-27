@@ -129,6 +129,9 @@ Type conv_type(Type_Environment env, Node t) {
 		// unified from type inference
 		return env.conv_type(bin.left);
 	}
+	else if (auto unary = cast(Unary_Expression_Node) t) {
+		return env.conv_type(unary.value);
+	}
 	else if (auto param = cast(Function_Parameter) t) {
 		return env.conv_type(param.type);
 	}

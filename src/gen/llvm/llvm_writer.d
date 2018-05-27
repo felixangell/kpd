@@ -174,12 +174,29 @@ class LLVM_Writer {
 		return LLVMBuildICmp(builder, LLVMIntPredicate.LLVMIntSGE, lhs, rhs, "");
 	}
 
+	LLVMValueRef emit_unary_op(Unary_Op unary) {
+		switch (unary.op.lexeme) {
+		case "!":
+			return LLVMBuildNeg(builder, emit_val(unary.v), "");	
+		default:
+			assert(0, "unhandled unary op " ~ to!string(unary));
+		}
+	}
+
 	LLVMValueRef emit_binary_op(Binary_Op bin) {
 		switch (bin.op) {
+
 		case "-":
 			return LLVMBuildSub(builder, emit_val(bin.a), emit_val(bin.b), "");
 		case "+":
 			return LLVMBuildAdd(builder, emit_val(bin.a), emit_val(bin.b), "");
+		case "*":
+			return LLVMBuildMul(builder, emit_val(bin.a), emit_val(bin.b), "");
+		case "/":
+			return LLVMBuildSDiv(builder, emit_val(bin.a), emit_val(bin.b), "");
+		case "%":
+			return LLVMBuildSRem(builder, emit_val(bin.a), emit_val(bin.b), "");
+
 		case "==":
 			return emit_cmp(bin);
 		case "&&":
@@ -216,6 +233,9 @@ class LLVM_Writer {
 		}
 		else if (auto binary = cast(Binary_Op) v) {
 			return emit_binary_op(binary);
+		}
+		else if (auto unary = cast(Unary_Op) v) {
+			return emit_unary_op(unary);
 		}
 		else if (auto invoke = cast(Call) v) {
 			return emit_invoke(invoke);

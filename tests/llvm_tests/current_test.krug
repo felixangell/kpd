@@ -1,46 +1,6 @@
 #module main
 
-type Player struct {
-	x s32,
-	y s32 = 66,
-};
-
 #{no_mangle}
 func main() s32 {
-	let p Player;
-
-	p.x = 32;
-
-	let a = p.x;
-	let b = p.y;
-
-	return a + b; // 98
+	return !5;
 }
-
-/*
-bug:
-
-	let i = 10;
-	loop {
-		if false {
-			break;
-		}
-		break;
-	}
-
-#{no_mangle}
-func add(a s32, b s32) s32 {
-	return a + b;
-}
-
-#{no_mangle}
-func main() s32 {
-	let g = 0;
-	loop {
-		if g < 10 {
-			g = g + 1;
-		}
-	}
-	return g;
-}
-*/
