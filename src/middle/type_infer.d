@@ -117,7 +117,7 @@ class Type_Infer_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 		analyze_expr(stat.rhand);		
 	}
 
-	void analyze_match(ast.Match_Statement_Node match) {
+	void analyze_match(ast.Switch_Statement_Node match) {
 		analyze_expr(match.condition);
 
 		// TODO scope etc.
@@ -163,7 +163,7 @@ class Type_Infer_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 		else if (auto block = cast(ast.Block_Node) stat) {
 			visit_block(block);
 		}
-		else if (auto match = cast(ast.Match_Statement_Node) stat) {
+		else if (auto match = cast(ast.Switch_Statement_Node) stat) {
 			analyze_match(match);	
 		}
 		else if (cast(ast.Else_If_Statement_Node) stat) {

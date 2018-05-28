@@ -148,7 +148,7 @@ class Mutability_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 		if (auto var = cast(ast.Variable_Statement_Node) stat) {
 			analyze_var_stat_node(var);
 		}
-		else if (auto match = cast(ast.Match_Statement_Node) stat) {
+		else if (auto match = cast(ast.Switch_Statement_Node) stat) {
 			// TODO	
 		}
 		else if (auto expr = cast(ast.Expression_Node) stat) {

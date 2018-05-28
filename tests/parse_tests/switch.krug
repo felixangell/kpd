@@ -23,7 +23,7 @@ func main() {
 	let g (bool, bool, *bool);
 
 	let x s32;
-	match x {
+	switch x {
 		0 => {
 
 		},
@@ -36,7 +36,7 @@ func main() {
 	}
 
 	let f Foo;
-	match f {
+	switch f {
 		Label => {
 
 		},

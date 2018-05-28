@@ -845,7 +845,7 @@ class IR_Builder : Top_Level_Node_Visitor {
 	// esp for multiple expressions
 	// also its hard to read/understand
 	// as it jumps all over the place.
-	void build_match(ast.Match_Statement_Node match) {
+	void build_match(ast.Switch_Statement_Node match) {
 		Value cond = build_expr(curr_sym_table.env, match.condition);
 
 		Jump[] jump_to_ends;
@@ -915,7 +915,7 @@ class IR_Builder : Top_Level_Node_Visitor {
 		else if (auto if_stat = cast(ast.If_Statement_Node) node) {
 			build_if_node(if_stat);
 		}
-		else if (auto match = cast(ast.Match_Statement_Node) node) {
+		else if (auto match = cast(ast.Switch_Statement_Node) node) {
 			build_match(match);	
 		}
 		else if (auto structure_destructure = cast(ast.Structure_Destructuring_Statement_Node) node) {

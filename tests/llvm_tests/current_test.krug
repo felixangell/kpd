@@ -8,31 +8,21 @@ func scanf(fmt *u8) s32;
 
 #{no_mangle}
 func main() s32 {
-	let g s32;
-	scanf(c"%d", &g);
-
-	if g == 27 {
-		printf(c"g is 27!\n");
-	}
-
-	if g == 6 {
-		printf(c"g is 6!\n");
-	}
-	else {
-		printf(c"g is not 6!\n");
-	}
-
-	if g == 1 {
-		printf(c"one!\n");
-	}
-	else if g == 2 {
-		printf(c"two!\n");
-	}
-	else if g == 3 {
-		printf(c"three!\n");
-	}
-	else {
-		printf(c"other!\n");
+	let g s32 = 19;
+	
+	switch g {
+		0 {
+			printf(c"it's zero!\n");
+		},
+		1 {
+			printf(c"it's one!\n");
+		},
+		5, {
+			printf(c"it's five!\n");
+		},
+		default {
+			printf(c"we haven't handled it\n");
+		}
 	}
 
 	return 0;

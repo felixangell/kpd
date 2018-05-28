@@ -359,7 +359,7 @@ class Name_Resolve_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 		}
 	}
 
-	void resolve_match(ast.Match_Statement_Node match) {
+	void resolve_match(ast.Switch_Statement_Node match) {
 		analyze_expr(match.condition);
 
 		// TODO scope etc.
@@ -398,7 +398,7 @@ class Name_Resolve_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 				analyze_expr(ret.value);
 			}
 		}
-		else if (auto match = cast(ast.Match_Statement_Node) stat) {
+		else if (auto match = cast(ast.Switch_Statement_Node) stat) {
 			resolve_match(match);
 		}
 		else if (auto structure_destructure = cast(ast.Structure_Destructuring_Statement_Node) stat) {

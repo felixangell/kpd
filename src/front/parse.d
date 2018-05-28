@@ -1202,34 +1202,41 @@ class Parser : Compilation_Phase {
 		return for_stat;
 	}
 
-	ast.Match_Statement_Node parse_match() {
-		if (!peek().cmp(keyword.Match)) {
+	ast.Switch_Statement_Node parse_switch() {
+		if (!peek().cmp(keyword.Switch)) {
 			return null;
 		}
-		expect(keyword.Match);
+		auto match_keyword = expect(keyword.Switch);
 
 		auto condition = parse_expr();
 		if (condition is null) {
 			logger.error(peek(), "expected condition in match criteria:");
 		}
 
-		Match_Arm_Node[] arms;
+		Switch_Arm_Node[] arms;
+		Switch_Arm_Node default_arm;
 
 		expect("{");
 		while (has_next() && !peek().cmp("}")) {
-			auto arm = new Match_Arm_Node;
+			bool is_default_arm = false;
+			auto arm = new Switch_Arm_Node;
 
 			while (has_next() && !peek().cmp("{")) {
-				// TODO default
-				// peek.cmp("_")
-
-				auto val = parse_expr();
-				if (val is null) {
-					logger.error(peek(), "fixme");
-					break;
+				// most common case is that we have an
+				// expression of some sort
+				if (!peek().cmp(keyword.Default)) {
+					auto val = parse_expr();
+					if (val is null) {
+						logger.error(peek(), "fixme");
+						break;
+					}
+					arm.expressions ~= val;
 				}
-
-				arm.expressions ~= val;
+				else {
+					is_default_arm = true;
+					// otherwise its a default arm.
+					expect(keyword.Default);						
+				}
 
 				// TODO trailing commas etc
 				if (peek().cmp(",")) {
@@ -1243,7 +1250,15 @@ class Parser : Compilation_Phase {
 				break;
 			}
 
-			arms ~= arm;
+			if (!is_default_arm) {
+				arms ~= arm;
+			}
+			else {
+				if (default_arm !is null) {
+					logger.error(match_keyword, "multiple default arms specified in match");
+				}
+				default_arm = arm;
+			}
 
 			// TODO trailing commas
 			if (peek().cmp(",")) {
@@ -1252,7 +1267,11 @@ class Parser : Compilation_Phase {
 		}
 		expect("}");
 
-		return new Match_Statement_Node(condition, arms);
+		if (arms.length == 0) {
+			logger.error(match_keyword, "match should have at least one arm");
+		}
+
+		return new Switch_Statement_Node(condition, default_arm, arms);
 	}
 
 	ast.Loop_Statement_Node parse_loop() {
@@ -1395,8 +1414,8 @@ leave:
 		case keyword.Mut:
 			result = parse_var();
 			break;
-		case keyword.Match:
-			result = parse_match();
+		case keyword.Switch:
+			result = parse_switch();
 			break;
 		case keyword.Defer:
 			result = parse_defer();

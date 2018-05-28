@@ -26,7 +26,7 @@ template populate_hash_set(T) {
 static this() {
 	populate_hash_set!(string).insert(KEYWORDS, 
 		"fn", "let", "type", "if", "else",
-		"loop", "while", "match", "for", "return", "break", "next", "as",
+		"loop", "while", "switch", "for", "return", "break", "next", "as",
 		"mut", "default", "eval",
 		"len_of", "size_of", "type_of", "struct", "trait", "union", "enum",
 		"defer", "false",

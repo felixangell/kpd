@@ -24,7 +24,7 @@ func say_apple() {
 	let foopa = "hello world";
 	let blah = 'a';
 
-	// these types do not mismatch!
+	// these types do not misswitch!
 	let foopa = 5 + 10;
 	let blah = 3.141 + 69.3;
 	let booper = "foo" + "bar" + "baz";

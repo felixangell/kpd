@@ -106,7 +106,7 @@ class Defer_Statement_Node : Statement_Node {
 	}
 }
 
-class Match_Arm_Node : Node {
+class Switch_Arm_Node : Node {
 	Expression_Node[] expressions;
 	Block_Node block;
 
@@ -115,17 +115,19 @@ class Match_Arm_Node : Node {
 	}
 }
 
-class Match_Statement_Node : Statement_Node {
+class Switch_Statement_Node : Statement_Node {
 	Expression_Node condition;
-	Match_Arm_Node[] arms;
+	Switch_Arm_Node[] arms;
+	Switch_Arm_Node default_arm;
 
-	this(Expression_Node condition, Match_Arm_Node[] arms...) {
+	this(Expression_Node condition, Switch_Arm_Node default_arm, Switch_Arm_Node[] arms...) {
 		this.condition = condition;
+		this.default_arm = default_arm;
 		this.arms = arms;
 	}
 
 	override string toString() {
-		return "match " ~ to!string(arms);
+		return "match " ~ to!string(arms) ~ to!string(default_arm);
 	}
 }
 

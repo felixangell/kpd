@@ -11,8 +11,9 @@ static const string Return = "return";
 static const string Break = "break";
 static const string Next = "next";
 static const string Defer = "defer";
+static const string Default = "default";
 
-static const string Match = "match";
+static const string Switch = "switch";
 static const string If = "if";
 static const string Else = "else";
 static const string For = "for";
