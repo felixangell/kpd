@@ -138,6 +138,13 @@ Type conv_type(Type_Environment env, Node t) {
 	else if (auto type_path = cast(Type_Path_Node) t) {
 		return env.get_type_path_type(type_path);
 	}
+	else if (auto tuple = cast(Tuple_Type_Node) t) {
+		Type[] tuple_types;
+		foreach (tuple_type; tuple.types) {
+			tuple_types ~= conv_type(env, tuple_type);
+		}
+		return new Tuple(tuple_types);
+	}
 
 	logger.error(t.get_tok_info().get_tok(),
 		"Leaking unresolved type:\n\t" ~ to!string(t) ~ "\n\t" ~ to!string(typeid(t)));

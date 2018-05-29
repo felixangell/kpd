@@ -41,6 +41,10 @@ class Lexer : Compilation_Phase {
 			final switch (consume()) {
 			case 'n':
 				return to!string('\n');
+			case 'r':
+				return to!string('\r');
+			case 't':
+				return to!string('\t');
 			}
 		}
 

@@ -11,6 +11,7 @@
 	  looping structures?
 	- make sure defer runs before
 	  return statements.
+	- defer is only legal on certain statements
 
 */
 
@@ -22,8 +23,15 @@ func scanf(fmt *u8) s32;
 
 #{no_mangle}
 func main() s32 {
-
-	printf(c"hello world\n");
 	
+	let foo (s32, s32);
+
+	let g = 1;
+
+	foo.0 = g + 1232;
+	foo.1 = 69;
+
+	printf(c"foo.0 is %d and foo.1 is %d\n", foo.0, foo.1);
+
 	return 0;
 }

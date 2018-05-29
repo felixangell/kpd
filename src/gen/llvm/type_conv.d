@@ -41,6 +41,16 @@ LLVMTypeRef to_llvm_type(Fn f) {
 	return LLVMFunctionType(to_llvm_type(f.ret), cast(LLVMTypeRef*)params, params.length, false);
 }
 
+LLVMTypeRef to_llvm_type(Tuple t) {
+	LLVMTypeRef[] params;
+	foreach (type; t.types) {
+		params ~= to_llvm_type(type);
+	}
+
+	// packed?
+	return LLVMStructType(cast(LLVMTypeRef*)params, params.length, false);
+}
+
 LLVMTypeRef to_llvm_type(Type t) {
 	if (t is null) {
 		assert(0);
@@ -65,6 +75,9 @@ LLVMTypeRef to_llvm_type(Type t) {
 	}
 	else if (auto array = cast(Array) t) {
 		return to_llvm_type(array);
+	}
+	else if (auto tuple = cast(Tuple) t) {
+		return to_llvm_type(tuple);
 	}
 	else if (auto fn = cast(Fn) t) {
 		return to_llvm_type(fn);

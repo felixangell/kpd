@@ -83,7 +83,11 @@ class Name_Resolve_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 	}
 
 	Symbol_Table resolve_tuple(ast.Tuple_Type_Node tuple) {
-		assert(0);
+		auto table = new Symbol_Table;
+		foreach (idx, t; tuple.types) {
+			table.register_sym(new Symbol(t, to!string(idx), true));
+		}
+		return table;
 	}
 
 	Symbol_Table resolve_type(ast.Type_Node t) {
