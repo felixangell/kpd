@@ -645,6 +645,10 @@ class Parser : Compilation_Phase {
 	ast.Expression_Node parse_operand() {
 		Token curr = peek();
 
+		if (curr.cmp(keyword.Function)) {
+			return parse_lambda();
+		}
+
 		if (curr.cmp("(")) {
 			return parse_paren_expr();
 		}
@@ -952,19 +956,14 @@ class Parser : Compilation_Phase {
 
 		Token start = peek();
 
+		/* no eval for now
 		if (peek().cmp(keyword.Eval) && peek(1).cmp("{")) {
 			expect(keyword.Eval);
 			auto result = new Block_Expression_Node(parse_block());
 			result.set_tok_info(start);
 			return result;
 		}
-
-		// lambda
-		if (peek().cmp(keyword.Function)) {
-			auto result = parse_lambda();
-			result.set_tok_info(start);
-			return result;
-		}
+		*/
 
 		auto left = parse_left(comp_allowed);
 		if (left is null) {

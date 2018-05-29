@@ -1,5 +1,19 @@
 #module main
 
+/*
+	todo list:
+
+	- next statement 
+	- break statement
+	- make sure next and break do not
+	  cause dead code
+	- make sure next/break are in 
+	  looping structures?
+	- make sure defer runs before
+	  return statements.
+
+*/
+
 #{c_func, variadic}
 func printf(fmt *u8) s32;
 
@@ -8,22 +22,21 @@ func scanf(fmt *u8) s32;
 
 #{no_mangle}
 func main() s32 {
-	let g s32 = 19;
-	
-	switch g {
-		0 {
-			printf(c"it's zero!\n");
-		},
-		1 {
-			printf(c"it's one!\n");
-		},
-		5, {
-			printf(c"it's five!\n");
-		},
-		default {
-			printf(c"we haven't handled it\n");
-		}
-	}
+	let foo = 3;
+
+	func() {
+
+	}();
+
+	let add = func() {
+
+	};
+
+	let result = func(a s32, b s32) {
+		return a + b;
+	}();
+
+	add(5, 6);
 
 	return 0;
 }

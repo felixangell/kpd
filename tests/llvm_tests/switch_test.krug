@@ -1,0 +1,30 @@
+#module main
+
+#{c_func, variadic}
+func printf(fmt *u8) s32;
+
+#{c_func, variadic}
+func scanf(fmt *u8) s32;
+
+#{no_mangle}
+func main() s32 {
+	let g s32 = 0;
+	let y = 69;
+	
+	switch g {
+		0 {
+			printf(c"it's zero!\n");
+		},
+		1 {
+			printf(c"it's one!\n");
+		},
+		5, {
+			printf(c"it's five!\n");
+		},
+		default {
+			printf(c"we haven't handled it\n");
+		}
+	}
+
+	return 0;
+}
