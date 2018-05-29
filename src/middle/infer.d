@@ -384,8 +384,26 @@ class Type_Inferrer {
 		return new Fn(ret_type, args);
 	}
 
+	// TODO ast.Function_Node could probably use this
+	// tho we would not want to allow a receiver on
+	// a lambda.
+	Type analyze_function_type(Function_Type_Node ft, Type_Variable[string] generics) {
+		Type ret_type = new Void();
+		if (ft.return_type !is null) {
+			ret_type = analyze(ft.return_type, e, generics);
+		}
+
+		Type[] args;
+		foreach (i, param; ft.params) {
+			auto param_type = analyze(param.type, e, generics);
+			args ~= param_type;
+		}
+
+		return new Fn(ret_type, args);
+	}
+
 	Type analyze_lambda(Lambda_Node lambda, Type_Variable[string] generics) {
-		return analyze(lambda.func_type, e, generics);
+		return analyze_function_type(lambda.func_type, generics);
 	}
 
 	Type analyze_variable(Variable_Statement_Node node, Type_Variable[string] generics) {

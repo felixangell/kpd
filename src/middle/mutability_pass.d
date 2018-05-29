@@ -122,6 +122,8 @@ class Mutability_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 		else if (cast(ast.Cast_Expression_Node) expr) {
 			
 		}
+		else if (auto lambda = cast(ast.Lambda_Node) expr) {
+		}
 		else {
 			writeln("moaning about ", to!string(expr));
 			this.log(Log_Level.Error, expr.get_tok_info(), "unhandled expr " ~ to!string(typeid(expr)));
