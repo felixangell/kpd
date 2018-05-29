@@ -384,6 +384,10 @@ class Type_Inferrer {
 		return new Fn(ret_type, args);
 	}
 
+	Type analyze_lambda(Lambda_Node lambda, Type_Variable[string] generics) {
+		return analyze(lambda.func_type, e, generics);
+	}
+
 	Type analyze_variable(Variable_Statement_Node node, Type_Variable[string] generics) {
 		if (node.type !is null) {
 			// resolve the type we're given.
@@ -505,6 +509,10 @@ class Type_Inferrer {
 		}
 		else if (cast(Rune_Constant_Node) node) {
 			return get_rune().attach(node.get_tok_info().get_tok());
+		}
+
+		else if (auto lambda = cast(ast.Lambda_Node) node) {
+			return analyze_lambda(lambda, generics);
 		}
 
 		else if (auto structure = cast(Structure_Type_Node) node) {

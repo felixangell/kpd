@@ -646,7 +646,9 @@ class Parser : Compilation_Phase {
 		Token curr = peek();
 
 		if (curr.cmp(keyword.Function)) {
-			return parse_lambda();
+			auto lambda = parse_lambda();
+			lambda.set_tok_info(curr, peek());
+			return lambda;
 		}
 
 		if (curr.cmp("(")) {
@@ -937,7 +939,10 @@ class Parser : Compilation_Phase {
 		}
 		// NOTE: the keyword is handled in parse_func_type
 
+		auto start = peek();
+
 		auto func_type = parse_func_type();
+		func_type.set_tok_info(start, peek());
 		if (func_type is null) {
 			logger.error(peek(), "expected lambda, found: \n");
 			return null;
