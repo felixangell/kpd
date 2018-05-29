@@ -34,6 +34,9 @@ class Module {
 	// other modules that this module includes
 	Module[string] edges;
 
+	// hack
+	string[Lambda_Node] lambda_names;
+
 	// for tarjans scc
 	int index = -1, low_link = -1;
 

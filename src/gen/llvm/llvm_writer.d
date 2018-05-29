@@ -93,6 +93,22 @@ class LLVM_Writer {
 
 	LLVMValueRef[Constant] consts;
 
+	immutable(char)[] unescape_string(string s) {
+		string new_str;
+		for (auto i = 0; i < s.length; i++) {
+			char curr = s[i];
+			if (curr == '/') {
+				if (s[i + 1] == 'n') {
+					new_str ~= '\n';
+					continue;
+				}
+			}
+			new_str ~= curr;
+		}
+		writeln("from ", s, " to ", new_str);
+		return cast(immutable(char)[])new_str;
+	}
+
 	LLVMValueRef emit_const(Constant c) {
 		auto type = c.get_type();
 		auto conv_type = to_llvm_type(type);
@@ -112,7 +128,7 @@ class LLVM_Writer {
 			LLVMSetLinkage(str, LLVMLinkage.LLVMInternalLinkage);
 			LLVMSetGlobalConstant(str, true);
 
-			auto str_const = LLVMConstString(c.value[1..$-1].toStringz, strlen, true);
+			auto str_const = LLVMConstString(c.value.toStringz, strlen, true);
 			LLVMSetInitializer(str, str_const);
 
 			consts[c] = str;

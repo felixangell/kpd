@@ -40,6 +40,16 @@ string mangle(Tuple t) {
 	return mangled_name;
 }
 
+string mangle(Fn f) {
+	string mangled_name = "Fn";
+
+	foreach (ref idx, type; f.types) {
+		mangled_name ~= mangle(type);
+	}
+
+	return mangled_name;
+}
+
 string mangle(Structure s) {
 	string mangled_name = "S";
 	
@@ -68,6 +78,9 @@ string mangle(Type t) {
 	}
 	else if (auto tuple = cast(Tuple) t) {
 		return mangle(tuple);
+	}
+	else if (auto fn = cast(Fn) t) {
+		return mangle(fn);
 	}
 
 	assert(0, to!string(t)); // oh dear!

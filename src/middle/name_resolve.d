@@ -253,6 +253,11 @@ class Name_Resolve_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 		analyze_expr(stat.rhand);
 	}
 
+	void analyze_lambda(ast.Lambda_Node lambda) {
+		visit_block(lambda.block);
+		assert(0);
+	}
+
 	void analyze_expr(ast.Expression_Node expr) {
 		if (auto binary = cast(ast.Binary_Expression_Node) expr) {
 			analyze_binary_expr(binary);
@@ -292,7 +297,7 @@ class Name_Resolve_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 			// NOP
 		}
 		else if (auto lambda = cast(ast.Lambda_Node) expr) {
-			// TODO NOP
+			analyze_lambda(lambda);
 		}
 		else if (auto index = cast(ast.Index_Expression_Node) expr) {
 			analyze_expr(index.array);

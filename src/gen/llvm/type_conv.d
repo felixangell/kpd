@@ -33,6 +33,14 @@ LLVMTypeRef to_llvm_type(Array a) {
 	return LLVMArrayType(to_llvm_type(a.base), a.length);
 }
 
+LLVMTypeRef to_llvm_type(Fn f) {
+	LLVMTypeRef[] params;
+	foreach (p; f.types) {
+		params ~= to_llvm_type(p);
+	}
+	return LLVMFunctionType(to_llvm_type(f.ret), cast(LLVMTypeRef*)params, params.length, false);
+}
+
 LLVMTypeRef to_llvm_type(Type t) {
 	if (t is null) {
 		assert(0);
@@ -57,6 +65,9 @@ LLVMTypeRef to_llvm_type(Type t) {
 	}
 	else if (auto array = cast(Array) t) {
 		return to_llvm_type(array);
+	}
+	else if (auto fn = cast(Fn) t) {
+		return to_llvm_type(fn);
 	}
 
 	writeln("unhandled type ! ", t, typeid(t));

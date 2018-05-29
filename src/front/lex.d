@@ -35,34 +35,16 @@ class Lexer : Compilation_Phase {
 
 	// TODO:
 	string recognize_esc_seq() {
-		string result;
 		if (peek() == '\\') {
-			result ~= consume();
-			dchar esc_prefix = peek();
-			switch (esc_prefix) {
-			case '"':
-			case '\'':
-			case '\\':
+			consume();
+
+			final switch (consume()) {
 			case 'n':
-			case 't':
-			case 'b':
-			case 'r':
-				result ~= consume();
-				break;
-			case 'x': // hex
-				break;
-			case 'o': // octal
-				break;
-			case 'u': // unicode, 4 hex digits
-				break;
-			case 'U': // unicode, 8 hex digits
-				break;
-			default:
-				// 3 diigts?
-				break;
+				return to!string('\n');
 			}
 		}
-		return result;
+
+		assert(0);
 	}
 
 	Token recognize_str() {

@@ -113,6 +113,25 @@ class IR_Builder : Top_Level_Node_Visitor {
 		return new Module_Info(types, names);
 	}
 
+	void build_func(Function fn, ast.Block_Node func_body, Function_Parameter[] params) {
+		auto entry = push_bb();
+
+		// alloc all the params
+		foreach (p; params) {
+			auto param_alloc = new Alloc(curr_sym_table.env.conv_type(p.type), p.twine.lexeme);
+			fn.params ~= param_alloc;
+		}
+
+		build_block(fn, func_body, entry);
+
+		// if there are no instructions in the last basic
+		// block add a return
+		// OR if the last instruction is not a return!
+		if (fn.curr_block.instructions.length == 0 || !is_branching_instr(fn.last_instr())) {
+			fn.add_instr(new Return(new Void()));
+		}
+	}
+
 	// we generate one control flow graph per function
 	// convert the ast.Block_Node into a bunch of basic blocks
 	// 
@@ -141,23 +160,7 @@ class IR_Builder : Top_Level_Node_Visitor {
 
 		if (is_proto) return;
 
-		auto entry = push_bb();
-
-		// alloc all the params
-		foreach (p; func.params) {
-			auto param_alloc = new Alloc(curr_sym_table.env.conv_type(p.type), p.twine.lexeme);
-			curr_func.params ~= param_alloc;
-		}
-
-		build_block(curr_func, func.func_body, entry);
-
-		// if there are no instructions in the last basic
-		// block add a return
-		// OR if the last instruction is not a return!
-		if (curr_func.curr_block.instructions.length == 0 
-				|| !is_branching_instr(curr_func.last_instr())) {
-			curr_func.add_instr(new Return(new Void()));
-		}
+		build_func(curr_func, func.func_body, func.params);
 	}
 
 	// re-writes 
@@ -448,7 +451,12 @@ class IR_Builder : Top_Level_Node_Visitor {
 		// generate a constant 
 		// as well as a reference to the
 		// constant
-		string const_ref = add_constant(new Constant(new CString(), str.value));
+
+		// slice the quotes from the start
+		// and end of the string.
+		auto str_no_quotes = str.value[1..$-1];
+
+		string const_ref = add_constant(new Constant(new CString(), str_no_quotes));
 		auto string_data_ptr = new Constant_Reference(new CString(), const_ref);
 
 		// c-style string is simply a raw unsigned
@@ -466,6 +474,26 @@ class IR_Builder : Top_Level_Node_Visitor {
 		val.add_value(new Constant(get_int(false, 64), to!string(str.value.length)));
 		val.add_value(string_data_ptr);
 		return val;
+	}
+
+	Value build_lambda(Type_Environment env, ast.Lambda_Node node) {
+		auto name = mod.lambda_names[node];
+
+		// type check...
+		auto type = cast(Fn) env.lookup_type(name);
+
+		writeln(name, " and type is ", type);
+
+		auto fn = ir_mod.add_function(name, type.ret);
+
+		auto prev_func = curr_func;
+		{
+			curr_func = fn;			// push
+			build_func(fn, node.block, node.func_type.params);
+			curr_func = prev_func;	// pop
+		}
+
+		return new Identifier(type, name);
 	}
 
 	Value build_expr(Type_Environment env, ast.Expression_Node expr) {
@@ -521,6 +549,9 @@ class IR_Builder : Top_Level_Node_Visitor {
 		else if (auto bool_const = cast(Boolean_Constant_Node) expr) {
 			string value = bool_const.value ? "1" : "0";
 			return new Constant(get_int(false, 8), value);
+		}
+		else if (auto lambda = cast(Lambda_Node) expr) {
+			return build_lambda(env, lambda);
 		}
 
 		logger.fatal("IR_Builder: unhandled build_expr ", to!string(expr), " -> ", to!string(typeid(expr)));

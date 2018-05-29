@@ -3,7 +3,10 @@ module sema.infer;
 import std.conv;
 import std.stdio;
 import std.algorithm : cmp;
+import std.process;
+import std.random;
 
+import gen.mangler;
 import diag.engine;
 import compiler_error;
 import krug_module;
@@ -403,7 +406,14 @@ class Type_Inferrer {
 	}
 
 	Type analyze_lambda(Lambda_Node lambda, Type_Variable[string] generics) {
-		return analyze_function_type(lambda.func_type, generics);
+		auto lambda_type = analyze_function_type(lambda.func_type, generics);
+
+		auto randID = thisProcessID.to!string(36) ~ "_" ~ uniform!uint.to!string(36);
+		auto lambda_name = "__lambda_" ~ randID ~ "_" ~ mangle(lambda_type);
+
+		mod.lambda_names[lambda] = lambda_name;
+		e.register_type(lambda_name, lambda_type);
+		return lambda_type;
 	}
 
 	Type analyze_variable(Variable_Statement_Node node, Type_Variable[string] generics) {
