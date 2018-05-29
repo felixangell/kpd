@@ -520,6 +520,28 @@ class Addr_Of : Basic_Value {
 	}
 }
 
+class Builtin : Basic_Instruction, Value {
+	Token op;
+	Value v;
+
+	this(Token op, Value v) {
+		super(v.get_type());
+		this.v = v;
+		this.op = op;
+	}
+	
+	override void set_type(Type t) {
+		this.type = t;
+	}
+	override Type get_type() {
+		return type;
+	}
+
+	override string toString() {
+		return op.lexeme ~ "(" ~ to!string(v) ~ ")";
+	}
+}
+
 // op a
 class Unary_Op : Basic_Instruction, Value {
 	Value v;

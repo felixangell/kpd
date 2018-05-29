@@ -309,6 +309,10 @@ class LLVM_Writer {
 		return LLVMBuildLoad(builder, gep, "");
 	}
 
+	LLVMValueRef emit_builtin(Builtin b) {
+		assert(0);
+	}
+
 	LLVMValueRef emit_val(Value v) {
 		if (auto c = cast(Constant) v) {
 			return emit_const(c);
@@ -341,6 +345,9 @@ class LLVM_Writer {
 		}
 		else if (auto addr_of = cast(Addr_Of) v) {
 			return emit_addr_of(addr_of);
+		}
+		else if (auto builtin = cast(Builtin) v) {
+			return emit_builtin(builtin);
 		}
 
 		writeln("unhandled value!", v);
@@ -594,8 +601,6 @@ class LLVM_Writer {
 			write_bb(llvmbb, func, bb);
 		}
 
-		LLVMDumpModule(llvm_mod);
-
 		pop_func();
 	}
 
@@ -619,6 +624,31 @@ class LLVM_Writer {
 		foreach (func; mod.functions) {
 			write_func(func);
 		}
+
+		// if we have a main function, inject
+		// an unmangled main function that matches
+		// what the linker frontend expects that
+		// will invoke the function
+		auto main_func = mod.get_function("main");
+		if (main_func !is null) {
+			auto user_main_func_addr = function_addr[main_func.name];
+
+			// int main(int argc, char** argv)
+			LLVMTypeRef[] params = [
+				LLVMInt32Type(), // argc
+				LLVMPointerType(LLVMPointerType(LLVMInt8Type(), 0), 0),
+			];
+			auto main_func_type = LLVMFunctionType(LLVMInt32Type(), cast(LLVMTypeRef*)params, params.length, false);
+			
+			auto llvm_main_func = LLVMAddFunction(llvm_mod, "main", main_func_type);
+
+			auto entry = LLVMAppendBasicBlock(llvm_main_func, "entry");
+			LLVMPositionBuilderAtEnd(builder, entry);
+			LLVMBuildCall(builder, user_main_func_addr, cast(LLVMValueRef*)[], 0, "");
+			LLVMBuildRet(builder, LLVMConstInt(LLVMInt32Type(), 0, false));
+		}
+
+		LLVMDumpModule(llvm_mod);
 
 		return new LLVM_Gen_Output(llvm_mod, target_machine);
 	}

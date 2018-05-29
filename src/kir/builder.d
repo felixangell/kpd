@@ -358,6 +358,8 @@ class IR_Builder : Top_Level_Node_Visitor {
 	}
 
 	Value build_unary_expr(Type_Environment env, ast.Unary_Expression_Node unary) {
+		static import keyword;
+
 		// grammar.d
 		// "+", "-", "!", "^", "@", "&"
 		final switch (unary.operand.lexeme) {
@@ -370,6 +372,10 @@ class IR_Builder : Top_Level_Node_Visitor {
 			return value_at(env, unary.value);
 		case "&":
 			return addr_of(env, unary.value);
+		case keyword.Size_Of:
+		case keyword.Len_Of:
+		case keyword.Type_Of:
+			return new Builtin(unary.operand, build_expr(env, unary.value));
 		}
 		assert(0, "unhandled build unary expr in builder.");
 	}

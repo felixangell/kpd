@@ -12,6 +12,9 @@
 	- make sure defer runs before
 	  return statements.
 	- defer is only legal on certain statements
+	- size_of only works with expressions so size_of(Type_Node_Path)
+	  is not allowed. this should maybe change
+	- remove eval blocks since anonymous functions exist
 
 */
 
@@ -21,9 +24,16 @@ func printf(fmt *u8) s32;
 #{c_func, variadic}
 func scanf(fmt *u8) s32;
 
-#{no_mangle}
-func main() s32 {
-	
+#{packed}
+type Packed struct {
+	a f32,
+	b s32,
+	c u8,
+	d u8,
+	s u16,
+};
+
+func main() {
 	let foo (s32, s32);
 
 	let g = 1;
@@ -32,6 +42,4 @@ func main() s32 {
 	foo.1 = 69;
 
 	printf(c"foo.0 is %d and foo.1 is %d\n", foo.0, foo.1);
-
-	return 0;
 }
