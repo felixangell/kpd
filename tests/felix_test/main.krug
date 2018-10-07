@@ -1,0 +1,11 @@
+#module main
+
+#{c_func, variadic}
+func printf(fmt *u8) s32;
+
+func main() {
+    let foo = 3;
+    mut x = foo;
+
+    printf(c"hello world!\n");
+}
