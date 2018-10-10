@@ -139,7 +139,6 @@ class Declaration_Pass : Top_Level_Node_Visitor, Semantic_Pass {
 		}
 		else if (auto tuple = cast(Tuple_Type_Node) tn) {
 			auto table = analyze_tuple_type_node(tuple);
-			writeln("new tuple table", name);
 			table.name = name;
 			table.reference = node;
 			curr_sym_table.register_sym(name, table);

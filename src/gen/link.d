@@ -113,11 +113,11 @@ void link_objs(string linker_process, Linker_Info info, string[] obj_paths, stri
 	info.add_objs(obj_paths);
 
 	auto linker_args = [linker_process] ~ info.flags ~ info.objects ~ ["-o", out_name];
-	writeln("Running linker", linker_args);
+	logger.verbose("Running linker" ~ linker_args);
 	auto ld_pid = execute(linker_args);
 	if (ld_pid.status != 0) {
-		writeln("Linker failed:\n", ld_pid.output);
+		logger.fatal("Linker failed:\n", ld_pid.output);
 	} else {
-		writeln("Linker notes:\n", ld_pid.output);
+		logger.verbose("Linker notes:\n", ld_pid.output);
 	}
 }

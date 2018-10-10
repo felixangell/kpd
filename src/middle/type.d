@@ -49,8 +49,8 @@ static Type get_int(bool signed, int width) {
 	return new Integer(signed, width);
 }
 
-static Type get_float(bool signed, int width) {
-	return new Floating(signed, width);
+static Type get_float(int width) {
+	return new Floating(width);
 }
 
 static Type get_rune() {
@@ -83,8 +83,8 @@ static this() {
 		"u32": new Integer(false, 32),
 		"u64": new Integer(false, 64),
 
-		"f32": new Floating(true, 32),
-		"f64": new Floating(true, 64),
+		"f32": new Floating(32),
+		"f64": new Floating(64),
 
 		"bool": new Integer(false, 8),
 		"rune": new Integer(true, 32),
@@ -281,9 +281,9 @@ class Floating : Type_Operator {
 	bool signed;
 	uint width;
 
-	this(bool signed, uint width) {
-		super((signed ? "s" : "u") ~ to!string(width));
-		this.signed = signed;
+	this(uint width) {
+		super("f" ~ to!string(width));
+		this.signed = true;
 		this.width = width;
 	}
 

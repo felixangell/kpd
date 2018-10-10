@@ -43,7 +43,7 @@ class LLVM_Gen_Output : Generated_Output {
 
 		string file_name = "krug-llvm-asm-" ~ thisProcessID.to!string(36) ~ "-" ~ uniform!uint.to!string(36) ~ ".as";
 		auto temp_file = File(file_name, "wb");
-		writeln("LLVM Assembly file '", temp_file.name, "' created.");
+		logger.verbose("LLVM Assembly file '", temp_file.name, "' created.");
 		temp_file.rawWrite(cast(byte[])(data[0..end]));
 		temp_file.close();
 

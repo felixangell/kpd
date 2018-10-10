@@ -161,7 +161,7 @@ Krug_Project build_krug_project(ref Source_File main_source_file) {
 			proj.modules[minfo.name] = mod;
 		}
 	
-		writeln("- registered file ", file.path, " childof ", mod.name);
+		logger.verbose("- registered file ", file.path, " childof ", mod.name);
 		mod.source_files[file.path] = file;
 		mod.token_streams[file.path] = tokens;
 

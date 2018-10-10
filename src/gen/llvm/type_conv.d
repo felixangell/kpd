@@ -41,6 +41,15 @@ LLVMTypeRef to_llvm_type(Fn f) {
 	return LLVMFunctionType(to_llvm_type(f.ret), cast(LLVMTypeRef*)params, params.length, false);
 }
 
+LLVMTypeRef to_llvm_type(Floating f) {
+	final switch (f.get_width) {
+	case 4:
+		return LLVMFloatType();
+	case 8:
+		return LLVMDoubleType();
+	}
+}
+
 LLVMTypeRef to_llvm_type(Tuple t) {
 	LLVMTypeRef[] params;
 	foreach (type; t.types) {
@@ -81,6 +90,9 @@ LLVMTypeRef to_llvm_type(Type t) {
 	}
 	else if (auto fn = cast(Fn) t) {
 		return to_llvm_type(fn);
+	}
+	else if (auto flt = cast(Floating) t) {
+		return to_llvm_type(flt);
 	}
 
 	writeln("unhandled type ! ", t, typeid(t));

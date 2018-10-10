@@ -24,13 +24,15 @@ func printf(fmt *u8) s32;
 #{c_func, variadic}
 func scanf(fmt *u8) s32;
 
-func f(a f64, b f64) f64 {
-	return a - b;
+type Position (s32, s32);
+
+func print_tuple(foo (s32, s32)) {
+	printf(c"(%d, %d)\n", foo.0, foo.1);
 }
 
 func main() {
-	let a = 3.141;
-	let b = 4.1111;
-	let g = f(a, b);
-	printf(c"%f\n", a + b, g);
+	let f (s32, s32);
+	f.0 = 15;
+	f.1 = 66;
+	print_tuple(f);
 }

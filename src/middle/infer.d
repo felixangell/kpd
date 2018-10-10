@@ -524,7 +524,7 @@ class Type_Inferrer {
 		}
 		else if (cast(Float_Constant_Node) node) {
 			// the widest type for floating point
-			return get_float(true, 64).attach(node.get_tok_info().get_tok()); // "double"
+			return get_float(64).attach(node.get_tok_info().get_tok()); // "double"
 		}
 		else if (cast(Boolean_Constant_Node) node) {
 			return get_bool().attach(node.get_tok_info().get_tok());

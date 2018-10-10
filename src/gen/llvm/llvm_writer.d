@@ -4,6 +4,8 @@ import std.stdio;
 import std.string;
 import std.conv : to;
 
+import logger : VERBOSE_LOGGING;
+
 import kir.ir_mod;
 import kir.instr;
 
@@ -28,13 +30,11 @@ class Function_Context {
 	}
 
 	LLVMBasicBlockRef register_bb(string label, LLVMBasicBlockRef bb) {
-		writeln("registering entry ", label);
 		bb_entries[label] = bb;
 		return bb;
 	}
 
 	LLVMBasicBlockRef get_bb(string label) {
-		writeln("looking up ", label);
 		return bb_entries[label];
 	}
 
@@ -115,6 +115,9 @@ class LLVM_Writer {
 
 		if (auto integer = cast(Integer) type) {
 			return LLVMConstInt(conv_type, to!ulong(c.value), false);
+		}
+		else if (auto floating = cast(Floating) type) {
+			return LLVMConstRealOfString(to_llvm_type(floating), c.value.toStringz);
 		}
 		else if (auto cstr = cast(CString) type) {
 			// string constants are cached (lazily).
@@ -235,19 +238,59 @@ class LLVM_Writer {
 		}
 	}
 
+	LLVMValueRef emit_sub(Value a, Value b) {
+		bool has_float = cast(Floating)a.get_type()||cast(Floating)b.get_type();
+		if (has_float) {
+			return LLVMBuildFSub(builder, emit_val(a), emit_val(b), "");
+		}
+		return LLVMBuildSub(builder, emit_val(a), emit_val(b), "");
+	}
+
+	LLVMValueRef emit_add(Value a, Value b) {
+		bool has_float = cast(Floating)a.get_type()||cast(Floating)b.get_type();
+		if (has_float) {
+			return LLVMBuildFAdd(builder, emit_val(a), emit_val(b), "");
+		}
+		return LLVMBuildAdd(builder, emit_val(a), emit_val(b), "");
+	}
+
+	LLVMValueRef emit_mul(Value a, Value b) {
+		bool has_float = cast(Floating)a.get_type()||cast(Floating)b.get_type();
+		if (has_float) {
+			return LLVMBuildFMul(builder, emit_val(a), emit_val(b), "");
+		}
+		return LLVMBuildMul(builder, emit_val(a), emit_val(b), "");
+	}
+
+	LLVMValueRef emit_div(Value a, Value b) {
+		bool has_float = cast(Floating)a.get_type()||cast(Floating)b.get_type();
+		if (has_float) {
+			return LLVMBuildFDiv(builder, emit_val(a), emit_val(b), "");
+		}
+		return LLVMBuildSDiv(builder, emit_val(a), emit_val(b), "");
+	}
+
+	LLVMValueRef emit_rem(Value a, Value b) {
+		bool has_float = cast(Floating)a.get_type()||cast(Floating)b.get_type();
+		if (has_float) {
+			return LLVMBuildFRem(builder, emit_val(a), emit_val(b), "");
+		}
+		return LLVMBuildSRem(builder, emit_val(a), emit_val(b), "");
+	}
+
 	LLVMValueRef emit_binary_op(Binary_Op bin) {
 		switch (bin.op) {
 
 		case "-":
-			return LLVMBuildSub(builder, emit_val(bin.a), emit_val(bin.b), "");
+			return emit_sub(bin.a, bin.b);
 		case "+":
-			return LLVMBuildAdd(builder, emit_val(bin.a), emit_val(bin.b), "");
+			return emit_add(bin.a, bin.b);
 		case "*":
-			return LLVMBuildMul(builder, emit_val(bin.a), emit_val(bin.b), "");
+			return emit_mul(bin.a, bin.b);
 		case "/":
-			return LLVMBuildSDiv(builder, emit_val(bin.a), emit_val(bin.b), "");
+			return emit_div(bin.a, bin.b);
 		case "%":
-			return LLVMBuildSRem(builder, emit_val(bin.a), emit_val(bin.b), "");
+			return emit_rem(bin.a, bin.b);
 
 		case "==":
 			return emit_cmp(bin);
@@ -648,7 +691,9 @@ class LLVM_Writer {
 			LLVMBuildRet(builder, LLVMConstInt(LLVMInt32Type(), 0, false));
 		}
 
-		LLVMDumpModule(llvm_mod);
+		if (VERBOSE_LOGGING) {
+			LLVMDumpModule(llvm_mod);
+		}
 
 		return new LLVM_Gen_Output(llvm_mod, target_machine);
 	}

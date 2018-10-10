@@ -509,7 +509,7 @@ class IR_Builder : Top_Level_Node_Visitor {
 		}
 		else if (auto float_const = cast(Float_Constant_Node) expr) {
 			// FIXME
-			return new Constant(get_float(true, 64), to!string(float_const.value));
+			return new Constant(get_float(64), to!string(float_const.value));
 		}
 		else if (auto rune_const = cast(Rune_Constant_Node) expr) {
 			dchar c = to!dchar(rune_const.value);

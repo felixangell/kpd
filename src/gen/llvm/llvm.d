@@ -54,6 +54,7 @@ extern(C) {
 
 	LLVMValueRef LLVMConstInt(LLVMTypeRef, ulong val, bool);
 	LLVMValueRef LLVMConstString(LLVMString, ulong, bool);
+	LLVMValueRef LLVMConstRealOfString(LLVMTypeRef, LLVMString);
 
 	enum LLVMTypeKind { 
 		LLVMVoidTypeKind, LLVMHalfTypeKind, LLVMFloatTypeKind, LLVMDoubleTypeKind, 
@@ -78,6 +79,9 @@ extern(C) {
 
 	LLVMTypeRef LLVMStructType(LLVMTypeRef*, ulong, bool);
 	LLVMTypeRef LLVMIntType(uint);
+
+	LLVMTypeRef LLVMFloatType();
+	LLVMTypeRef LLVMDoubleType();
 
 	LLVMTypeRef LLVMArrayType(LLVMTypeRef, ulong);
 	LLVMTypeRef LLVMFunctionType(LLVMTypeRef, LLVMTypeRef*, ulong, bool);
@@ -133,6 +137,12 @@ extern(C) {
 	LLVMValueRef LLVMBuildSub(LLVMBuilderRef, LLVMValueRef, LLVMValueRef, LLVMString);
 	LLVMValueRef LLVMBuildAdd(LLVMBuilderRef, LLVMValueRef, LLVMValueRef, LLVMString);
 	LLVMValueRef LLVMBuildMul(LLVMBuilderRef, LLVMValueRef, LLVMValueRef, LLVMString);
+
+	LLVMValueRef LLVMBuildFSub(LLVMBuilderRef, LLVMValueRef, LLVMValueRef, LLVMString);
+	LLVMValueRef LLVMBuildFAdd(LLVMBuilderRef, LLVMValueRef, LLVMValueRef, LLVMString);
+	LLVMValueRef LLVMBuildFMul(LLVMBuilderRef, LLVMValueRef, LLVMValueRef, LLVMString);
+	LLVMValueRef LLVMBuildFDiv(LLVMBuilderRef, LLVMValueRef, LLVMValueRef, LLVMString);
+	LLVMValueRef LLVMBuildFRem(LLVMBuilderRef, LLVMValueRef, LLVMValueRef, LLVMString);
 
 	LLVMValueRef LLVMBuildURem(LLVMBuilderRef, LLVMValueRef, LLVMValueRef, LLVMString);
 	LLVMValueRef LLVMBuildSRem(LLVMBuilderRef, LLVMValueRef, LLVMValueRef, LLVMString);

@@ -1,0 +1,17 @@
+#module main
+
+#{c_func, variadic}
+func printf(fmt *u8) s32;
+
+#{c_func, variadic}
+func scanf(fmt *u8) s32;
+
+func main() {
+	let foo (s32, s32);
+
+	let g = 1;
+	foo.0 = g + 1232;
+	foo.1 = 69;
+
+	printf(c"foo.0 is %d and foo.1 is %d\n", foo.0, foo.1);
+}
