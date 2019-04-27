@@ -1,5 +1,5 @@
 # KPD
-This is a compiler written for [Krug](//krug-lang.org), written in D. Though this compiler itself is quite old, so it wont compile most Krug programs anymore.
+This is a compiler for [Krug](//krug-lang.org), written in D. Though KPD itself is quite old, so it wont compile most Krug programs anymore.
 The actual compiler for Krug can be found under the name [Caasper](//github.com/krug-lang/caasper).
 
 ## Try it out
