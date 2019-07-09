@@ -67,8 +67,6 @@ class Run_Command : Command {
 			"out|o", &OUT_NAME,
 		);
 
-		// set build target to LLVM
-		
 		write_krug_info();
 
 		writeln("- unimplemented");

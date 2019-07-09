@@ -26,7 +26,6 @@ import logger;
 -L/lib/../lib64 
 -L/usr/lib/x86_64-linux-gnu
 -L/usr/bin/../lib/gcc/x86_64-linux-gnu/7.2.0/../../.. 
--L/usr/lib/llvm-4.0/bin/../lib -L/lib -L/usr/lib test.o 
 -L/home/felix/dlang/dmd-2.079.0/linux/lib64 -L.
 -lgcc
 -lgcc_s 

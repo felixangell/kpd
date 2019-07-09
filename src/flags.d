@@ -10,7 +10,7 @@ import gen.target : Target;
 enum VERSION = "0.0.1";
 enum KRUG_EXT = ".krug";
 
-Target BUILD_TARGET = Target.LLVM;
+Target BUILD_TARGET = Target.CLANG;
 uint OPTIMIZATION_LEVEL = 0;
 bool RELEASE_MODE = false;
 string ARCH = arch_type();
@@ -22,7 +22,6 @@ enum Output_Type {
 	Assembly,
 	Object_Files,
 	Krug_IR, // TODO
-	LLVM_IR,
 	Executable,
 }
 Output_Type OUT_TYPE = Output_Type.Executable;

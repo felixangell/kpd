@@ -10,26 +10,20 @@ way to go till it's stable-ish to run some actual programs.
 You'll need a few bits of software to compile the compiler:
 
 * `dmd`, `ldc2`, - some D compiler
-* `llvm`, `llvm-config` - the llvm tool chain
 * `clang`, `gcc`, - some C compiler
 * `make` - GNU make
 
 ### Setup
-Note: Krug uses LLVM as its primary target. LLVM can be a bit
-tricky to build, and it's a bit of a pain to link with D. Because of
-this some of the flags are hard-coded for my personal machine, so the
-Makefiles might not work for you.
 
 #### Mac
 ```bash
 $ xcode-select --install
 $ curl -fsS https://dlang.org/install.sh | bash -s dmd
-$ brew install llvm
 ```
 
 #### Ubuntu
 ```bash
-$ sudo apt-get install build-essential llvm-config
+$ sudo apt-get install build-essential
 $ curl -fsS https://dlang.org/install.sh | bash -s dmd
 ```
 

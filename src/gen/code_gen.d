@@ -5,7 +5,7 @@ import std.conv;
 import gen.backend;
 import gen.target;
 
-import gen.llvm.driver;
+import gen.clang;
 
 import kir.ir_mod;
 
@@ -14,8 +14,8 @@ import logger;
 void generate_code(Target t, IR_Module[] modules) {
 	Backend_Driver backend;
 	final switch (t) {
-	case Target.LLVM:
-		backend = new LLVM_Driver;
+	case Target.CLANG:
+		backend = new CLANG_Driver;
 		break;
 	}
 
